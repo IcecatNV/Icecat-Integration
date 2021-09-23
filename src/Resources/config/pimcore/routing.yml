@@ -1,0 +1,5 @@
+ice_cat:
+    resource: "@IceCatBundle/Controller/"
+    type:     annotation
+    prefix:   /
+

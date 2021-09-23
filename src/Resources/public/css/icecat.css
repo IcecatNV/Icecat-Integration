@@ -1,0 +1,51 @@
+.pimcore_icon_table {
+    background: url(/bundles/pimcoreadmin/img/flat-color-icons/grid.svg) center center no-repeat !important;
+}
+
+.pimcore_icon_table_icecat_cat {
+    background: url(/bundles/icecat/img/cat.png) center center no-repeat !important;
+}
+
+.pimcore_icon_table_icecat_menu {
+    background: url(/bundles/icecat/img/cat.png) center center no-repeat !important;
+}
+.pimcore_class_Icecat .object_field_type_classificationstore .x-fieldset-header {display: None;}
+.pimcore_class_Icecat .object_field_type_classificationstore .x-fieldset-with-title {border: None;}
+
+.test:hover{
+    background-color: #3c3f41 !important;
+}
+.test:click{
+    background-color: #3c3f41 !important;
+}
+.test{
+    background-color: #3c3f41 !important;
+}
+
+
+.test #iceCat_create_object_button-btnInnerEl{
+    color:white;
+    
+}
+/* .test #iceCat_create_object_button-btnInnerEl:hover{
+    background-color:#000;
+    color:white;
+} */
+.test2{
+    background-color: #3f5498!important;
+   
+}
+.test:click{
+    background-color: #3f5498 !important;
+}
+.test2:hover{
+    background-color: #3f5498!important;
+}
+.test2:click{
+    background-color: #3f5498!important;
+}
+.test2 #iceCat_create_object_button-btnInnerEl  {
+    color: white;
+    
+    /* background-color: blue; */
+}

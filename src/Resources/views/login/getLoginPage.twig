@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <style>
+        body {
+            color: #000;
+        }
+
+        .mt-10 {
+            margin-top: 30px;
+        }
+
+        .btn-login {
+            background-color: #3f5498;
+            color: #fff;
+            font-weight: 700;
+            padding: .5em 1em;
+            outline: none;
+            opacity: 0.5;
+            border: none;
+            border-radius: 1.5em;
+            min-width: 12em;
+        }
+
+        .btn-login:hover {
+            background-color: #3f5498;
+            color: #fff;
+        }
+
+        .links-set a {
+            color: #254099;
+        }
+    </style>
+    <script>
+        let helper1 = new window.top.pimcore.plugin.iceCatHelper();
+        function getOtherInfo()
+        {
+            helper1.getOtherInfo();
+        }
+    </script>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="col-md-12 mt-10">
+        {% if login_status == 1 %}
+        <div class="row" id="icecat_login_page_container" style="display:  None">
+        {% else %}
+            <div class="row" id="icecat_login_page_container">
+        {% endif %}
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <form action="javascript:void(0)">
+                    <div class="text-center">
+                        <p>Login for users (channel partners, manufacturers) of Icecat data.</p>
+                    </div>
+                    <div class="text-center" id="icecat_login_err_msg" style="display: none;">
+                        <p style="color: red;"></p>
+                    </div>
+                    <div class="form-group row">
+                       
+                        <div class="col-sm-12">
+                            <input type="text" required="true" placeholder="Username"  class="form-control" id="inputEmail3" id="icecat_login_username">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                       
+                        <div class="col-sm-12">
+                            <input type="password" required="true" placeholder="Password"  class="form-control" id="inputPassword3" id="icecat_login_password">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 ">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="gridCheck1">
+                                <label class="form-check-label" for="gridCheck1">
+                                    Stay logged in
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12 text-center">
+                            <button  id="icecat_login_button" class="btn btn-primary btn-login" onclick="enableOtherTabs()">Sign in</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-3"></div>
+        </div>
+                {% if login_status == 0 %}
+                <div class="row" id="icecat_alreadt_loggedin_page_container" style="display:  None">
+                    {% else %}
+                    <div class="row" id="icecat_alreadt_loggedin_page_container">
+                        <script>
+                            getOtherInfo();
+                        </script>
+                        {% endif %}
+            <div class="col-sm-12 text-center">
+                <h3>Logged in successfully!!</h3>
+                <button  id="icecat_login_button" class="btn btn-primary btn-login" onclick="logOutUser()">Sign Out</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script type="application/javascript">
+    let helper = new window.top.pimcore.plugin.iceCatHelper();
+    function enableOtherTabs() {
+        let loginMsgEle = $("#icecat_login_err_msg");
+        let loginButtonEle = $("#icecat_login_button");
+        let userName = $("#inputEmail3").val();
+        let password = $("#inputPassword3").val();
+        //        p_r($result);die;
+        let loginScreen = $('#icecat_login_page_container');
+        let logoutScreen = $('#icecat_alreadt_loggedin_page_container');
+        if (!userName || !password) {
+            loginMsgEle.html('<p style="color:red">Username & Password are mandatory!!</p>');
+            loginMsgEle.show();
+            return;
+        }
+        helper.loginIceCatUser(userName, password, loginMsgEle, loginButtonEle, loginScreen, logoutScreen);
+    }
+
+    function logOutUser() {
+        let loginScreen = $('#icecat_login_page_container');
+        let logoutScreen = $('#icecat_alreadt_loggedin_page_container');
+        helper.logOutCatUser(loginScreen, logoutScreen);
+    }
+
+    function getOtherInfo()
+    {
+        helper.getOtherInfo();
+    }
+</script>
+</body>
+
+</html>

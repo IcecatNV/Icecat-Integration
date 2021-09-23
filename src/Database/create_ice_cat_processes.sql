@@ -1,0 +1,26 @@
+DROP TABLE IF EXISTS `ice_cat_processes`;
+CREATE TABLE `ice_cat_processes` (
+  `total_languages` int(5) NOT NULL DEFAULT 1,
+  `file_row_count` int(11) NOT NULL,
+  `fetched_blank_records` int(11) DEFAULT NULL,
+  `languages` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pimcore_user_id` int(11) NOT NULL,
+  `icecat_user_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `filename` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_extension` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `jobid` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `total_records` int(11) DEFAULT NULL,
+  `total_fetch_records` int(11) DEFAULT NULL,
+  `fetched_records` int(11) DEFAULT NULL,
+  `processed_records` int(11) DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fetching_status` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `processing_status` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `completed` tinyint(4) NOT NULL DEFAULT 0,
+  `fetching_error` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `processing_error` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `starting_dateTime` datetime DEFAULT NULL,
+  `last_run_dateTime` datetime DEFAULT NULL,
+  `end_dateTime` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

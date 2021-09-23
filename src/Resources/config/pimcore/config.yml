@@ -1,0 +1,20 @@
+monolog:
+    channels:
+        - "clientdataimport"
+        - "clientobjectcreate"
+        
+    handlers:
+        clientdataimport:
+            level:    debug
+            type:     rotating_file
+            path:     '%kernel.logs_dir%/icecat-data-import.log'
+            channels: [clientdataimport]
+            max_files: 10
+  
+        clientobjectcreate:
+            level:    debug
+            type:     rotating_file
+            path:     '%kernel.logs_dir%/icecat-object-create.log'
+            channels: [clientobjectcreate]
+            max_files: 5
+        

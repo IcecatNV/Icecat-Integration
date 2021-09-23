@@ -1,0 +1,28 @@
+{
+    "name": "mtt/demo-plugin",
+    "description": "Testing plugin",
+    "type": "pimcore-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Faisal Afroz",
+            "email": "faisalroz@mindstask.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "pimcore/pimcore": "^10.0"
+    },
+    "autoload": {
+    "psr-4": {
+      "IceCatBundle\\": "src/"
+    }
+  },
+  "extra": {
+    "pimcore": {
+      "bundles": [
+        "IceCatBundle\\IceCatBundle"
+      ]
+    }
+  }
+}
