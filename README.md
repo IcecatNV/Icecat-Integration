@@ -64,7 +64,7 @@ Some major data sections of the products created are:-
 - **Story**: Product story can be seen also, in a rich html format.
     ![img1](./doc//images/story.png)
 - **3d Tour**: Some products may also contain a 3D view, which can be seen in the product’s preview.
-     ![img1](./doc//images/3d .png)
+     ![img1](./doc//images/3d.png)
 The play pause button can be use to play or pause the 3d animation 
 - **Specification**: It contains the dynamic specification of the product , which can vary product wise.
 ![img1](./doc//images/specs.png)
