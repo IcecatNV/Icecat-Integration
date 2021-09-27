@@ -130,7 +130,7 @@ class DefaultController extends FrontendController
 
             return $this->json($response);
         } catch (\Exception $e) {
-            p_r($e->getMessage());
+
             $response = ["status" => "false", "count" => "0"];
             return $this->json($response);
         }
@@ -279,7 +279,7 @@ class DefaultController extends FrontendController
                 $availableFields[] = $colConfigSys;
             } else {
                 $colConfig = array();
-                //echo $key; p_r($sc);
+
                 $colConfig['key'] = $key;
                 $colConfig['type'] = $sc['fieldConfig']['type'];
 

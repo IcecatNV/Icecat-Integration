@@ -1,4 +1,3 @@
-
 pimcore.registerNS("pimcore.plugin.IceCatGrid");
 pimcore.plugin.IceCatGrid = Class.create({
 
@@ -7,13 +6,13 @@ pimcore.plugin.IceCatGrid = Class.create({
     showKey: true,
     enableEditor: false,
 
-    initialize: function (selectedClass, fields, url, baseParams, isSearch, savedFilters, sortinfo) {
+    initialize: function(selectedClass, fields, url, baseParams, isSearch, savedFilters, sortinfo) {
         this.selectedClass = selectedClass;
         this.fields = fields;
         this.isSearch = isSearch;
         this.savedFilters = savedFilters;
         this.sortinfo = sortinfo;
-        this.previousPage=1;
+        this.previousPage = 1;
 
         this.url = url;
         if (baseParams) {
@@ -34,24 +33,24 @@ pimcore.plugin.IceCatGrid = Class.create({
         this.baseParams['fields[]'] = fieldParam;
     },
 
-    getStore: function (noBatchColumns, batchAppendColumns, _self) {
+    getStore: function(noBatchColumns, batchAppendColumns, _self) {
 
         batchAppendColumns = batchAppendColumns || [];
         // the store
         var readerFields = [];
-        readerFields.push({name: "oo_id", allowBlank: true});
-        readerFields.push({name: "idPath", allowBlank: true});
-        readerFields.push({name: "fullpath", allowBlank: true});
-        readerFields.push({name: "published", allowBlank: true});
-        readerFields.push({name: "type", allowBlank: true});
-        readerFields.push({name: "subtype", allowBlank: true});
-        readerFields.push({name: "filename", allowBlank: true});
-        readerFields.push({name: "classname", allowBlank: true});
-        readerFields.push({name: "creationDate", allowBlank: true, type: 'date', dateFormat: 'timestamp'});
-        readerFields.push({name: "modificationDate", allowBlank: true, type: 'date', dateFormat: 'timestamp'});
-        readerFields.push({name: "inheritedFields", allowBlank: false});
-        readerFields.push({name: "metadata", allowBlank: true});
-        readerFields.push({name: "#kv-tr", allowBlank: true});
+        readerFields.push({ name: "oo_id", allowBlank: true });
+        readerFields.push({ name: "idPath", allowBlank: true });
+        readerFields.push({ name: "fullpath", allowBlank: true });
+        readerFields.push({ name: "published", allowBlank: true });
+        readerFields.push({ name: "type", allowBlank: true });
+        readerFields.push({ name: "subtype", allowBlank: true });
+        readerFields.push({ name: "filename", allowBlank: true });
+        readerFields.push({ name: "classname", allowBlank: true });
+        readerFields.push({ name: "creationDate", allowBlank: true, type: 'date', dateFormat: 'timestamp' });
+        readerFields.push({ name: "modificationDate", allowBlank: true, type: 'date', dateFormat: 'timestamp' });
+        readerFields.push({ name: "inheritedFields", allowBlank: false });
+        readerFields.push({ name: "metadata", allowBlank: true });
+        readerFields.push({ name: "#kv-tr", allowBlank: true });
 
         this.noBatchColumns = [];
         this.batchAppendColumns = [];
@@ -102,7 +101,7 @@ pimcore.plugin.IceCatGrid = Class.create({
         var proxy = {
             type: 'ajax',
             url: this.url,
-            noCache :true,
+            noCache: true,
             reader: {
                 type: 'json',
                 totalProperty: 'total',
@@ -110,10 +109,10 @@ pimcore.plugin.IceCatGrid = Class.create({
                 rootProperty: 'data'
             },
             api: {
-                create: this.url + glue + "xaction=create&"+random,
-                read: this.url + glue + "xaction=read&"+random,
-                update: this.url + glue + "xaction=update&"+random,
-                destroy: this.url + glue + "xaction=destroy&"+random
+                create: this.url + glue + "xaction=create&" + random,
+                read: this.url + glue + "xaction=read&" + random,
+                update: this.url + glue + "xaction=update&" + random,
+                destroy: this.url + glue + "xaction=destroy&" + random
             },
             actionMethods: {
                 create: 'POST',
@@ -122,16 +121,15 @@ pimcore.plugin.IceCatGrid = Class.create({
                 destroy: 'POST'
             },
             listeners: {
-                exception: function (proxy, request, operation, eOpts) {
-                }.bind(this)
+                exception: function(proxy, request, operation, eOpts) {}.bind(this)
             },
             extraParams: this.baseParams
         };
 
         var writer = null;
         var listeners = {
-            beforeload: function (store, operation, eOpts) {
-                
+            beforeload: function(store, operation, eOpts) {
+
                 let ids = [];
                 let selectedRows = this.grid.getSelectionModel().getSelection();
                 for (let i = 0; i < selectedRows.length; i++) {
@@ -147,20 +145,20 @@ pimcore.plugin.IceCatGrid = Class.create({
                 store.proxy.extraParams.gtinsPage = this.previousPage;
                 this.previousPage = store.currentPage
             }.bind(_self),
-            load: function (store, operation, eOpts) {
+            load: function(store, operation, eOpts) {
                 let selModel = this.grid.getSelectionModel();
-                pimcore.globalmanager.add('productCount',store.getCount());
-              
-                items = [];
-                store.each(function (item, index) {
-                   // console.log(item);
-                    if (!!+item.data.sel) {
-                        items.push(item);
+                pimcore.globalmanager.add('productCount', store.getCount());
 
-                       // console.log(index);
-                    }
-                })
-                // item.set("selected", !!+item.data.sel, {dirty: true})
+                items = [];
+                store.each(function(item, index) {
+                        // console.log(item);
+                        if (!!+item.data.sel) {
+                            items.push(item);
+
+                            // console.log(index);
+                        }
+                    })
+                    // item.set("selected", !!+item.data.sel, {dirty: true})
                 selModel.select(items);
                 // console.log({store:store});
                 // console.log({storeData:store.getData()});
@@ -180,7 +178,7 @@ pimcore.plugin.IceCatGrid = Class.create({
         var sortConfig = [];
 
         if (typeof this.sortinfo.field !== "undefined") {
-            sortConfig = [{property: this.sortinfo.field, direction: this.sortinfo.direction}];
+            sortConfig = [{ property: this.sortinfo.field, direction: this.sortinfo.direction }];
         }
 
         if (this.savedFilters != '') {
@@ -192,7 +190,7 @@ pimcore.plugin.IceCatGrid = Class.create({
             remoteFilter: true,
             listeners: listeners,
             autoDestroy: true,
-            clearOnPageLoad:true,
+            clearOnPageLoad: true,
             fields: readerFields,
             proxy: proxy,
             autoSync: true,
@@ -207,14 +205,14 @@ pimcore.plugin.IceCatGrid = Class.create({
     },
 
     selectionColumn: null,
-    getSelectionColumn: function () {
+    getSelectionColumn: function() {
         if (this.selectionColumn == null) {
             this.selectionColumn = Ext.create('Ext.selection.CheckboxModel', {});
         }
         return this.selectionColumn;
     },
 
-    getGridColumns: function () {
+    getGridColumns: function() {
         // get current class
         var classStore = pimcore.globalmanager.get("object_types_store");
         var klassIndex = classStore.findExact("text", this.selectedClass);
@@ -239,33 +237,58 @@ pimcore.plugin.IceCatGrid = Class.create({
         var gridFilters = this.getGridFilters();
 
         var fields = this.fields;
-        
+
         for (var i = 0; i < fields.length; i++) {
             var field = fields[i];
 
             if (field.key == "subtype") {
-                
-                gridColumns.push({text: t("type"), width: this.getColumnWidth(field, 40), sortable: true, dataIndex: 'subtype',
+
+                gridColumns.push({
+                    text: t("type"),
+                    width: this.getColumnWidth(field, 40),
+                    sortable: true,
+                    dataIndex: 'subtype',
                     hidden: !this.showSubtype,
-                    renderer: function (value, metaData, record, rowIndex, colIndex, store) {
-                        return '<div style="height: 16px;" class="pimcore_icon_asset  pimcore_icon_'
-                            + value + '" name="' + t(record.data.subtype) + '">&nbsp;</div>';
-                    }});
+                    renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                        return '<div style="height: 16px;" class="pimcore_icon_asset  pimcore_icon_' +
+                            value + '" name="' + t(record.data.subtype) + '">&nbsp;</div>';
+                    }
+                });
             } else if (field.key == "oo_id") {
-                gridColumns.push({text: 'ID', width: this.getColumnWidth(field, this.getColumnWidth(field, 40)), sortable: true,
-                    dataIndex: 'oo_id', filter: 'numeric'});
+                gridColumns.push({
+                    text: 'ID',
+                    width: this.getColumnWidth(field, this.getColumnWidth(field, 40)),
+                    sortable: true,
+                    dataIndex: 'oo_id',
+                    filter: 'numeric'
+                });
             } else if (field.key == "is_product_found") {
                 // gridColumns.push({text: 'Found', width: this.getColumnWidth(field, this.getColumnWidth(field, 40)), sortable: true,
                 //     dataIndex: 'is_product_found', filter: 'numeric'});
             } else if (field.key == "gtin") {
-                gridColumns.push({text: "Icecat Id", width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: 'gtin', filter: "string"}); }
-            else if (field.key == "original_gtin") {
-                        gridColumns.push({text: "GTIN", width: this.getColumnWidth(field, 200), sortable: true,
-                            dataIndex: 'original_gtin', filter: "string"}); }
-            else if (field.key == "product_name") {
-                gridColumns.push({text: "Product Name", width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: 'product_name', filter: "string"});
+                gridColumns.push({
+                    text: "Icecat Id",
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'gtin',
+                    filter: "string"
+                });
+            } else if (field.key == "original_gtin") {
+                gridColumns.push({
+                    text: "GTIN",
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'original_gtin',
+                    filter: "string"
+                });
+            } else if (field.key == "product_name") {
+                gridColumns.push({
+                    text: "Product Name",
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'product_name',
+                    filter: "string"
+                });
             } else if (field.key == "fetching_date") {
                 // gridColumns.push({text: "Fetching Date (System)", width: this.getColumnWidth(field, 200), sortable: true,
                 //     dataIndex: "fetching_date", filter: 'date', editable: false, renderer: function (d) {
@@ -281,34 +304,74 @@ pimcore.plugin.IceCatGrid = Class.create({
                     disabled: this.isSearch
                 }));
             } else if (field.key == "fullpath") {
-                gridColumns.push({text: t("path"), width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: 'fullpath', filter: "string"});
+                gridColumns.push({
+                    text: t("path"),
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'fullpath',
+                    filter: "string"
+                });
             } else if (field.key == "filename") {
-                gridColumns.push({text: t("filename"), width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: 'filename', hidden: !showKey});
+                gridColumns.push({
+                    text: t("filename"),
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'filename',
+                    hidden: !showKey
+                });
             } else if (field.key == "key") {
-                gridColumns.push({text: t("key"), width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: 'key', hidden: !showKey, filter: 'string'});
+                gridColumns.push({
+                    text: t("key"),
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'key',
+                    hidden: !showKey,
+                    filter: 'string'
+                });
             } else if (field.key == "classname") {
-                gridColumns.push({text: t("class"), width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: 'classname', renderer: function (v) {
+                gridColumns.push({
+                    text: t("class"),
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'classname',
+                    renderer: function(v) {
                         return ts(v);
-                    }/*, hidden: true*/});
+                    } /*, hidden: true*/
+                });
             } else if (field.key == "creationDate") {
-                gridColumns.push({text: t("creationdate") + " (System)", width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: "creationDate", filter: 'date', editable: false, renderer: function (d) {
+                gridColumns.push({
+                    text: t("creationdate") + " (System)",
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: "creationDate",
+                    filter: 'date',
+                    editable: false,
+                    renderer: function(d) {
                         return Ext.Date.format(d, "Y-m-d H:i:s");
-                    }/*, hidden: !propertyVisibility.creationDate*/});
+                    } /*, hidden: !propertyVisibility.creationDate*/
+                });
             } else if (field.key == "modificationDate") {
-                gridColumns.push({text: t("modificationdate") + " (System)", width: this.getColumnWidth(field, 200), sortable: true,
-                    dataIndex: "modificationDate", filter: 'date', editable: false, renderer: function (d) {
+                gridColumns.push({
+                    text: t("modificationdate") + " (System)",
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: "modificationDate",
+                    filter: 'date',
+                    editable: false,
+                    renderer: function(d) {
 
                         return Ext.Date.format(d, "Y-m-d H:i:s");
-                    }});
+                    }
+                });
             } else {
                 if (fields[i].isOperator) {
-                    var operatorColumnConfig = {text: field.attributes.label ? field.attributes.label : field.attributes.key, width: 200, sortable: false,
-                        dataIndex: fields[i].key, editable: false};
+                    var operatorColumnConfig = {
+                        text: field.attributes.label ? field.attributes.label : field.attributes.key,
+                        width: 200,
+                        sortable: false,
+                        dataIndex: fields[i].key,
+                        editable: false
+                    };
 
                     if (field.attributes.renderer && pimcore.object.tags[field.attributes.renderer]) {
                         var tag = new pimcore.object.tags[field.attributes.renderer]({}, {});
@@ -319,7 +382,7 @@ pimcore.plugin.IceCatGrid = Class.create({
                     }
 
 
-                    operatorColumnConfig.getEditor = function () {
+                    operatorColumnConfig.getEditor = function() {
                         return new pimcore.object.helpers.gridCellEditor({
                             fieldInfo: {
                                 layout: {
@@ -360,7 +423,7 @@ pimcore.plugin.IceCatGrid = Class.create({
                         gridColumns[gridColumns.length - 1].hidden = false;
                         gridColumns[gridColumns.length - 1].layout = fields[i];
                     } else {
-                        console.log("could not resolve field type: " + fieldType);
+                        // console.log("could not resolve field type: " + fieldType);
                     }
                 }
             }
@@ -369,7 +432,7 @@ pimcore.plugin.IceCatGrid = Class.create({
         return gridColumns;
     },
 
-    getColumnWidth: function (field, defaultValue) {
+    getColumnWidth: function(field, defaultValue) {
         if (field.width) {
             return field.width;
         } else if (field.layout && field.layout.width) {
@@ -379,7 +442,7 @@ pimcore.plugin.IceCatGrid = Class.create({
         }
     },
 
-    getGridFilters: function () {
+    getGridFilters: function() {
         var configuredFilters = {
             filter: "string",
             creationDate: "date",
@@ -389,9 +452,9 @@ pimcore.plugin.IceCatGrid = Class.create({
         var fields = this.fields;
         for (var i = 0; i < fields.length; i++) {
 
-            if (fields[i].key != "oo_id" && fields[i].key != "published"
-                && fields[i].key != "filename" && fields[i].key != "classname"
-                && fields[i].key != "creationDate" && fields[i].key != "modificationDate") {
+            if (fields[i].key != "oo_id" && fields[i].key != "published" &&
+                fields[i].key != "filename" && fields[i].key != "classname" &&
+                fields[i].key != "creationDate" && fields[i].key != "modificationDate") {
 
                 if (fields[i].key == "fullpath") {
                     configuredFilters.fullpath = {
@@ -410,7 +473,7 @@ pimcore.plugin.IceCatGrid = Class.create({
                             configuredFilters[filter.dataIndex] = filter;
                         }
                     } else {
-                        console.log("could not resolve fieldType: " + fieldType);
+                        //  console.log("could not resolve fieldType: " + fieldType);
 
                     }
                 }
@@ -423,7 +486,7 @@ pimcore.plugin.IceCatGrid = Class.create({
 
     },
 
-    applyGridEvents: function (grid) {
+    applyGridEvents: function(grid) {
         var fields = this.fields;
         for (var i = 0; i < fields.length; i++) {
 
@@ -431,16 +494,16 @@ pimcore.plugin.IceCatGrid = Class.create({
                 continue;
             }
 
-            if (fields[i].key != "oo_id" && fields[i].key != "published" && fields[i].key != "fullpath"
-                && fields[i].key != "filename" && fields[i].key != "classname"
-                && fields[i].key != "creationDate" && fields[i].key != "modificationDate") {
+            if (fields[i].key != "oo_id" && fields[i].key != "published" && fields[i].key != "fullpath" &&
+                fields[i].key != "filename" && fields[i].key != "classname" &&
+                fields[i].key != "creationDate" && fields[i].key != "modificationDate") {
 
                 var fieldType = fields[i].type;
                 var tag = pimcore.object.tags[fieldType];
                 if (tag) {
                     tag.prototype.applyGridEvents(grid, fields[i]);
                 } else {
-                    console.log("could not resolve field type " + fieldType);
+                    // console.log("could not resolve field type " + fieldType);
                 }
             }
 

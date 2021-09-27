@@ -40,7 +40,6 @@ class IceCatCsvLogger
             $this->currentFileName = $fileName;
             $this->cleanUpLogger();
         } catch (\Throwable $e) {
-            p_r($e->getMessage());
         }
     }
 

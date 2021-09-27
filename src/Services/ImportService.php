@@ -318,7 +318,7 @@ class ImportService
             return $result;
         } catch (\Exception $e) {
 
-            p_r($e->getMessage());
+
             $isProductFound = 0;
             # LOGGING
             $this->logMessage = 'ERROR IN  PROCESSING ROW FOR JOB ID :' .  $this->currentJObId;
