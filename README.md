@@ -35,35 +35,28 @@ If the languages are subscribed in your open icecat account and the languages ar
 
 - File upload can be done using a url or  from a file(formats accepted: Excel and Csv)
 **<span style = "color:red; font-size:14px">Note : File should contain column with name(Product code and Brand Name) or (GTIN/EAN ) , file can contain all these column together also</span>**
-
-
 - As you hit the upload button, the import process will start and you will be able to see the Import Progress.
 ![img1](./doc//images/import-progress.png)
 
 
 5. After importing data, you will see a tab with all found products , you can select the product and click the Create Products button in order to create Pimcore Products .
 ![img1](./doc//images/import-progress.png)
-
 As the Product Creation starts, a progress bar will appear
 ![img1](./doc//images/creationProgess.png)
 6. Once the creation is completed, You can find the Products in the ‘ICECAT’ folder.
 7. Now you can open the Products and see the preview,you can also edit the Products
 ![img1](./doc//images/preview.png)
-
-
 You can edit the product in Pimcore Dataobject’s ICECAT folder.
 ![img1](./doc//images/edit.png)
-    8. Once the Pimcore products creation process is completed, You can upload a new file and fetch data.
+8. Once the Pimcore products creation process is completed, You can upload a new file and fetch data.
 
 
 **Pimcore product’s content**
 Some major data sections of the products created are:-
-    • **Video** : User can see the video  in edit section and also in product’s preview section
-    
-
-**Video in edit section**
+- **Video** : User can see the video  in edit section and also in product’s preview section
+    - **Video in edit section**
 ![img1](./doc//images/video_preview.png)
-**Video in preview section**
+    - **Video in preview section**
 ![img1](./doc//images/video_preview_2.png)
 
 
