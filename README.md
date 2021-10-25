@@ -8,8 +8,8 @@ Prerequisites :
 
 To install this plugin use following commands:
 - Download via composer : composer require icecat/icecat-integration
-- Enable the plugin :  bin/console pimcore:bundle:enable IcecatBundle
-- Install the plugin: bin/console pimcore:bundle:install IcecatBundle
+- Enable the plugin :  bin/console pimcore:bundle:enable IceCatBundle
+- Install the plugin: bin/console pimcore:bundle:install IceCatBundle
 
 **Features in a nutshell**
 - Configure Import from open-icecat.
