@@ -98,6 +98,15 @@ class InstallClass extends SettingsStoreAwareInstaller
 
         }
 
+        $class = \Pimcore\Model\DataObject\ClassDefinition::getByName('IcecatCategory');
+        if ($class) {
+            try {
+                $class->delete();
+            } catch(\Throwable $e) {
+                // do fancy things here ..
+            }
+        }
+
         $folder = DataObject\Folder::getByPath('/ICECAT');
         if($folder) {
             try {
