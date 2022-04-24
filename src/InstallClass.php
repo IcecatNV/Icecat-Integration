@@ -2,39 +2,36 @@
 
 namespace IceCatBundle;
 
-use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
+use IceCatBundle\Migrations\Version20220423095622;
+use Pimcore\Model\DataObject;
+use Pimcore\Model\DataObject\ClassDefinition;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Console\Output\OutputInterface;
-use Pimcore\Model\DataObject\ClassDefinition;
-use Pimcore\Model\DataObject;
+use Pimcore\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 
-class InstallClass extends AbstractInstaller
+class InstallClass extends SettingsStoreAwareInstaller
 {
-
+    /**
+     * @var string
+     */
     const STORE_NAME = 'icecat-store';
-    protected $storeId = 1;
 
     /**
-     * @var BufferedOutput
+     * @var int
      */
-    protected $output;
-
-    public function __construct()
-    {
-        $this->output = new BufferedOutput(Output::VERBOSITY_NORMAL, true);
-    }
+    protected $storeId = 1;
 
     /**
      * {@inheritdoc}
      */
     public function install()
     {
-
-        /* create Icecat class */
         $this->createClassificationStore();
-        $this->createclassdefinition();
-        $this->createTable();
+        $this->createClassDefinition();
+        $this->createTables();
+
+        parent::install();
     }
 
     /**
@@ -42,7 +39,11 @@ class InstallClass extends AbstractInstaller
      */
     public function uninstall()
     {
-        //$this->removeClass();
+        $this->removeClass();
+        $this->removeTables();
+        $this->removeClassificationStore();
+
+        parent::uninstall();
     }
 
     /**
@@ -50,11 +51,11 @@ class InstallClass extends AbstractInstaller
      */
     public function isInstalled()
     {
-        // $memberClass = ClassDefinition::getByName('Icecat');
-        // if ($memberClass) {
-        //     return true;
-        // }
-        return true;
+        $memberClass = ClassDefinition::getByName('Icecat');
+        if ($memberClass) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -62,7 +63,11 @@ class InstallClass extends AbstractInstaller
      */
     public function canBeInstalled()
     {
-        return true;
+        $memberClass = ClassDefinition::getByName('Icecat');
+        if (!$memberClass) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -70,28 +75,48 @@ class InstallClass extends AbstractInstaller
      */
     public function canBeUninstalled()
     {
-        return true;
+        $memberClass = ClassDefinition::getByName('Icecat');
+        if ($memberClass) {
+            return true;
+        }
+        return false;
     }
 
     /**
-     * @return OutputInterface
+     * Remove Icecat class
+     * @return void
      */
-    public function getOutput(): OutputInterface
-    {
-        return $this->output;
-    }
-
     public function removeClass()
     {
         $class = ClassDefinition::getByName('Icecat');
-        $class->delete();
+        if($class) {
+            try {
+                $class->delete();
+            } catch(\Throwable $e) {
+                // do fancy things here ..
+            }
+
+        }
+
+        $folder = DataObject\Folder::getByPath('/ICECAT');
+        if($folder) {
+            try {
+                $folder->delete();
+            } catch(\Throwable $e) {
+                // do fancy things here ..
+            }
+        }
     }
 
-    public function createTable()
+    /**
+     * Create icecat bundle related tables
+     * @return void
+     */
+    public function createTables()
     {
         $db = \Pimcore\Db::get();
         $db->query(
-            "DROP TABLE IF EXISTS `ice_cat_processes`;
+            'DROP TABLE IF EXISTS `ice_cat_processes`;
             CREATE TABLE `ice_cat_processes` (
             `total_languages` int(5) NOT NULL DEFAULT 1,
             `file_row_count` int(11) NOT NULL,
@@ -117,14 +142,11 @@ class InstallClass extends AbstractInstaller
             `end_dateTime` datetime DEFAULT NULL,
             `created_at` datetime NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-        "
+        '
         );
 
         $db->query(
-
-            "
-
-            DROP TABLE IF EXISTS `icecat_imported_data`;
+            "DROP TABLE IF EXISTS `icecat_imported_data`;
             CREATE TABLE `icecat_imported_data` (
               `original_gtin` varchar(111) COLLATE utf8mb4_unicode_ci NOT NULL,
               `reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -148,14 +170,11 @@ class InstallClass extends AbstractInstaller
               `updated_at` datetime NOT NULL DEFAULT current_timestamp(),
               PRIMARY KEY (`id`),
               UNIQUE KEY `gtin_icecat_username_search_key_language_job_id` (`gtin`,`icecat_username`,`search_key`,`language`,`job_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-            
-            "
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
         );
 
         $db->query(
-
-            "DROP TABLE IF EXISTS `icecat_user_login`;
+            'DROP TABLE IF EXISTS `icecat_user_login`;
                 CREATE TABLE `icecat_user_login` (
                 `id` int(5) NOT NULL AUTO_INCREMENT,
                 `icecat_user_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -164,10 +183,32 @@ class InstallClass extends AbstractInstaller
                 `lastactivity_time` datetime DEFAULT NULL,
                 `creation_time` datetime DEFAULT NULL,
                 PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
         );
     }
 
+    /**
+     * Remove icecat bundle related tables
+     * @return void
+     */
+    public function removeTables()
+    {
+        $db = \Pimcore\Db::get();
+        $db->query(
+            "DROP TABLE IF EXISTS ice_cat_processes"
+        );
+        $db->query(
+            "DROP TABLE IF EXISTS icecat_imported_data"
+        );
+        $db->query(
+            "DROP TABLE IF EXISTS icecat_user_login"
+        );
+    }
+
+    /**
+     * Create classification store for Icecat product attributes
+     * @return void
+     */
     public function createClassificationStore()
     {
         $name = self::STORE_NAME;
@@ -183,20 +224,86 @@ class InstallClass extends AbstractInstaller
             $this->storeId = $config->getId();
         }
     }
-    public function createclassdefinition()
+
+    /**
+     * Remove classification store for icecat
+     * @return void
+     */
+    public function removeClassificationStore()
+    {
+        $db = \Pimcore\Db::get();
+        $db->query(
+            "DROP TABLE IF EXISTS `object_classificationstore_data_Icecat`"
+        );
+        $db->query(
+            "DROP TABLE IF EXISTS `object_classificationstore_groups_Icecat`"
+        );
+        $name = self::STORE_NAME;
+        $config = \Pimcore\Model\DataObject\Classificationstore\StoreConfig::getByName($name);
+
+        if($config) {
+
+            $collectionIds = $db->fetchAll("SELECT * FROM classificationstore_collections where storeId = {$config->getId()}");
+            $groupIds = $db->fetchAll("SELECT * FROM classificationstore_groups where storeId = {$config->getId()}");
+
+            foreach($collectionIds as $collectionId) {
+                $db->query(
+                    "DELETE FROM classificationstore_collectionrelations WHERE colId = {$collectionId['id']}"
+                );
+            }
+
+            foreach($groupIds as $groupId) {
+                $db->query(
+                    "DELETE FROM classificationstore_relations WHERE groupId = {$groupId['id']}"
+                );
+            }
+
+            $db->query(
+                "DELETE FROM classificationstore_collections WHERE storeId = {$config->getId()}"
+            );
+
+            $db->query(
+                "DELETE FROM classificationstore_groups WHERE storeId = {$config->getId()}"
+            );
+
+            $db->query(
+                "DELETE FROM classificationstore_keys WHERE storeId = {$config->getId()}"
+            );
+
+            $db->query(
+                "DELETE FROM classificationstore_stores WHERE id = {$config->getId()}"
+            );
+        }
+    }
+
+    /**
+     * Create Icecat class
+     * @return void
+     */
+    public function createClassDefinition()
     {
         $classname = 'Icecat';
-        $filepath = __DIR__ . '/Install/class_Icecat_export.json';
+        $filepath = __DIR__ . '/Install/class_Icecat_export_v1.json';
         $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
         if (!$class) {
             $class = new \Pimcore\Model\DataObject\ClassDefinition();
             $class->setName($classname);
             $class->setGroup('Icecat');
-
             $json = file_get_contents($filepath);
-
-            $success = \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
+            \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
         }
+
+        $classname = 'IcecatCategory';
+        $filepath = __DIR__ . '/Install/class_IcecatCategory_export_v1.json';
+        $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
+        if (!$class) {
+            $class = new \Pimcore\Model\DataObject\ClassDefinition();
+            $class->setName($classname);
+            $class->setGroup('Icecat');
+            $json = file_get_contents($filepath);
+            \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
+        }
+
     }
 
     /**
@@ -205,5 +312,13 @@ class InstallClass extends AbstractInstaller
     public function needsReloadAfterInstall()
     {
         return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getLastMigrationVersionClassName(): ?string
+    {
+        return Version20220423095622::class;
     }
 }

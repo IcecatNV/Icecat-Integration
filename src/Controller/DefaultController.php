@@ -2,45 +2,40 @@
 
 namespace IceCatBundle\Controller;
 
+use IceCatBundle\Services\CreateObjectService;
 use IceCatBundle\Services\DataService;
 use IceCatBundle\Services\FileUploadService;
+use IceCatBundle\Services\IceCatCsvLogger;
+use IceCatBundle\Services\ImportService;
+use IceCatBundle\Services\JobHandlerService;
 use Pimcore\Controller\FrontendController;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\User;
+use Pimcore\Tool;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Routing\Annotation\Route;
-use IceCatBundle\Services\ImportService;
-use IceCatBundle\Services\CreateObjectService;
-use IceCatBundle\Services\IceCatCsvLogger;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-
-
-
-use IceCatBundle\Services\JobHandlerService;
-use Pimcore\Tool;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends FrontendController
 {
     const SYSTEM_COLUMNS = ['oo_id', 'fullpath', 'key', 'published', 'creationDate', 'modificationDate', 'filename', 'classname'];
 
     const ICE_CAT_FOLDER_NAME = '/ICECAT/';
-    const JOB_DATA_CONTAINER_TABLE = "ice_cat_processes";
-
+    const JOB_DATA_CONTAINER_TABLE = 'ice_cat_processes';
 
     /**
      * @Route("/ice-cat-create")
+     *
      * @param CreateObjectService $createOb
      */
     public function createAction(CreateObjectService $createOb)
     {
         try {
-
-
             $response = $createOb->CreateObject(2, '6136f27516bd3');
         } catch (\Exception $e) {
         }
@@ -48,40 +43,38 @@ class DefaultController extends FrontendController
         die;
     }
 
-
     /**
      *
      * @Route("/admin/icecat/get-logfile", name="icecat_loggrid_data", options={"expose"=true})
+     *
      * @return JsonResponse
      */
     public function getObjectCreationLogFiles(Request $request, IceCatCsvLogger $fetchfile)
     {
         $fileData = $fetchfile->getLogFilesDetail();
+
         return $this->json(['data' => $fileData]);
     }
 
     /**
      *
      * @Route("/admin/icecat/download-logfile/{name}", name="ice_cat_download_log", options={"expose"=true})
+     *
      * @return JsonResponse
      */
     public function downloadLogFile(Request $request)
     {
         try {
-
-            $path =  PIMCORE_PRIVATE_VAR . '/log' . '/OBJECT-CREATE';
-            $fileName  = $request->get('name');
+            $path = PIMCORE_PRIVATE_VAR . '/log' . '/OBJECT-CREATE';
+            $fileName = $request->get('name');
             $response = new BinaryFileResponse($path . '/' . $fileName . '.csv');
             $response->headers->set('Content-Type', 'text/csv');
             $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName . '.csv');
+
             return $response;
-
-
-
 
             return $response;
         } catch (\Exception $e) {
-
             return $this->redirect($request->server->get('HTTP_REFERER'));
         }
     }
@@ -89,59 +82,58 @@ class DefaultController extends FrontendController
     /**
      *
      * @Route("/admin/icecat/delete-logfile/{name}", name="deletelogfile", options={"expose"=true})
+     *
      * @return JsonResponse
      */
     public function deleteLogFile(Request $request)
     {
         try {
-
-            $path =  PIMCORE_PRIVATE_VAR . '/log' . '/OBJECT-CREATE';
-            $fileName  = $request->get('name');
+            $path = PIMCORE_PRIVATE_VAR . '/log' . '/OBJECT-CREATE';
+            $fileName = $request->get('name');
             if (file_exists($path . '/' . $fileName . '.csv')) {
                 unlink($path . '/' . $fileName . '.csv');
             }
-            $response =  $this->json(['status' => "true"]);
+            $response = $this->json(['status' => 'true']);
+
             return $response;
         } catch (\Exception $e) {
             return $this->redirect($request->server->get('HTTP_REFERER'));
         }
     }
 
-
     /**
      *
      * @Route("/admin/icecat/get-product-count/", name="icecat_check_product_count", options={"expose"=true})
+     *
      * @return JsonResponse
      */
     public function countProduct(Request $request)
     {
         try {
-
             $objects = \Pimcore\Model\DataObject::getByPath('/ICECAT', true);
             if (!empty($objects)) {
                 if (($objects->getChildAmount()) == 0) {
-                    $response = ["status" => "false", "id" => "{$objects->getId()} ", "count" => "0"];
+                    $response = ['status' => 'false', 'id' => "{$objects->getId()} ", 'count' => '0'];
                 } else {
-                    $response = ["status" => "true", 'id' => "{$objects->getId()}", "count" => "{$objects->getChildAmount()}"];
+                    $response = ['status' => 'true', 'id' => "{$objects->getId()}", 'count' => "{$objects->getChildAmount()}"];
                 }
             } else {
-                $response = ["status" => "false", 'id' => "-", "count" => "0"];
+                $response = ['status' => 'false', 'id' => '-', 'count' => '0'];
             }
 
             return $this->json($response);
         } catch (\Exception $e) {
+            $response = ['status' => 'false', 'count' => '0'];
 
-            $response = ["status" => "false", "count" => "0"];
             return $this->json($response);
         }
     }
 
-
-
-
     /**
      * @Route("/ice-cat")
+     *
      * @param ImportService $import
+     *
      * @return \Pimcore\Bundle\AdminBundle\HttpFoundation\JsonResponse
      */
     public function indexAction(ImportService $import)
@@ -159,7 +151,9 @@ class DefaultController extends FrontendController
      *
      *
      * @Route("/icecat/upload-by-url", name="icecat_upload-by-url", options={"expose"=true})
+     *
      * @param Request $request
+     *
      * @return JsonResponse
      */
     public function uploadFileViaUrl(Request $request, FileUploadService $fileUploadService, JobHandlerService $jobHandler)
@@ -172,43 +166,44 @@ class DefaultController extends FrontendController
         $fileName = basename($fileurl);
 
         $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
-        if ($fileExtension != "csv" && $fileExtension != "xlsx") {
-
-            return  $this->json(['success' => "false", 'status' => "303", 'message' => 'File must be either csv or excel!']);
+        if ($fileExtension != 'csv' && $fileExtension != 'xlsx') {
+            return  $this->json(['success' => 'false', 'status' => '303', 'message' => 'File must be either csv or excel!']);
         }
         $userId = 2; //$request->get('user');
         $iceCatUser = $request->get('iceCatUser');
         $user = User::getById($userId);
         $fileUploadService->saveFileViaUrl($fileurl, $user, $fileName);
-        $jobId = $jobHandler->makeJobEntry($userId, $iceCatUser, $fileName,  $fileExtension, $languages);
+        $jobId = $jobHandler->makeJobEntry($userId, $iceCatUser, $fileName, $fileExtension, $languages);
         $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:import ' . $jobId;
         try {
             exec($command . ' > /dev/null &');
             sleep(2);
             $otherInfo = $fileUploadService->getOtherInfo(true);
         } catch (\Exception $ex) {
-            return $this->json(['success' => "false", 'error' => true, 'status' => '200']);
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200']);
         }
-        return $this->json(['success' => "true", 'status' => '200', 'otherInfo' => $otherInfo]);
+
+        return $this->json(['success' => 'true', 'status' => '200', 'otherInfo' => $otherInfo]);
     }
 
     /**
      * @Route("/icecat/upload-file", methods={"POST"}, name="icecat_upload-file", options={"expose"=true})
+     *
      * @param Request $request
      * @param FileUploadService $fileUploadService
+     *
      * @return JsonResponse
      */
     public function uploadFile(Request $request, FileUploadService $fileUploadService, JobHandlerService $jobHandler)
     {
         $file = $request->files->get('File');
-        $languages = implode("|", $request->request->get('language'));
+        $languages = implode('|', $request->request->get('language'));
         // $languages = 'en';
-        $fileExtension  = $file->getClientOriginalExtension();
+        $fileExtension = $file->getClientOriginalExtension();
         $fileName = $file->getClientOriginalName();
         // //file validation
-        if ($fileExtension != "csv" && $fileExtension != "xlsx") {
-
-            return  $this->json(['success' => "false", 'status' => "303"]);
+        if ($fileExtension != 'csv' && $fileExtension != 'xlsx') {
+            return  $this->json(['success' => 'false', 'status' => '303']);
         }
         $userId = $request->get('user');
         $iceCatUser = $request->get('iceCatUser');
@@ -221,38 +216,42 @@ class DefaultController extends FrontendController
             sleep(2);
             $otherInfo = $fileUploadService->getOtherInfo(true);
         } catch (\Exception $ex) {
-            return $this->json(['success' => "false", 'error' => true, 'status' => '200']);
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200']);
         }
-        return $this->json(['success' => "true", 'status' => '200', 'otherInfo' => $otherInfo]);
-    }
 
+        return $this->json(['success' => 'true', 'status' => '200', 'otherInfo' => $otherInfo]);
+    }
 
     /**
      * @Route("/admin/icecat/get-progress-bar-data", methods={"GET"}, name="icecat_get-progress-bar-data", options={"expose"=true})
      *
      * @param Request $request
      * @param DataService $dataService
+     *
      * @return JsonResponse
      */
     public function getDataForProgressbar(Request $request, DataService $dataService)
     {
         $type = $request->get('type');
 
-
         $items = [];
         if ($type == 'fetching') {
             $items = $dataService->getDataForFetchingProgressbar();
-        } else if ($type == 'processing') {
+        } elseif ($type == 'processing') {
             $items = $dataService->getDataForCreationProgressbar();
         }
-        return $this->json(['items' =>  $items, 'success' => true, 'active' => count($items)]);
+
+        return $this->json(['items' => $items, 'success' => true, 'active' => count($items)]);
     }
 
     /**
      * @Route("/admin/icecat/grid-get-col-config", name="icecat_grid-get-col-config", options={"expose"=true})
+     *
      * @param Request $request
      * @param bool $isDelete
+     *
      * @return JsonResponse
+     *
      * @throws \Exception
      */
     public function doGetGridColumnConfig(Request $request, $isDelete = false)
@@ -278,12 +277,12 @@ class DefaultController extends FrontendController
 
                 $availableFields[] = $colConfigSys;
             } else {
-                $colConfig = array();
+                $colConfig = [];
 
                 $colConfig['key'] = $key;
                 $colConfig['type'] = $sc['fieldConfig']['type'];
 
-                $inputtype = array('image', 'country', 'href', 'multihrefMetadata');
+                $inputtype = ['image', 'country', 'href', 'multihrefMetadata'];
                 if (in_array($sc['fieldConfig']['type'], $inputtype)) {
                     $colConfig['type'] = 'input';
                 }
@@ -346,13 +345,13 @@ class DefaultController extends FrontendController
                     unset($colConfig['config']);
                     unset($colConfig['isOperator']);
                     unset($colConfig['attributes']);
-                    //$className = $column['layout']['classes'][0]['classes'];
+                //$className = $column['layout']['classes'][0]['classes'];
                     //$classArr = \Pimcore\Model\DataObject\ClassDefinition::getByName($className); //p_r($classArr);
                     //$classId = $classArr->getId();
                     //$this->selectFields[] = "`object_".$classId."`.`o_path` AS `".$column['key']."`";
                     //echo $column['layout']['classes'][0]['classes'];
                     //$this->selectFields[] = "`jt".;
-                } else if (array_key_exists("isOperator", $sc['fieldConfig'])) {
+                } elseif (array_key_exists('isOperator', $sc['fieldConfig'])) {
                     if ($sc['fieldConfig']['isOperator'] == true) {
                         $colConfig['type'] = $sc['fieldConfig']['attributes']['type'];
                         $colConfig['label'] = $sc['fieldConfig']['attributes']['label'];
@@ -366,7 +365,6 @@ class DefaultController extends FrontendController
                 } else {
                     $colConfig['layout'] = $sc['fieldConfig']['layout'];
                 }
-
 
                 $availableFields[] = $colConfig;
                 unset($colConfig['layout']['relPath']);
@@ -418,6 +416,7 @@ class DefaultController extends FrontendController
     /**
      *
      * @Route("/admin/icecat/grid-proxy", name="icecat_grid-proxy", options={"expose"=true})
+     *
      * @return JsonResponse
      */
     public function getFetchingGridData(Request $request, DataService $dataService)
@@ -442,25 +441,27 @@ class DefaultController extends FrontendController
     /**
      *
      * @Route("/admin/icecat/fetched-records", name="icecat_grid-total-fetched-records", options={"expose"=true})
+     *
      * @return JsonResponse
      */
     public function getTotalFetchedRecords(DataService $dataService)
     {
         $result = $dataService->getFoundProductCountoShowInGrid();
+
         return $this->json(['count' => $result['total'], 'job' => $result['jobid']]);
     }
 
     /**
      *
      * @Route("/admin/language/valid-languages", name="icecat_valid_languages", options={"expose"=true})
+     *
      * @return JsonResponse
+     *
      * @throws \Exception
      */
-
     public function getActiveLanguage()
     {
-
-        $activatedLanguage =  Tool::getValidLanguages();
+        $activatedLanguage = Tool::getValidLanguages();
         $supportedtLocale = Tool::getSupportedLocales();
         $defaultLanguage = Tool::getDefaultLanguage();
 
@@ -468,7 +469,6 @@ class DefaultController extends FrontendController
         $finalResult = [];
         $i = 0;
         foreach ($activatedLangWithDisplayValue as $key => $language) {
-
             if ($key == $defaultLanguage) {
                 $defaultLanguageSetter['display_value'] = $language;
                 $defaultLanguageSetter['key'] = $key;
@@ -476,7 +476,6 @@ class DefaultController extends FrontendController
                 $finalResult[$i]['display_value'] = $language;
                 $finalResult[$i]['key'] = $key;
             }
-
 
             $i++;
         }
@@ -487,7 +486,9 @@ class DefaultController extends FrontendController
 
     /**
      * @Route("/admin/icecat/create-object", name="icecat_create-object", options={"expose"=true})
+     *
      * @param Request $request
+     *
      * @return JsonResponse
      */
     public function createObject(Request $request, DataService $dataService)
@@ -495,17 +496,17 @@ class DefaultController extends FrontendController
         $runningJobId = $dataService->getRunningJobId();
         $jobId = $request->get('jobId');
         if (empty($runningJobId)) {
-            return $this->json(['success' => "false", 'error' => true, 'status' => '200', 'message' => 'No Running job!']);
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200', 'message' => 'No Running job!']);
         }
 
         $jobId = $runningJobId;
 
         if ($dataService->anyRunningProcessExist()) {
             if (!$dataService->checkIfFetchingDone($jobId)) {
-                return $this->json(['success' => "false", 'error' => true, 'status' => '200', 'message' => 'Records Fetching is in progress!']);
+                return $this->json(['success' => 'false', 'error' => true, 'status' => '200', 'message' => 'Records Fetching is in progress!']);
             }
         } else {
-            return $this->json(['success' => "false", 'error' => true, 'status' => '200', 'message' => 'No Running job!']);
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200', 'message' => 'No Running job!']);
         }
 
         $gtins = $request->get('gtins');
@@ -519,7 +520,7 @@ class DefaultController extends FrontendController
 
         $res = $dataService->commitNotToImportRecords($jobId);
         if (is_array($res) && $res['error'] && $res['error'] == 'NoData') {
-            return $this->json(['success' => "false", 'error' => true, 'status' => '200', 'message' => 'No records selected to process!']);
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200', 'message' => 'No records selected to process!']);
         }
 
         $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:create-object ' . $currentUserId . ' ' . $jobId;
@@ -528,9 +529,10 @@ class DefaultController extends FrontendController
             //            sleep(2);
             $otherInfo = $dataService->getOtherInfo(true);
         } catch (\Exception $ex) {
-            return $this->json(['success' => "false", 'error' => true, 'status' => '200', 'message' => $ex->getMessage()]);
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200', 'message' => $ex->getMessage()]);
         }
-        return $this->json(['success' => "true", 'status' => '200', 'otherInfo' => $otherInfo]);
+
+        return $this->json(['success' => 'true', 'status' => '200', 'otherInfo' => $otherInfo]);
     }
 
     /**
@@ -540,32 +542,34 @@ class DefaultController extends FrontendController
     {
         $folder = Folder::getByPath(self::ICE_CAT_FOLDER_NAME);
         if ($folder) {
-            return $this->json(['success' => "true", 'status' => '200', 'folderId' => $folder->getId()]);
+            return $this->json(['success' => 'true', 'status' => '200', 'folderId' => $folder->getId()]);
         }
-        return $this->json(['success' => "false", 'status' => '200', 'folderId' => 0]);
-    }
 
+        return $this->json(['success' => 'false', 'status' => '200', 'folderId' => 0]);
+    }
 
     /**
      * @Route("/admin/icecat/terminate-proccess", methods={"GET"}, name="icecat_terminate_process", options={"expose"=true})
      *
      * @param Request $request
      * @param DataService $dataService
+     *
      * @return JsonResponse
      */
     public function terminateProcess(DataService $dataService)
     {
         $db = \Pimcore\Db::get();
-        $updateQuery = "UPDATE ice_cat_processes SET COMPLETED = 1";
+        $updateQuery = 'UPDATE ice_cat_processes SET COMPLETED = 1';
         $db->exec($updateQuery);
-        $response =  $this->json(['status' => "true"]);
+        $response = $this->json(['status' => 'true']);
+
         return $response;
     }
-
 
     /**
      *
      * @Route("/admin/icecat/get-unfound-products", name="icecat_grid_get_unfound_products_info", options={"expose"=true})
+     *
      * @return JsonResponse
      */
     public function getInfoForUnfoundProducts(Request $request, DataService $dataService)
@@ -599,6 +603,7 @@ class DefaultController extends FrontendController
             $productInfo[$i]['searchKey'] = $searchedBy;
             $i++;
         }
+
         return $this->json(['product' => $productInfo, 'job' => $result['jobid']]);
     }
 }

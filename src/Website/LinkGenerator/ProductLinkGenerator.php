@@ -15,19 +15,13 @@
 
 namespace IceCatBundle\Website\LinkGenerator;
 
-use TestBundle\Website\Tool\ForceInheritance;
-use TestBundle\Website\Tool\Text;
 use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
 use Pimcore\Model\DataObject\Concrete;
-//use TestBundle\Model\Product\Icecat;
-use Pimcore\Bundle\EcommerceFrameworkBundle\Model\ProductInterface;
-use Pimcore\Model\DataObject\Icecat;
-use Pimcore\Tool;
 
+//use TestBundle\Model\Product\Icecat;
 
 class ProductLinkGenerator implements LinkGeneratorInterface
 {
-
     /**
      * @param Concrete $object
      * @param array $params
@@ -36,8 +30,6 @@ class ProductLinkGenerator implements LinkGeneratorInterface
      */
     public function generate(Concrete $object, array $params = []): string
     {
-
-
         include('Template.php');
         //echo $object->getId();
         die('error');

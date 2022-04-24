@@ -1,12 +1,9 @@
 <?php
 
-
 namespace IceCatBundle\Services;
-
 
 class InfoService extends AbstractService
 {
-
     private $user;
     private $iceCatUserId;
     private $pimUserId;
@@ -48,13 +45,11 @@ class InfoService extends AbstractService
 
     public function getIceCatUser()
     {
-
         return $this->getOtherInfo()['user'];
     }
 
     public function getPimUserId()
     {
-
         return $this->getPimUser()->getId();
     }
 
@@ -64,34 +59,36 @@ class InfoService extends AbstractService
         if ($iceCatUser['login_status']) {
             return $iceCatUser['icecat_user_id'];
         }
+
         return false;
     }
 
     public function anyRunningProcessExist()
     {
         $info = $this->getOtherInfo();
-        return $info['jobId'] ? true : false;
 
+        return $info['jobId'] ? true : false;
     }
 
     public function resetOtherInfo()
     {
         $this->setDataInSession(self::USER_INFO_SESSION_KEY, []);
     }
+
     public function getRunningJobId()
     {
         $info = $this->getOtherInfo();
+
         return $info['jobId'] ? $info['jobId'] : false;
     }
 
-    public function getOtherInfo($force=false)
+    public function getOtherInfo($force = false)
     {
         if (!$force && !empty($this->getDataFromSession(self::USER_INFO_SESSION_KEY))) {
             return $this->getDataFromSession(self::USER_INFO_SESSION_KEY);
         }
         $this->setIceCatInfoInSession();
+
         return $this->getDataFromSession(self::USER_INFO_SESSION_KEY);
     }
-
-
 }

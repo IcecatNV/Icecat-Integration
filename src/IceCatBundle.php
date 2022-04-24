@@ -3,9 +3,15 @@
 namespace IceCatBundle;
 
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
+use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 
 class IceCatBundle extends AbstractPimcoreBundle
 {
+    use PackageVersionTrait;
+
+    /**
+     * {@inheritdoc}
+     */
     public function getJsPaths()
     {
         return [
@@ -30,6 +36,9 @@ class IceCatBundle extends AbstractPimcoreBundle
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getCssPaths()
     {
         return [
@@ -43,5 +52,13 @@ class IceCatBundle extends AbstractPimcoreBundle
     public function getInstaller()
     {
         return $this->container->get(\IceCatBundle\InstallClass::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getComposerPackageName(): string
+    {
+        return 'icecat/icecat-integration';
     }
 }
