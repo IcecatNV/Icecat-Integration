@@ -28,12 +28,16 @@ final class Version20220423095622 extends AbstractMigration
         }
 
         $classname = 'IcecatCategory';
-        $filepath = __DIR__ . '/Install/class_IcecatCategory_export_v1.json';
+        $filepath = __DIR__ . '/../Install/class_IcecatCategory_export_v1.json';
         $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
-        if ($class) {
-            $json = file_get_contents($filepath);
-            \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
+
+        if (!$class) {
+            $class = new \Pimcore\Model\DataObject\ClassDefinition();
+            $class->setName($classname);
+            $class->setGroup('Icecat');
         }
+        $json = file_get_contents($filepath);
+        \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
 
     }
 

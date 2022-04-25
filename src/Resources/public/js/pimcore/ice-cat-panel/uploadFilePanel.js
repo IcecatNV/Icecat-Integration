@@ -1,7 +1,27 @@
 pimcore.registerNS("pimcore.plugin.iceCatUploadFilePanel");
 pimcore.plugin.iceCatUploadFilePanel = Class.create({
     intervalObj: '',
+    configData: {},
     initialize: function () {
+        if(Object.keys(this.configData).length === 0) {
+            Ext.Ajax.request({
+                async: false,
+                url: Routing.generate('icecat_getconfig'),
+                success: function (res) {
+                    let response = Ext.decode(res.responseText);
+                    if(response.success) {
+                        if(response.data !== undefined && response.data.languages !== undefined) {
+                            this.configData.selectedLanguages = response.data.languages; 
+                        }
+                        if(response.data !== undefined && response.data.categorization !== undefined) {
+                            this.configData.categorization = response.data.categorization;
+                        }
+                    } else {
+                        Ext.Msg.alert('Error', response.message);
+                    }
+                }.bind(this)
+            });
+        }
     },
     getData: function () {
         Ext.Ajax.request({
@@ -27,6 +47,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         });
 
 
+    },
+    getConfigData: function() {
+        return this.configData;
     },
     getValue: function (key, ignoreCheck) {
 
@@ -93,7 +116,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     store: this.languagesStore,
                     displayField: 'display_value',
                     valueField: 'key',
-                    value: this.languagesStore ? this.languagesStore.getAt(0) : '',
+                    value: this.configData.selectedLanguages ? this.configData.selectedLanguages : ['en'],
                     multiselect: true,
                     forceSelection: true,
                     allowBlank: false,
@@ -105,10 +128,48 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                         "display": "inline"
                     },
                     listeners: {
-                        'afterrender': function () {
-
-                            //  this.setValue("agq");
-                            //  this.getData();
+                        'change': function (e, val) {
+                            Ext.Ajax.request({
+                                url: Routing.generate('icecat_saveconfig'),
+                                params: {languages: val.join('|')},
+                                method: 'GET',
+                                success: function (res) {
+                                    response = Ext.decode(res.responseText);
+                                    if(response.success === false) {
+                                        Ext.Msg.alert('Error', response.message);
+                                    }
+                                }.bind(this),
+                                failure: function (err) {
+                                }.bind(this)
+                            });
+                        }
+                    }
+                },
+                {
+                    xtype: "checkbox",
+                    required: true,
+                    id: "system_settings_general_categorization",
+                    fieldLabel: 'Categorization',
+                    labelWidth: 100,
+                    triggerAction: 'all',
+                    queryMode: 'local',
+                    name: 'categorization',
+                    value: this.configData.categorization ? this.configData.categorization : false,
+                    listeners: {
+                        'change': function (comp, val) {
+                            Ext.Ajax.request({
+                                url: Routing.generate('icecat_saveconfig'),
+                                params: {categorization: val},
+                                method: 'GET',
+                                success: function (res) {
+                                    response = Ext.decode(res.responseText);
+                                    if(response.success === false) {
+                                        Ext.Msg.alert('Error', response.message);
+                                    }
+                                }.bind(this),
+                                failure: function (err) {
+                                }.bind(this)
+                            });
                         }
                     }
                 },
@@ -117,7 +178,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     id: 'ice_cat_process_restart_button',
                     text: 'Restart Process',
                     width: '15%',
-                    style: "float:right",
+                    style: "float:right; margin-top:-50px;",
                     tooltip: "It will terminate any ongoing process",
                     handler: function () {
                         Ext.Msg.confirm(t('warning'), t('Are you sure you want to restart?')

@@ -2,6 +2,7 @@
 
 namespace IceCatBundle\Services;
 
+use IceCatBundle\Model\Configuration;
 use Pimcore\Log\ApplicationLogger;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Data\BlockElement;
@@ -9,6 +10,7 @@ use Pimcore\Model\DataObject\Data\BlockElement;
 class CreateObjectService
 {
     const DATAOBJECT_FOLDER = 'ICECAT';
+    const CAT_DATAOBJECT_FOLDER = 'ICECAT/CATEGORIES';
     const ASSET_FOLDER = 'ICECAT';
     const JOB_DATA_CONTAINER_TABLE = 'ice_cat_processes';
     const IMPORTED_DATA_CONTAINER_TABLE = 'icecat_imported_data';
@@ -28,6 +30,11 @@ class CreateObjectService
     protected $logMessage;
     private $csvLogFileName;
     protected $appLogger;
+
+    /**
+     * @var Configuration|null
+     */
+    protected $config;
 
     private $ClassName;
     private $iceCatClass = 'Icecat';
@@ -73,6 +80,7 @@ class CreateObjectService
         $this->csvLogger = $csvLogger;
         $this->appLogger = $appLogger;
         $this->jobHandler = $jobHandler;
+        $this->config = Configuration::load();
     }
 
     public function setStoreId()
@@ -215,6 +223,7 @@ class CreateObjectService
                         'relatedObject' => $iceCatobject
                     ]);
                 } catch (\Throwable $e) {
+                    p_r($e);die;
                     \Pimcore\Db::get()->rollback();
                     ++$counter;
                     // Updating Processed Record
@@ -336,12 +345,44 @@ class CreateObjectService
             $this->setStoryField($attributeArray, $iceCatobject);
             $this->setMultiMedia($attributeArray, $iceCatobject);
             $this->setGalleryIcons($attributeArray, $iceCatobject);
+
+            if($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
+                $this->setCategories($basicInformation['Category'], $iceCatobject);
+            }
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN FIX FIELD FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+        }
+    }
+
+    /**
+     * @param array $categoryInformation
+     * @param \Pimcore\Model\DataObject\Icecat $iceCatobject
+     *
+     * @return void
+     */
+    protected function setCategories($categoryInformation, $iceCatobject)
+    {
+        $categoryId = $categoryInformation['CategoryID'] ?? null;
+        $categoryName = $categoryInformation['Name']['Value'] ?? null;
+        $language = $categoryInformation['Name']['Language'] ?? null;
+
+        if($categoryId) {
+            $categoryObject = \Pimcore\Model\DataObject\IcecatCategory::getByIcecat_id($categoryId, true);
+            if(!$categoryObject) {
+                $categoryObject = new \Pimcore\Model\DataObject\IcecatCategory();
+                $categoryObject->setParent(\Pimcore\Model\DataObject\Service::createFolderByPath('/'.self::CAT_DATAOBJECT_FOLDER));
+                $categoryObject->setKey($categoryId);
+                $categoryObject->setIcecat_id($categoryId);
+                $categoryObject->setPublished(true);
+            }
+
+            $categoryObject->setName($categoryName, strtolower($language));
+            $categoryObject->save();
+            $iceCatobject->setRelatedCategories([$categoryObject]);
         }
     }
 

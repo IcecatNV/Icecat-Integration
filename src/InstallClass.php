@@ -3,6 +3,7 @@
 namespace IceCatBundle;
 
 use IceCatBundle\Migrations\Version20220423095622;
+use IceCatBundle\Model\Configuration;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -42,6 +43,10 @@ class InstallClass extends SettingsStoreAwareInstaller
         $this->removeClass();
         $this->removeTables();
         $this->removeClassificationStore();
+
+        if(is_readable(Configuration::CONFIG_PATH.'/config.yaml')) {
+            @unlink(Configuration::CONFIG_PATH.'/config.yaml');
+        }
 
         parent::uninstall();
     }

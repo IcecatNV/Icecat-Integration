@@ -2,6 +2,7 @@
 
 namespace IceCatBundle\Controller;
 
+use IceCatBundle\Model\Configuration;
 use IceCatBundle\Services\CreateObjectService;
 use IceCatBundle\Services\DataService;
 use IceCatBundle\Services\FileUploadService;
@@ -23,10 +24,89 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends FrontendController
 {
+    /**
+     * @var array
+     */
     const SYSTEM_COLUMNS = ['oo_id', 'fullpath', 'key', 'published', 'creationDate', 'modificationDate', 'filename', 'classname'];
 
+    /**
+     * @var string
+     */
     const ICE_CAT_FOLDER_NAME = '/ICECAT/';
+
+    /**
+     * @var string
+     */
     const JOB_DATA_CONTAINER_TABLE = 'ice_cat_processes';
+
+    /**
+     * @Route("/admin/icecat/get-config", name="icecat_getconfig", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function getConfigAction(Request $request)
+    {
+        try {
+            $config = Configuration::load();
+            if($config) {
+                return $this->json([
+                    'success' => true,
+                    'data' => [
+                        'languages' => $config->getLanguages(),
+                        'categorization' => $config->getCategorization()
+                    ]
+                ]);
+            } else {
+                return $this->json([
+                    'success' => true,
+                    'data' => [
+                        'languages' => ['en'],
+                        'categorization' => false
+                    ]
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/admin/icecat/save-config", name="icecat_saveconfig", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function saveConfigAction(Request $request)
+    {
+        $languages = $request->get('languages', null);
+        $categorization = $request->get('categorization', null);
+        try {
+            $config = Configuration::load();
+            if(!$config) {
+                $config = new Configuration();
+            }
+            if($languages !== null) {
+                $config->setLanguages(array_filter(explode('|', $languages)));
+            }
+            if($categorization !== null) {
+                $config->setCategorization((bool)$categorization);
+            }
+            $config->save();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'OK'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 
     /**
      * @Route("/ice-cat-create")
