@@ -155,23 +155,28 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     queryMode: 'local',
                     name: 'categorization',
                     value: this.configData.categorization ? this.configData.categorization : false,
-                    listeners: {
-                        'change': function (comp, val) {
-                            Ext.Ajax.request({
-                                url: Routing.generate('icecat_saveconfig'),
-                                params: {categorization: val},
-                                method: 'GET',
-                                success: function (res) {
-                                    response = Ext.decode(res.responseText);
-                                    if(response.success === false) {
-                                        Ext.Msg.alert('Error', response.message);
-                                    }
-                                }.bind(this),
-                                failure: function (err) {
-                                }.bind(this)
-                            });
-                        }
-                    }
+                    handler:function (component, value) {
+                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "on" : "off") +" categorization setting"),
+                            function (buttonValue) {
+                                if (buttonValue == "yes") {
+                                    Ext.Ajax.request({
+                                        url: Routing.generate('icecat_saveconfig'),
+                                        params: {categorization: value},
+                                        method: 'GET',
+                                        success: function (res) {
+                                            response = Ext.decode(res.responseText);
+                                            if(response.success === false) {
+                                                Ext.Msg.alert('Error', response.message);
+                                            }
+                                        }.bind(this),
+                                        failure: function (err) {
+                                        }.bind(this)
+                                    });
+                                } else {
+                                    Ext.getCmp("system_settings_general_categorization").setRawValue(!value);
+                                }
+                            }.bind(this));
+                    }.bind(this)
                 },
                 {
                     xtype: 'button',

@@ -92,7 +92,7 @@ class DefaultController extends FrontendController
                 $config->setLanguages(array_filter(explode('|', $languages)));
             }
             if($categorization !== null) {
-                $config->setCategorization((bool)$categorization);
+                $config->setCategorization($categorization === "true" ? true : false);
             }
             $config->save();
 
