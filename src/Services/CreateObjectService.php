@@ -223,7 +223,6 @@ class CreateObjectService
                         'relatedObject' => $iceCatobject
                     ]);
                 } catch (\Throwable $e) {
-                    p_r($e);die;
                     \Pimcore\Db::get()->rollback();
                     ++$counter;
                     // Updating Processed Record
@@ -346,7 +345,7 @@ class CreateObjectService
             $this->setMultiMedia($attributeArray, $iceCatobject);
             $this->setGalleryIcons($attributeArray, $iceCatobject);
 
-            if($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
+            if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
                 $this->setCategories($basicInformation['Category'], $iceCatobject);
             }
         } catch (\Exception $e) {
@@ -370,9 +369,9 @@ class CreateObjectService
         $categoryName = $categoryInformation['Name']['Value'] ?? null;
         $language = $categoryInformation['Name']['Language'] ?? null;
 
-        if($categoryId) {
+        if ($categoryId) {
             $categoryObject = \Pimcore\Model\DataObject\IcecatCategory::getByIcecat_id($categoryId, true);
-            if(!$categoryObject) {
+            if (!$categoryObject) {
                 $categoryObject = new \Pimcore\Model\DataObject\IcecatCategory();
                 $categoryObject->setParent(\Pimcore\Model\DataObject\Service::createFolderByPath('/'.self::CAT_DATAOBJECT_FOLDER));
                 $categoryObject->setKey($categoryId);

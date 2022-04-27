@@ -137,12 +137,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     response = Ext.decode(res.responseText);
                                     if(response.success === false) {
                                         Ext.Msg.alert('Error', response.message);
+                                        return false;
                                     }
+                                    this.configData.selectedLanguages = val;
                                 }.bind(this),
                                 failure: function (err) {
                                 }.bind(this)
                             });
-                        }
+                        }.bind(this)
                     }
                 },
                 {
@@ -167,7 +169,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             response = Ext.decode(res.responseText);
                                             if(response.success === false) {
                                                 Ext.Msg.alert('Error', response.message);
+                                                return false;
                                             }
+                                            this.configData.categorization = value;
                                         }.bind(this),
                                         failure: function (err) {
                                         }.bind(this)

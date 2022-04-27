@@ -82,7 +82,7 @@ initialize: function(id) {
 
         this.tab = new Ext.Panel({
             id: 'iceCatBundle_objectGridPanel',
-            title: htmlspecialchars('ICECAT-PRODUCTS'),
+            title: htmlspecialchars('ICECAT DATA'),
             closable:false,
             layout: "border",
             items: [

@@ -77,7 +77,7 @@ class Configuration
      */
     public function save(): void
     {
-        if(is_readable(self::CONFIG_PATH.'/config.yaml')) {
+        if (is_readable(self::CONFIG_PATH.'/config.yaml')) {
             $data = Yaml::parseFile(self::CONFIG_PATH.'/config.yaml');
         } else {
             $data = [
@@ -88,10 +88,10 @@ class Configuration
             ];
         }
 
-        if($this->getLanguages() !== null) {
+        if ($this->getLanguages() !== null) {
             $data['icecat']['languages'] = $this->getLanguages();
         }
-        if($this->getCategorization() !== null) {
+        if ($this->getCategorization() !== null) {
             $data['icecat']['categorization'] = $this->getCategorization();
         }
 
@@ -106,11 +106,12 @@ class Configuration
     public static function load(): ?self
     {
         try {
-            if(is_readable(self::CONFIG_PATH.'/config.yaml')) {
+            if (is_readable(self::CONFIG_PATH.'/config.yaml')) {
                 $data = Yaml::parseFile(self::CONFIG_PATH.'/config.yaml');
                 $config = new self();
                 $config->setLanguages($data['icecat']['languages'] ?? []);
                 $config->setCategorization($data['icecat']['categorization'] ?? false);
+
                 return $config;
             } else {
                 return null;

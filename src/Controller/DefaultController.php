@@ -16,7 +16,6 @@ use Pimcore\Tool;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 use Symfony\Component\Process\Process;
@@ -48,7 +47,7 @@ class DefaultController extends FrontendController
     {
         try {
             $config = Configuration::load();
-            if($config) {
+            if ($config) {
                 return $this->json([
                     'success' => true,
                     'data' => [
@@ -65,7 +64,6 @@ class DefaultController extends FrontendController
                     ]
                 ]);
             }
-
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
@@ -85,14 +83,14 @@ class DefaultController extends FrontendController
         $categorization = $request->get('categorization', null);
         try {
             $config = Configuration::load();
-            if(!$config) {
+            if (!$config) {
                 $config = new Configuration();
             }
-            if($languages !== null) {
+            if ($languages !== null) {
                 $config->setLanguages(array_filter(explode('|', $languages)));
             }
-            if($categorization !== null) {
-                $config->setCategorization($categorization === "true" ? true : false);
+            if ($categorization !== null) {
+                $config->setCategorization($categorization === 'true' ? true : false);
             }
             $config->save();
 
@@ -119,8 +117,8 @@ class DefaultController extends FrontendController
             $response = $createOb->CreateObject(2, '6136f27516bd3');
         } catch (\Exception $e) {
         }
-        //return new Response('Hello world from ice_cat');
-        die;
+
+        return $this->json(['success' => true]);
     }
 
     /**
@@ -222,9 +220,6 @@ class DefaultController extends FrontendController
         $response = $import->importData('613b36cbd36cf');
 
         return $response;
-
-        //return new Response('Hello world from ice_cat');
-        die;
     }
 
     /**

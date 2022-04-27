@@ -222,13 +222,12 @@ class ImportService
                 $this->gtin = ($this->gtin == -1 || $this->gtin == '') ? 'ROW-' . $counter + 1 : $this->gtin;
                 $insertQuery = 'INSERT INTO ' . self::IMPORTED_DATA_CONTAINER_TABLE . "(data_encoded,job_id,is_product_found,original_gtin,gtin
                 ,data,pim_user_id,icecat_username,product_name,search_key,base_file, error, duplicate,language,reason) VALUES ('','$this->currentJObId' ,$isProductFound,'$this->gtin','$this->gtin ',
-                '',$this->pimcoreUserId,'$this->icecatUserName','','', '$filename', 'URL not found to get product', (duplicate+1) , '$this->language','$reason') 
+                '',$this->pimcoreUserId,'$this->icecatUserName','','', '$filename', 'URL not found to get product', (duplicate+1) , '$this->language','$reason')
                 ON DUPLICATE KEY UPDATE data = VALUES(data) , updated_at = now() , duplicate=(duplicate+1)";
                 try {
                     $result = $db->exec($insertQuery);
                     $this->insertCounter++;
                 } catch (\Exception $ex) {
-                    die;
                 }
                 $updateArray = ['fetching_status' => $this->status['PARTIALLY_DONE'], 'fetched_records' => $counter, 'fetching_error' => 'URL not found to get product', 'last_run_dateTime' => date('Y-m-d H:i:s')];
                 $this->updateCurrentJob($updateArray, 'jobid', $this->currentJObId);
@@ -284,7 +283,7 @@ class ImportService
             $this->currentProductIceCatId = (empty($this->currentProductIceCatId)) ? 'ROW-' . $counter : $this->currentProductIceCatId;
             $insertQuery = 'INSERT INTO ' . self::IMPORTED_DATA_CONTAINER_TABLE . "(data_encoded,job_id,is_product_found,original_gtin,gtin
             ,data,pim_user_id,icecat_username,product_name,search_key,base_file, duplicate , language ,reason) VALUES ('$encodedResponse','$this->currentJObId' ,$isProductFound,'$this->gtin','$this->currentProductIceCatId',
-            '$processedResponse',$this->pimcoreUserId,'$this->icecatUserName','$productName','$serializedSearchKey', '$fileName', (duplicate+1) ,  '$this->language','$reason') 
+            '$processedResponse',$this->pimcoreUserId,'$this->icecatUserName','$productName','$serializedSearchKey', '$fileName', (duplicate+1) ,  '$this->language','$reason')
             ON DUPLICATE KEY UPDATE data = VALUES(data) , updated_at = now(), duplicate=(duplicate+1), duplicate=(duplicate+1) ";
             $result = $db->exec($insertQuery);
             $this->insertCounter++;
@@ -306,7 +305,7 @@ class ImportService
             $insertQuery = 'INSERT INTO ' . self::IMPORTED_DATA_CONTAINER_TABLE . "(data_encoded,job_id,is_product_found,original_gtin,gtin
             ,data,pim_user_id,icecat_username,product_name,search_key,base_file, error, duplicate) VALUES ('','$this->currentJObId' ,$isProductFound,'$this->gtin',
             '$this->gtin',
-            '',$this->pimcoreUserId,'$this->icecatUserName', '$this->productName' ,'', '$filename', 'URL not found to get product', (duplicate+1)) 
+            '',$this->pimcoreUserId,'$this->icecatUserName', '$this->productName' ,'', '$filename', 'URL not found to get product', (duplicate+1))
             ON DUPLICATE KEY UPDATE data = VALUES(data) , updated_at = now() ";
             $this->insertCounter++;
 
@@ -348,7 +347,6 @@ class ImportService
 
             return $url;
         } catch (\Exception $ex) {
-            die;
         }
     }
 

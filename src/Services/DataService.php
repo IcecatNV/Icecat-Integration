@@ -59,7 +59,6 @@ class DataService extends InfoService
 
         $pbData = current($pbData);
 
-        //        p_r($pbData);die;
         $totalSteps = $pbData['total_fetch_records'];
         $blankRecords = $pbData['fetched_blank_records'] * $pbData['total_languages'];
         if (!empty($blankRecords)) {

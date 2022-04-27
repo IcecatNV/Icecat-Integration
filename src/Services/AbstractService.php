@@ -131,7 +131,6 @@ class AbstractService
 
     public function getUserInfo()
     {
-        //        p_r(\Pimcore\Tool\Admin::getCurrentUser());die;
         if ((\Pimcore\Tool\Admin::getCurrentUser())) {
             $pimUserId = (\Pimcore\Tool\Admin::getCurrentUser())->getId();
         } else {

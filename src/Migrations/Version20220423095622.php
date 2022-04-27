@@ -38,7 +38,6 @@ final class Version20220423095622 extends AbstractMigration
         }
         $json = file_get_contents($filepath);
         \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
-
     }
 
     public function down(Schema $schema): void
@@ -56,6 +55,5 @@ final class Version20220423095622 extends AbstractMigration
         if ($class) {
             $class->delete();
         }
-
     }
 }

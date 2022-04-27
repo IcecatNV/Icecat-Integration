@@ -31,8 +31,6 @@ class IceCatImportCommand extends AbstractCommand
     {
         $jobId = $input->getArgument('jobId');
         $result = $this->importObject->importData($jobId);
-        die;
-
         if ($result['status'] == 'success') {
             $this->writeInfo('Import Completed');
 

@@ -4,12 +4,9 @@ namespace IceCatBundle;
 
 use IceCatBundle\Migrations\Version20220423095622;
 use IceCatBundle\Model\Configuration;
+use Pimcore\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\ClassDefinition;
-use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Console\Output\Output;
-use Symfony\Component\Console\Output\OutputInterface;
-use Pimcore\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 
 class InstallClass extends SettingsStoreAwareInstaller
 {
@@ -44,7 +41,7 @@ class InstallClass extends SettingsStoreAwareInstaller
         $this->removeTables();
         $this->removeClassificationStore();
 
-        if(is_readable(Configuration::CONFIG_PATH.'/config.yaml')) {
+        if (is_readable(Configuration::CONFIG_PATH.'/config.yaml')) {
             @unlink(Configuration::CONFIG_PATH.'/config.yaml');
         }
 
@@ -60,6 +57,7 @@ class InstallClass extends SettingsStoreAwareInstaller
         if ($memberClass) {
             return true;
         }
+
         return false;
     }
 
@@ -72,6 +70,7 @@ class InstallClass extends SettingsStoreAwareInstaller
         if (!$memberClass) {
             return true;
         }
+
         return false;
     }
 
@@ -84,39 +83,40 @@ class InstallClass extends SettingsStoreAwareInstaller
         if ($memberClass) {
             return true;
         }
+
         return false;
     }
 
     /**
      * Remove Icecat class
+     *
      * @return void
      */
     public function removeClass()
     {
         $class = ClassDefinition::getByName('Icecat');
-        if($class) {
+        if ($class) {
             try {
                 $class->delete();
-            } catch(\Throwable $e) {
+            } catch (\Throwable $e) {
                 // do fancy things here ..
             }
-
         }
 
         $class = \Pimcore\Model\DataObject\ClassDefinition::getByName('IcecatCategory');
         if ($class) {
             try {
                 $class->delete();
-            } catch(\Throwable $e) {
+            } catch (\Throwable $e) {
                 // do fancy things here ..
             }
         }
 
         $folder = DataObject\Folder::getByPath('/ICECAT');
-        if($folder) {
+        if ($folder) {
             try {
                 $folder->delete();
-            } catch(\Throwable $e) {
+            } catch (\Throwable $e) {
                 // do fancy things here ..
             }
         }
@@ -124,6 +124,7 @@ class InstallClass extends SettingsStoreAwareInstaller
 
     /**
      * Create icecat bundle related tables
+     *
      * @return void
      */
     public function createTables()
@@ -203,24 +204,26 @@ class InstallClass extends SettingsStoreAwareInstaller
 
     /**
      * Remove icecat bundle related tables
+     *
      * @return void
      */
     public function removeTables()
     {
         $db = \Pimcore\Db::get();
         $db->query(
-            "DROP TABLE IF EXISTS ice_cat_processes"
+            'DROP TABLE IF EXISTS ice_cat_processes'
         );
         $db->query(
-            "DROP TABLE IF EXISTS icecat_imported_data"
+            'DROP TABLE IF EXISTS icecat_imported_data'
         );
         $db->query(
-            "DROP TABLE IF EXISTS icecat_user_login"
+            'DROP TABLE IF EXISTS icecat_user_login'
         );
     }
 
     /**
      * Create classification store for Icecat product attributes
+     *
      * @return void
      */
     public function createClassificationStore()
@@ -241,32 +244,32 @@ class InstallClass extends SettingsStoreAwareInstaller
 
     /**
      * Remove classification store for icecat
+     *
      * @return void
      */
     public function removeClassificationStore()
     {
         $db = \Pimcore\Db::get();
         $db->query(
-            "DROP TABLE IF EXISTS `object_classificationstore_data_Icecat`"
+            'DROP TABLE IF EXISTS `object_classificationstore_data_Icecat`'
         );
         $db->query(
-            "DROP TABLE IF EXISTS `object_classificationstore_groups_Icecat`"
+            'DROP TABLE IF EXISTS `object_classificationstore_groups_Icecat`'
         );
         $name = self::STORE_NAME;
         $config = \Pimcore\Model\DataObject\Classificationstore\StoreConfig::getByName($name);
 
-        if($config) {
-
+        if ($config) {
             $collectionIds = $db->fetchAll("SELECT * FROM classificationstore_collections where storeId = {$config->getId()}");
             $groupIds = $db->fetchAll("SELECT * FROM classificationstore_groups where storeId = {$config->getId()}");
 
-            foreach($collectionIds as $collectionId) {
+            foreach ($collectionIds as $collectionId) {
                 $db->query(
                     "DELETE FROM classificationstore_collectionrelations WHERE colId = {$collectionId['id']}"
                 );
             }
 
-            foreach($groupIds as $groupId) {
+            foreach ($groupIds as $groupId) {
                 $db->query(
                     "DELETE FROM classificationstore_relations WHERE groupId = {$groupId['id']}"
                 );
@@ -292,6 +295,7 @@ class InstallClass extends SettingsStoreAwareInstaller
 
     /**
      * Create Icecat class
+     *
      * @return void
      */
     public function createClassDefinition()
@@ -317,7 +321,6 @@ class InstallClass extends SettingsStoreAwareInstaller
             $json = file_get_contents($filepath);
             \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
         }
-
     }
 
     /**
