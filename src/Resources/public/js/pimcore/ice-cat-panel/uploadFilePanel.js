@@ -151,14 +151,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     xtype: "checkbox",
                     required: true,
                     id: "system_settings_general_categorization",
-                    fieldLabel: 'Categorization',
+                    fieldLabel: 'Icecat Categorization',
                     labelWidth: 100,
                     triggerAction: 'all',
                     queryMode: 'local',
                     name: 'categorization',
                     value: this.configData.categorization ? this.configData.categorization : false,
                     handler:function (component, value) {
-                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "on" : "off") +" categorization setting"),
+                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "on" : "off") +" Icecat categorization setting"),
                             function (buttonValue) {
                                 if (buttonValue == "yes") {
                                     Ext.Ajax.request({
@@ -167,11 +167,17 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                         method: 'GET',
                                         success: function (res) {
                                             response = Ext.decode(res.responseText);
+                                            let ufp = Ext.getCmp('pimcore_iceCat_tabPanel');
                                             if(response.success === false) {
                                                 Ext.Msg.alert('Error', response.message);
                                                 return false;
                                             }
                                             this.configData.categorization = value;
+                                            // if(value) {
+                                            //     ufp.child('#iceCatBundle_searchPanel').tab.show();
+                                            // } else {
+                                            //     ufp.child('#iceCatBundle_searchPanel').tab.hide();
+                                            // }
                                         }.bind(this),
                                         failure: function (err) {
                                         }.bind(this)

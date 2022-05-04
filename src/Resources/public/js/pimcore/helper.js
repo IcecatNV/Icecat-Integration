@@ -7,6 +7,7 @@ pimcore.plugin.iceCatHelper = Class.create({
         // this.runningProcessesPanel = new pimcore.plugin.iceCatRunningProcessesPanel();
         this.unfetchedProductGrid = new pimcore.plugin.unfetchedProductGrid();
         this.applicationLogGridPanel = new pimcore.plugin.iceCatApplicationLogGridPanel();
+        this.searchPanel = new pimcore.plugin.iceCatSearchPanel(this.uploadPanel);
     },
     addFileTabIndex: 1,
     intervalObj: '',
@@ -26,11 +27,24 @@ pimcore.plugin.iceCatHelper = Class.create({
         if (!ufp.child('#icecatApplicationLoggerPanel')) {
             ufp.add(this.applicationLogGridPanel.getTabPanel());
         }
+
+        // if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().categorization !== "undefined" 
+        // && this.uploadPanel.getConfigData().categorization) {
+        //     if (!ufp.child('#iceCatBundle_searchPanel')) {
+        //         ufp.add(this.searchPanel.getPanel());
+        //     }
+        // }
+        
+
         ufp.child('#iceCatBundle_uploadFilePanel').tab.show();
         ufp.child('#iceCatBundle_importGridPanel').tab.show();
         ufp.child('#icecatApplicationLoggerPanel').tab.show();
         ufp.child('#iceCatBundle_unfetchedProductGrid').tab.show();
-
+        
+        // if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().categorization !== "undefined" 
+        // && this.uploadPanel.getConfigData().categorization) {
+        //     ufp.child('#iceCatBundle_searchPanel').tab.show();
+        // }
 
         Ext.Ajax.request({
             url: Routing.generate('icecat_check_product_count'),

@@ -9,6 +9,7 @@ use IceCatBundle\Services\FileUploadService;
 use IceCatBundle\Services\IceCatCsvLogger;
 use IceCatBundle\Services\ImportService;
 use IceCatBundle\Services\JobHandlerService;
+use IceCatBundle\Services\SearchService;
 use Pimcore\Controller\FrontendController;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\User;
@@ -680,5 +681,81 @@ class DefaultController extends FrontendController
         }
 
         return $this->json(['product' => $productInfo, 'job' => $result['jobid']]);
+    }
+
+    /**
+     *
+     * @Route("/admin/icecat/get-categories", name="icecat_categories_list", options={"expose"=true})
+     *
+     * @return JsonResponse
+     */
+    public function getCategoriesAction(Request $request)
+    {
+        $lang = $request->get('language', 'en');
+        $listing = new \Pimcore\Model\DataObject\IcecatCategory\Listing();
+        $listing->loadIdList();
+
+        $data = [];
+        foreach($listing as $category) {
+            $data[] = [
+                'id' => $category->getId(),
+                'icecatId' => $category->getIcecat_id(),
+                'name' => $category->getName($lang)
+            ];
+        }
+
+        return $this->json(['success' => true, 'data' => $data]);
+    }
+
+    /**
+     * @Route("/admin/icecat/get-searchable-features", name="icecat_searchablefeatures_list", options={"expose"=true})
+     *
+     * @return JsonResponse
+     */
+    public function getSearchableFeaturesAction(Request $request, SearchService $searchService)
+    {
+        $categoryId = $request->get('categoryID', null);
+        $language = $request->get('language', 'en');
+
+        $category = \Pimcore\Model\DataObject\IcecatCategory::getById($categoryId);
+        if(!$category) {
+            return $this->json(['success' => false, 'message' => 'Invalid category']);
+        }
+
+        $searchableFeaturesList = \json_decode($category->getSearchableFeatures(), true);
+        if(!is_array($searchableFeaturesList) || count($searchableFeaturesList) == 0) {
+            return $this->json(['success' => true, 'data' => []]);
+        }
+
+        $featuresList = $stores = [];
+        foreach($searchableFeaturesList as $feature) {
+            $CSKeyData = $searchService->getCSKeyForFeature($feature['id']);
+            if($CSKeyData) {
+                $featuresList[] = $CSKeyData;
+                $featureValues =  $searchService->getValuesForCSKey($CSKeyData, $language);
+                $stores[$CSKeyData['id']] = $featureValues;
+            }
+        }
+
+        $data = [
+            'featuresList' => $featuresList,
+            'stores' => $stores,
+        ];
+
+        return $this->json(['success' => true, 'data' => $data]);
+    }
+
+
+    /**
+     * @Route("/admin/icecat/get-search-results", name="icecat_searchresult", options={"expose"=true})
+     *
+     * @return JsonResponse
+     */
+    public function getSearchResultAction(Request $request, SearchService $searchService)
+    {
+        $data = $searchService->getSearchResultData($request);
+        $totalCount = $searchService->getSearchResultCount($request);
+
+        return $this->json(['success' => true, 'p_totalCount' => $totalCount, 'p_results' => $data]);
     }
 }

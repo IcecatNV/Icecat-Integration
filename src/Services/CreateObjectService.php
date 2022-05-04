@@ -165,10 +165,10 @@ class CreateObjectService
 
                     $isJobAlive = $this->jobHandler->isLive($this->jobId);
                     if ($isJobAlive === false) {
-                        $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
-                        $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+                        // $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
+                        // $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-                        return true;
+                        // return true;
                     }
                     \Pimcore\Cache::clearAll();
 
@@ -346,7 +346,7 @@ class CreateObjectService
             $this->setGalleryIcons($attributeArray, $iceCatobject);
 
             if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
-                $this->setCategories($basicInformation['Category'], $iceCatobject);
+                $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
             }
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
@@ -363,7 +363,7 @@ class CreateObjectService
      *
      * @return void
      */
-    protected function setCategories($categoryInformation, $iceCatobject)
+    protected function setCategories($categoryInformation, $attributeArray, $iceCatobject)
     {
         $categoryId = $categoryInformation['CategoryID'] ?? null;
         $categoryName = $categoryInformation['Name']['Value'] ?? null;
@@ -380,7 +380,27 @@ class CreateObjectService
             }
 
             $categoryObject->setName($categoryName, strtolower($language));
+            $data = [];
+            if (!empty($attributeArray['FeaturesGroups'])) {
+                $parentArray = $attributeArray['FeaturesGroups'];
+
+                foreach ($parentArray as $featureGroup) {
+                    if (!empty($featureGroup['Features'])) {
+                        foreach ($featureGroup['Features'] as $features) {
+                            if($features['Searchable']) {
+                                $data[] = [
+                                    'type' => $features['Type'],
+                                    'id' => $features['Feature']['ID']
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+
+            $categoryObject->setSearchableFeatures(\json_encode($data));
             $categoryObject->save();
+
             $iceCatobject->setRelatedCategories([$categoryObject]);
         }
     }
