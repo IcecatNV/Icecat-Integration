@@ -28,12 +28,12 @@ pimcore.plugin.iceCatHelper = Class.create({
             ufp.add(this.applicationLogGridPanel.getTabPanel());
         }
 
-        // if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().categorization !== "undefined" 
-        // && this.uploadPanel.getConfigData().categorization) {
-        //     if (!ufp.child('#iceCatBundle_searchPanel')) {
-        //         ufp.add(this.searchPanel.getPanel());
-        //     }
-        // }
+        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
+        && this.uploadPanel.getConfigData().showSearchPanel) {
+            if (!ufp.child('#iceCatBundle_searchPanel')) {
+                ufp.add(this.searchPanel.getPanel());
+            }
+        }
         
 
         ufp.child('#iceCatBundle_uploadFilePanel').tab.show();
@@ -41,10 +41,10 @@ pimcore.plugin.iceCatHelper = Class.create({
         ufp.child('#icecatApplicationLoggerPanel').tab.show();
         ufp.child('#iceCatBundle_unfetchedProductGrid').tab.show();
         
-        // if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().categorization !== "undefined" 
-        // && this.uploadPanel.getConfigData().categorization) {
-        //     ufp.child('#iceCatBundle_searchPanel').tab.show();
-        // }
+        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
+        && this.uploadPanel.getConfigData().showSearchPanel) {
+            ufp.child('#iceCatBundle_searchPanel').tab.show();
+        }
 
         Ext.Ajax.request({
             url: Routing.generate('icecat_check_product_count'),
@@ -268,7 +268,30 @@ pimcore.plugin.iceCatHelper = Class.create({
             }.bind(this)
         });
     },
+
     reactivateforNewProcess: function () {
+        Ext.Ajax.request({
+            async: false,
+            url: Routing.generate('icecat_getfolderids'),
+            success: function (response) {
+                let res = JSON.parse(response.responseText);
+                if (res.success) {
+                    if(res.data.productfolderid) {
+                        
+                        setTimeout(() => {  pimcore.elementservice.refreshNodeAllTrees('object', res.data.productfolderid); console.log('products refreshed'); }, 200);  
+                    } 
+                    if(res.data.categoryfolderid) {
+                       
+                        setTimeout(() => {  pimcore.elementservice.refreshNodeAllTrees('object', res.data.categoryfolderid);  console.log('categories refreshed');}, 3000);
+                    }  
+                    
+                }
+            }.bind(this),
+            failure: function (err) {
+
+            }.bind(this)
+        });
+        
 
         window.setTimeout(function (id) {
             new pimcore.plugin.iceCatScreen();

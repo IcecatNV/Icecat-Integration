@@ -2,27 +2,38 @@ pimcore.registerNS("pimcore.plugin.iceCatUploadFilePanel");
 pimcore.plugin.iceCatUploadFilePanel = Class.create({
     intervalObj: '',
     configData: {},
+
     initialize: function () {
-        if(Object.keys(this.configData).length === 0) {
-            Ext.Ajax.request({
-                async: false,
-                url: Routing.generate('icecat_getconfig'),
-                success: function (res) {
-                    let response = Ext.decode(res.responseText);
-                    if(response.success) {
-                        if(response.data !== undefined && response.data.languages !== undefined) {
-                            this.configData.selectedLanguages = response.data.languages; 
-                        }
-                        if(response.data !== undefined && response.data.categorization !== undefined) {
-                            this.configData.categorization = response.data.categorization;
-                        }
-                    } else {
-                        Ext.Msg.alert('Error', response.message);
-                    }
-                }.bind(this)
-            });
-        }
+        
+        this.loadConfig();
     },
+
+    loadConfig: function() {
+        Ext.Ajax.request({
+            async: false,
+            url: Routing.generate('icecat_getconfig'),
+            success: function (res) {
+                let response = Ext.decode(res.responseText);
+                if(response.success) {
+                    if(response.data !== undefined && response.data.languages !== undefined) {
+                        this.configData.selectedLanguages = response.data.languages; 
+                    }
+                    if(response.data !== undefined && response.data.categorization !== undefined) {
+                        this.configData.categorization = response.data.categorization;
+                    }
+                    if(response.data !== undefined && response.data.showSearchPanel !== undefined) {
+                        this.configData.showSearchPanel = response.data.showSearchPanel;
+                    }
+                    if(response.data !== undefined && response.data.searchLanguages !== undefined) {
+                        this.configData.searchLanguages = response.data.searchLanguages;
+                    }
+                } else {
+                    Ext.Msg.alert('Error', response.message);
+                }
+            }.bind(this)
+        });
+    },
+
     getData: function () {
         Ext.Ajax.request({
             async: false,
@@ -48,9 +59,11 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
 
 
     },
+
     getConfigData: function() {
         return this.configData;
     },
+
     getValue: function (key, ignoreCheck) {
 
         var nk = key.split("\.");
@@ -71,6 +84,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
 
         return "";
     },
+    
     getPanel: function () {
 
         this.getData();

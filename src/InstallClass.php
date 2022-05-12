@@ -13,6 +13,16 @@ class InstallClass extends SettingsStoreAwareInstaller
     /**
      * @var string
      */
+    const PRODUCT_FOLDER_PATH = '/ICECAT';
+
+    /**
+     * @var string
+     */
+    const CATEGORY_FOLDER_PATH = '/ICECAT/CATEGORIES';
+
+    /**
+     * @var string
+     */
     const STORE_NAME = 'icecat-store';
 
     /**

@@ -155,22 +155,22 @@ class CreateObjectService
             $this->setStoreId();
 
             $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
-
             // Updating processing status and Total Records
             $updateArray = ['total_records' => count($importData), 'processed_records' => 0, 'processing_status' => $this->status['PROCESSING']];
             $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
             foreach ($importData as $data) {
+                $time_start = microtime(true);
                 try {
                     $this->jobId = $jobId;
 
                     $isJobAlive = $this->jobHandler->isLive($this->jobId);
                     if ($isJobAlive === false) {
-                        // $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
-                        // $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+                        $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
+                        $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-                        // return true;
+                        return true;
                     }
-                    \Pimcore\Cache::clearAll();
+                    //\Pimcore\Cache::clearAll();
 
                     $this->currentProductId = $data['gtin'];
                     $this->currentGtin = $data['original_gtin'];
@@ -180,26 +180,22 @@ class CreateObjectService
                     $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
                     $importArray = json_decode(base64_decode($data['data_encoded']), true);
-                    if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) :
-
+                    if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
                         $iceCatobject = new $iceCatClass();
-                    $this->createFixFields($importArray['data'], $iceCatobject);
-                    $this->createGallery($importArray['data'], $iceCatobject);
-                    $this->createDynamicFields($importArray['data'], $iceCatobject);
-                    $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
-                    $iceCatobject->setKey($this->currentProductId);
-                    $iceCatobject->setPublished(true);
-                    $iceCatobject->save(); else :
-
+                        $this->createFixFields($importArray['data'], $iceCatobject);
+                        $this->createGallery($importArray['data'], $iceCatobject);
+                        $this->createDynamicFields($importArray['data'], $iceCatobject);
+                        $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
+                        $iceCatobject->setKey($this->currentProductId);
+                        $iceCatobject->setPublished(true);
+                        $iceCatobject->save();
+                    } else {
                         $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
-
-                    $this->createFixFields($importArray['data'], $iceCatobject);
-                    $this->createGallery($importArray['data'], $iceCatobject);
-                    $this->createDynamicFields($importArray['data'], $iceCatobject);
-
-                    $iceCatobject->save();
-
-                    endif;
+                        $this->createFixFields($importArray['data'], $iceCatobject);
+                        $this->createGallery($importArray['data'], $iceCatobject);
+                        $this->createDynamicFields($importArray['data'], $iceCatobject);
+                        $iceCatobject->save();
+                    }
 
                     ++$counter;
                     // Updating Processed Record
@@ -240,6 +236,13 @@ class CreateObjectService
                         'relatedObject' => $iceCatobject
                     ]);
                 }
+                $time_end = microtime(true);
+                $execution_time = ($time_end - $time_start);
+
+                // //execution time of the script
+                // echo '<b>Total Execution Time:</b> '.$execution_time.' sec';
+                // // if you get weird results, use number_format((float) $execution_time, 10)
+                // die;
             }
 
             $updateArray = ['completed' => 1, 'processing_error ' => (!empty($this->processingError)) ? json_encode($this->processingError) : 'NO-ERROR', 'processing_status' => $this->status['PROCESSED']];
@@ -347,7 +350,10 @@ class CreateObjectService
 
             if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
                 $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
+            } else {
+                $iceCatobject->setRelatedCategories([]);
             }
+
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -387,10 +393,11 @@ class CreateObjectService
                 foreach ($parentArray as $featureGroup) {
                     if (!empty($featureGroup['Features'])) {
                         foreach ($featureGroup['Features'] as $features) {
-                            if($features['Searchable']) {
+                            if ($features['Searchable']) {
                                 $data[] = [
                                     'type' => $features['Type'],
-                                    'id' => $features['Feature']['ID']
+                                    'id' => $features['Feature']['ID'],
+                                    'keyType' => $this->dataTypes[$features['Type']]
                                 ];
                             }
                         }
@@ -513,9 +520,11 @@ class CreateObjectService
                 }
                 $data = [
                         'galleryIcon' => new BlockElement('galleryIcon', 'image', $asset),
+                        'galleryIconValue' => new BlockElement('galleryIconValue', 'input', ($featureIconArray['Value'] ?? null)),
                         'galleryIconDescription' => new BlockElement('galleryIconDescription', 'textArea', $iconToolTipData),
 
                     ];
+
                 $array[] = $data;
             }
             $iceCatobject->setgalleryIconBlock($array, $this->currentLanguage);

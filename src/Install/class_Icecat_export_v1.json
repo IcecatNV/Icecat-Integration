@@ -1,7 +1,7 @@
 {
     "id": "Icecat",
     "description": "",
-    "modificationDate": 1650733947,
+    "modificationDate": 1652276095,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -538,6 +538,28 @@
                                         "visibleSearch": false
                                     },
                                     {
+                                        "fieldtype": "wysiwyg",
+                                        "width": "",
+                                        "height": "",
+                                        "toolbarConfig": "",
+                                        "excludeFromSearchIndex": false,
+                                        "maxCharacters": "",
+                                        "name": "Warranty",
+                                        "title": "Warranty",
+                                        "tooltip": "",
+                                        "mandatory": false,
+                                        "noteditable": false,
+                                        "index": false,
+                                        "locked": false,
+                                        "style": "",
+                                        "permissions": null,
+                                        "datatype": "data",
+                                        "relationType": false,
+                                        "invisible": false,
+                                        "visibleGridView": false,
+                                        "visibleSearch": false
+                                    },
+                                    {
                                         "fieldtype": "panel",
                                         "layout": null,
                                         "border": false,
@@ -580,28 +602,32 @@
                                                         "permissions": null,
                                                         "childs": [
                                                             {
-                                                                "fieldtype": "image",
-                                                                "name": "galleryIcon",
-                                                                "title": "galleryIcon",
+                                                                "fieldtype": "input",
+                                                                "width": 500,
+                                                                "defaultValue": null,
+                                                                "columnLength": 150,
+                                                                "regex": "",
+                                                                "unique": false,
+                                                                "showCharCount": false,
+                                                                "name": "galleryIconValue",
+                                                                "title": "Value",
                                                                 "tooltip": "",
                                                                 "mandatory": false,
                                                                 "noteditable": false,
                                                                 "index": false,
                                                                 "locked": false,
-                                                                "style": "",
+                                                                "style": "margin-left: 10px;",
                                                                 "permissions": null,
                                                                 "datatype": "data",
                                                                 "relationType": false,
                                                                 "invisible": false,
                                                                 "visibleGridView": false,
                                                                 "visibleSearch": false,
-                                                                "width": "",
-                                                                "height": "",
-                                                                "uploadPath": ""
+                                                                "defaultValueGenerator": ""
                                                             },
                                                             {
                                                                 "fieldtype": "textarea",
-                                                                "width": "",
+                                                                "width": 500,
                                                                 "height": "",
                                                                 "maxLength": null,
                                                                 "showCharCount": false,
@@ -620,11 +646,31 @@
                                                                 "invisible": false,
                                                                 "visibleGridView": false,
                                                                 "visibleSearch": false
+                                                            },
+                                                            {
+                                                                "fieldtype": "image",
+                                                                "name": "galleryIcon",
+                                                                "title": "galleryIcon",
+                                                                "tooltip": "",
+                                                                "mandatory": false,
+                                                                "noteditable": false,
+                                                                "index": false,
+                                                                "locked": false,
+                                                                "style": "",
+                                                                "permissions": null,
+                                                                "datatype": "data",
+                                                                "relationType": false,
+                                                                "invisible": false,
+                                                                "visibleGridView": false,
+                                                                "visibleSearch": false,
+                                                                "width": "",
+                                                                "height": "",
+                                                                "uploadPath": ""
                                                             }
                                                         ],
                                                         "locked": false,
-                                                        "labelWidth": 0,
-                                                        "labelAlign": "left"
+                                                        "labelWidth": 100,
+                                                        "labelAlign": "top"
                                                     }
                                                 ],
                                                 "layout": null,
@@ -649,28 +695,6 @@
                                         "icon": "",
                                         "labelWidth": 0,
                                         "labelAlign": "left"
-                                    },
-                                    {
-                                        "fieldtype": "wysiwyg",
-                                        "width": "",
-                                        "height": "",
-                                        "toolbarConfig": "",
-                                        "excludeFromSearchIndex": false,
-                                        "maxCharacters": "",
-                                        "name": "Warranty",
-                                        "title": "Warranty",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
                                     }
                                 ],
                                 "name": "localizedfields",
@@ -818,7 +842,7 @@
                                 "visibleSearch": false,
                                 "width": 0,
                                 "height": 0,
-                                "uploadPath": null
+                                "uploadPath": ""
                             }
                         ],
                         "locked": false,

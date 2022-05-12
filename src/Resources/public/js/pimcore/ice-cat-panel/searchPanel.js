@@ -5,8 +5,8 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         this.uploadPanel = uploadPanel;
         this.selectedLanguages = [];
         
-        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().selectedLanguages !== undefined) {
-            this.uploadPanel.getConfigData().selectedLanguages.forEach(function(v) {
+        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().searchLanguages !== undefined) {
+            this.uploadPanel.getConfigData().searchLanguages.forEach(function(v) {
                 this.selectedLanguages.push({'key':v, 'value': v});
             }.bind(this));
         }
@@ -50,6 +50,19 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                     }
                 },
                 fields: ['id', 'name']
+            });
+
+            this.brandStore = new Ext.data.JsonStore({
+                autoDestroy: true,
+                proxy: {
+                    type: 'ajax',
+                    url: Routing.generate('icecat_brands_list'),
+                    reader: {
+                        rootProperty: 'data',
+                        idProperty: 'id'
+                    }
+                },
+                fields: ['key', 'value']
             });
 
             var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
@@ -122,7 +135,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                     sortable: false,
                     renderer: function (value, p, record) {
                         if (value) {
-                            return Ext.String.format('<a href="#" onclick="pimcore.helpers.openElement({0}, \'{1}\')">{2}</a>', value, 'object', 'Open');
+                            return Ext.String.format('<a href="#" onclick="pimcore.helpers.openElement({0}, \'{1}\')">{2}</a>', value, 'object', '<img src="/bundles/pimcoreadmin/img/flat-color-icons/open_file.svg" class="x-action-col-icon x-action-col-0" data-qtip="Open ID" >');
                         }
 
                         return '';
@@ -136,13 +149,15 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
             });      
 
             this.searchpanel = new Ext.FormPanel({
-                region: "east",
+                region: "west",
+                id: "search_form",
                 title: t("log_search_form"),
-                width: 450,
+                width: 465,
                 height: 500,
-                collapsible: true,
                 border: false,
                 autoScroll: true,
+                containerScroll: true,
+                split: true,
                 referenceHolder: true,
                 defaultButton: 'log_search_button',
                 buttons: [{
@@ -188,6 +203,19 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                             listeners: {
                                 'change': this.addComboFields.bind(this)
                             }
+                        },{
+                            xtype:'combo',
+                            name: 'brand',
+                            store: this.brandStore,
+                            fieldLabel: t('Brand'),
+                            width: 333,
+                            listWidth: 150,
+                            mode: 'local',
+                            typeAhead:true,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            displayField: 'value',
+                            valueField: 'key'
                         }]
                 }]});
 
@@ -203,18 +231,8 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         return this.panel;
     },
 
-
-    clearValues: function(component, value) {
-        this.categoryStore.getProxy().setExtraParam("language", value);
-        this.categoryStore.reload();
-
-        this.searchpanel.getForm().findField("category").reset();
-        this.searchpanel.remove(1);
-        pimcore.layout.refresh();
-    },
-
     addComboFields: function(component, value) {
-
+        this.store.removeAll();
         Ext.Ajax.request({
             url: Routing.generate('icecat_searchablefeatures_list'),
             params: {
@@ -238,7 +256,6 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
 
                 if(response.data && response.data.featuresList !== undefined) {
                     response.data.featuresList.forEach(function(item) {
-
                         if(item.type == "quantityValue") {
                             fieldset.items.push({
                                 xtype: 'fieldcontainer',
@@ -290,37 +307,56 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                         triggerAction: 'all',
                                         displayField: 'longname',
                                         valueField: 'id',
+                                    },{
+                                        xtype:'checkbox',
+                                        name: "checkbox_"+item.id,
+                                        tooltip: 'Select/Unselect all values',
+                                        width: 100,
+                                        style: 'margin-left: 5px',
+                                        handler: this.toggleComboValues
                                     }
                                 ]
                             });
                             
                         } else {
                             fieldset.items.push({
-                                xtype:'tagfield',
-                                multiselect: true,
-                                width: 300,
-                                store: new Ext.data.JsonStore({
-                                    autoDestroy: true,
-                                    data: response.data.stores[item.id].values,
-                                    proxy: {
-                                        type: 'memory',
-                                        reader: {
-                                            type: 'json',
-                                        }
-                                    },
-                                    fields: ['value', 'key'],
-                                }),
-                                name: "feature_"+item.id+"[]",
-                                fieldLabel: item.title,
-                                mode: 'local',
-                                typeAhead:true,
-                                forceSelection: true,
-                                triggerAction: 'all',
-                                displayField: 'value',
-                                valueField: 'key',
+                                xtype: 'fieldcontainer',
+                                layout: 'hbox',
+                                combineErrors: true,
+                                items:[{
+                                    xtype:'tagfield',
+                                    multiselect: true,
+                                    width: 300,
+                                    store: new Ext.data.JsonStore({
+                                        autoDestroy: true,
+                                        data: response.data.stores[item.id].values,
+                                        proxy: {
+                                            type: 'memory',
+                                            reader: {
+                                                type: 'json',
+                                            }
+                                        },
+                                        fields: ['value', 'key'],
+                                    }),
+                                    name: "feature_"+item.id+"[]",
+                                    fieldLabel: item.title,
+                                    mode: 'local',
+                                    typeAhead:true,
+                                    forceSelection: true,
+                                    triggerAction: 'all',
+                                    displayField: 'value',
+                                    valueField: 'key',
+                                },{
+                                    xtype:'checkbox',
+                                    name: "checkbox_"+item.id,
+                                    tooltip: 'Select/Unselect all values',
+                                    width: 100,
+                                    style: 'margin-left: 5px',
+                                    handler: this.toggleComboValues
+                                }]
                             });
                         }
-                    });
+                    }.bind(this));
                 } else {
                     fieldset.html = "No searchable features available";
                 }
@@ -336,7 +372,6 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
 
     find: function() {
         var formValues = this.searchpanel.getForm().getFieldValues();
-        console.log(formValues.language);
         if(formValues.language === null) {
             Ext.Msg.alert('Error', 'Please select a language');
             return false;
@@ -345,5 +380,29 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         var proxy = this.store.getProxy();
         proxy.extraParams = formValues;
         this.pagingToolbar.moveFirst();
+    },
+
+    clearValues: function(component, value) {
+        this.categoryStore.getProxy().setExtraParam("language", value);
+        this.categoryStore.reload();
+
+        this.searchpanel.getForm().findField("category").reset();
+        this.searchpanel.remove(1);
+        pimcore.layout.refresh();
+
+        this.store.removeAll();
+    },
+
+    toggleComboValues: function(component, value) {
+        var featureId = component.name.split('_')[1];
+        var featureFieldName = `feature_${featureId}[]`;
+        var combo = Ext.getCmp("search_form").getForm().findField(featureFieldName);
+        if(combo) {
+            if(value) {
+                combo.select(combo.getStore().getRange());
+            } else {
+                combo.reset();
+            }
+        }
     }
 });

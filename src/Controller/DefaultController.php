@@ -2,6 +2,7 @@
 
 namespace IceCatBundle\Controller;
 
+use IceCatBundle\InstallClass;
 use IceCatBundle\Model\Configuration;
 use IceCatBundle\Services\CreateObjectService;
 use IceCatBundle\Services\DataService;
@@ -11,6 +12,7 @@ use IceCatBundle\Services\ImportService;
 use IceCatBundle\Services\JobHandlerService;
 use IceCatBundle\Services\SearchService;
 use Pimcore\Controller\FrontendController;
+use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\User;
 use Pimcore\Tool;
@@ -18,7 +20,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-
 use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -44,7 +45,7 @@ class DefaultController extends FrontendController
      *
      * @param Request $request
      */
-    public function getConfigAction(Request $request)
+    public function getConfigAction(Request $request, SearchService $searchService)
     {
         try {
             $config = Configuration::load();
@@ -53,7 +54,9 @@ class DefaultController extends FrontendController
                     'success' => true,
                     'data' => [
                         'languages' => $config->getLanguages(),
-                        'categorization' => $config->getCategorization()
+                        'categorization' => $config->getCategorization(),
+                        'showSearchPanel' => $searchService->isSearchEnable(),
+                        'searchLanguages' => $searchService->getSearchLanguages(),
                     ]
                 ]);
             } else {
@@ -61,10 +64,40 @@ class DefaultController extends FrontendController
                     'success' => true,
                     'data' => [
                         'languages' => ['en'],
-                        'categorization' => false
+                        'categorization' => false,
+                        'showSearchPanel' => $searchService->isSearchEnable(),
+                        'searchLanguages' => $searchService->getSearchLanguages(),
                     ]
                 ]);
             }
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/admin/icecat/get-folder-ids", name="icecat_getfolderids", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function getFolderIdsAction(Request $request, SearchService $searchService)
+    {
+        try {
+            $productFolder = DataObject\Folder::getByPath(InstallClass::PRODUCT_FOLDER_PATH);
+            $productFolderId = ($productFolder) ? $productFolder->getId() : null;
+            $categoryFolder = DataObject\Folder::getByPath(InstallClass::CATEGORY_FOLDER_PATH);
+            $categoryFolderId = ($categoryFolder) ? $categoryFolder->getId() : null;
+
+            return $this->json([
+                'success' => true,
+                'data' => [
+                    'productfolderid' => $productFolderId,
+                    'categoryfolderid' => $categoryFolderId
+                ]
+            ]);
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
@@ -696,15 +729,30 @@ class DefaultController extends FrontendController
         $listing->loadIdList();
 
         $data = [];
-        foreach($listing as $category) {
-            $data[] = [
-                'id' => $category->getId(),
-                'icecatId' => $category->getIcecat_id(),
-                'name' => $category->getName($lang)
-            ];
+        foreach ($listing as $category) {
+            if (trim($category->getName($lang)) != '') {
+                $data[] = [
+                    'id' => $category->getId(),
+                    'icecatId' => $category->getIcecat_id(),
+                    'name' => $category->getName($lang)
+                ];
+            }
         }
 
         return $this->json(['success' => true, 'data' => $data]);
+    }
+
+    /**
+     *
+     * @Route("/admin/icecat/get-brands", name="icecat_brands_list", options={"expose"=true})
+     *
+     * @return JsonResponse
+     */
+    public function getBrandsAction(Request $request, SearchService $searchService)
+    {
+        $brands = $searchService->getBrands($request);
+
+        return $this->json(['success' => true, 'data' => $brands]);
     }
 
     /**
@@ -718,21 +766,21 @@ class DefaultController extends FrontendController
         $language = $request->get('language', 'en');
 
         $category = \Pimcore\Model\DataObject\IcecatCategory::getById($categoryId);
-        if(!$category) {
+        if (!$category) {
             return $this->json(['success' => false, 'message' => 'Invalid category']);
         }
 
         $searchableFeaturesList = \json_decode($category->getSearchableFeatures(), true);
-        if(!is_array($searchableFeaturesList) || count($searchableFeaturesList) == 0) {
+        if (!is_array($searchableFeaturesList) || count($searchableFeaturesList) == 0) {
             return $this->json(['success' => true, 'data' => []]);
         }
 
         $featuresList = $stores = [];
-        foreach($searchableFeaturesList as $feature) {
-            $CSKeyData = $searchService->getCSKeyForFeature($feature['id']);
-            if($CSKeyData) {
+        foreach ($searchableFeaturesList as $feature) {
+            $CSKeyData = $searchService->getCSKeyForFeature($feature['id'], $feature['keyType']);
+            if ($CSKeyData) {
                 $featuresList[] = $CSKeyData;
-                $featureValues =  $searchService->getValuesForCSKey($CSKeyData, $language);
+                $featureValues = $searchService->getValuesForCSKey($CSKeyData, $language);
                 $stores[$CSKeyData['id']] = $featureValues;
             }
         }
@@ -744,7 +792,6 @@ class DefaultController extends FrontendController
 
         return $this->json(['success' => true, 'data' => $data]);
     }
-
 
     /**
      * @Route("/admin/icecat/get-search-results", name="icecat_searchresult", options={"expose"=true})
