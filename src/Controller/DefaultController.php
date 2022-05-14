@@ -780,7 +780,7 @@ class DefaultController extends FrontendController
             $CSKeyData = $searchService->getCSKeyForFeature($feature['id'], $feature['keyType']);
             if ($CSKeyData) {
                 $featuresList[] = $CSKeyData;
-                $featureValues = $searchService->getValuesForCSKey($CSKeyData, $language);
+                $featureValues = $searchService->getValuesForCSKey($request, $CSKeyData, $language);
                 $stores[$CSKeyData['id']] = $featureValues;
             }
         }

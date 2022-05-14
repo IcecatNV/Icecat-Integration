@@ -181,6 +181,7 @@ class CreateObjectService
 
                     $importArray = json_decode(base64_decode($data['data_encoded']), true);
                     if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
+                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
                         $iceCatobject = new $iceCatClass();
                         $this->createFixFields($importArray['data'], $iceCatobject);
                         $this->createGallery($importArray['data'], $iceCatobject);
@@ -188,14 +189,21 @@ class CreateObjectService
                         $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
                         $iceCatobject->setKey($this->currentProductId);
                         $iceCatobject->setPublished(true);
-                        $iceCatobject->save();
                     } else {
+                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
                         $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
                         $this->createFixFields($importArray['data'], $iceCatobject);
                         $this->createGallery($importArray['data'], $iceCatobject);
                         $this->createDynamicFields($importArray['data'], $iceCatobject);
-                        $iceCatobject->save();
                     }
+
+                    if(!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
+                        $iceCatobject->setNoCategories(true);
+                    } else {
+                        $iceCatobject->setNoCategories(false);
+                    }
+
+                    $iceCatobject->save();
 
                     ++$counter;
                     // Updating Processed Record

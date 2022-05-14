@@ -56,14 +56,47 @@ class SearchService extends AbstractService
      *
      * @return array
      */
-    public function getValuesForCSKey($keyData, $language)
+    public function getValuesForCSKey($request, $keyData, $language)
     {
-        $sql = "SELECT DISTINCT value FROM object_classificationstore_data_Icecat WHERE keyId = {$keyData['id']} AND language = '{$language}'";
+        $category = trim($request->get('categoryID'));
+        $brand = trim($request->get('brand'));
+
+        $sql = "SELECT DISTINCT c.value FROM object_localized_Icecat_{$language} o
+                INNER JOIN object_classificationstore_data_Icecat c
+                ON c.o_id = o.o_id ";
+
+        $sql .= 'WHERE 1=1 ';
+
+        if ($category) {
+            $sql .= " AND o.RelatedCategories LIKE '%,{$category},%' ";
+        }
+
+        if ($brand) {
+            $sql .= " AND o.Brand = '{$brand}' ";
+        }
+
+        $sql .= " AND c.keyId = {$keyData['id']} AND c.language = '{$language}'";
+
         $values = \Pimcore\Db::get()->fetchCol($sql);
 
         $units = [];
         if ($keyData['type'] == 'quantityValue') {
-            $sql = "SELECT DISTINCT value2 FROM object_classificationstore_data_Icecat WHERE keyId = {$keyData['id']} AND language = '{$language}'";
+            $sql = "SELECT DISTINCT c.value2 FROM object_localized_Icecat_{$language} o
+                    INNER JOIN object_classificationstore_data_Icecat c
+                    ON c.o_id = o.o_id ";
+
+            $sql .= 'WHERE 1=1 ';
+
+            if ($category) {
+                $sql .= " AND o.RelatedCategories LIKE '%,{$category},%' ";
+            }
+
+            if ($brand) {
+                $sql .= " AND o.Brand = '{$brand}' ";
+            }
+
+            $sql .= " AND c.keyId = {$keyData['id']} AND c.language = '{$language}'";
+
             $unitsResult = \Pimcore\Db::get()->fetchCol($sql);
             foreach ($unitsResult as $u) {
                 $sql = "SELECT * FROM quantityvalue_units WHERE id = '{$u}'";
@@ -214,8 +247,14 @@ class SearchService extends AbstractService
      */
     public function getBrands($request)
     {
+        $category = trim($request->get('category'));
         $language = $request->get('language', 'en');
-        $sql = "SELECT DISTINCT(Brand) as b FROM object_localized_Icecat_{$language}";
+        $sql = "SELECT DISTINCT(o.Brand) as b FROM object_localized_Icecat_{$language} o";
+        $sql .= ' WHERE 1=1 ';
+        if ($category) {
+            $sql .= " AND o.RelatedCategories LIKE '%,{$category},%' ";
+        }
+
         $result = \Pimcore\Db::get()->fetchCol($sql);
 
         $data = [];

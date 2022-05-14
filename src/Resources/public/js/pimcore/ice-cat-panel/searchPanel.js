@@ -233,10 +233,15 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
 
     addComboFields: function(component, value) {
         this.store.removeAll();
+        this.searchpanel.getForm().findField("brand").reset();
+        this.brandStore.getProxy().setExtraParam("category", value);
+        this.brandStore.reload();
+        
         Ext.Ajax.request({
             url: Routing.generate('icecat_searchablefeatures_list'),
             params: {
                 categoryID: value,
+                brand: this.searchpanel.getForm().findField("brand").getValue(),
                 language: this.searchpanel.getForm().findField("language").getValue()
             },
             method: 'GET',

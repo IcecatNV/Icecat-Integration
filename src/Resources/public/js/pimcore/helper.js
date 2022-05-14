@@ -282,7 +282,7 @@ pimcore.plugin.iceCatHelper = Class.create({
                     } 
                     if(res.data.categoryfolderid) {
                        
-                        setTimeout(() => {  pimcore.elementservice.refreshNodeAllTrees('object', res.data.categoryfolderid);  console.log('categories refreshed');}, 3000);
+                        setTimeout(() => {  pimcore.elementservice.refreshNodeAllTrees('object', res.data.categoryfolderid);  console.log('categories refreshed');}, 7000);
                     }  
                     
                 }
