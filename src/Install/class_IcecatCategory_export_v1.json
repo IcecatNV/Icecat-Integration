@@ -1,7 +1,7 @@
 {
     "id": "icecat_category",
     "description": "",
-    "modificationDate": 1651655399,
+    "modificationDate": 1653297618,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -73,7 +73,7 @@
                                 "title": "Icecat Category ID",
                                 "tooltip": "",
                                 "mandatory": false,
-                                "noteditable": false,
+                                "noteditable": true,
                                 "index": false,
                                 "locked": false,
                                 "style": "",

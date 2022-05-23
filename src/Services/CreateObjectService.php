@@ -184,7 +184,7 @@ class CreateObjectService
                         /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
                         $iceCatobject = new $iceCatClass();
                         $this->createFixFields($importArray['data'], $iceCatobject);
-                        $this->createGallery($importArray['data'], $iceCatobject);
+                        //$this->createGallery($importArray['data'], $iceCatobject);
                         $this->createDynamicFields($importArray['data'], $iceCatobject);
                         $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
                         $iceCatobject->setKey($this->currentProductId);
@@ -193,14 +193,14 @@ class CreateObjectService
                         /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
                         $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
                         $this->createFixFields($importArray['data'], $iceCatobject);
-                        $this->createGallery($importArray['data'], $iceCatobject);
+                        //$this->createGallery($importArray['data'], $iceCatobject);
                         $this->createDynamicFields($importArray['data'], $iceCatobject);
                     }
 
                     if(!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
-                        $iceCatobject->setNoCategories(true);
+                        $iceCatobject->setCategorization(null);
                     } else {
-                        $iceCatobject->setNoCategories(false);
+                        $iceCatobject->setCategorization(true);
                     }
 
                     $iceCatobject->save();
@@ -343,18 +343,18 @@ class CreateObjectService
                 $iceCatobject->setBulletPoints($bulletHtml, $this->currentLanguage);
             }
 
-            $this->createBrandLogo($basicInformation, $iceCatobject);
+            //$this->createBrandLogo($basicInformation, $iceCatobject);
 
             $this->createReasonsToBuy($attributeArray, $iceCatobject);
 
             // Insert Images in 3d Tour fields if it is available
-            $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
+            //$this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
 
             // Insert Videos in video fields if it is available
-            $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
-            $this->setStoryField($attributeArray, $iceCatobject);
-            $this->setMultiMedia($attributeArray, $iceCatobject);
-            $this->setGalleryIcons($attributeArray, $iceCatobject);
+            //$this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
+            //$this->setStoryField($attributeArray, $iceCatobject);
+            //$this->setMultiMedia($attributeArray, $iceCatobject);
+            //$this->setGalleryIcons($attributeArray, $iceCatobject);
 
             if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
                 $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);

@@ -101,6 +101,10 @@ pimcore.plugin.iceCatHelper = Class.create({
         if (ufp.child('#iceCatBundle_objectGridPanel')) {
             ufp.child('#iceCatBundle_objectGridPanel').tab.hide();
         }
+        
+        if (ufp.child('#iceCatBundle_searchPanel')) {
+            ufp.child('#iceCatBundle_searchPanel').tab.hide();
+        }
 
     },
 
@@ -121,9 +125,10 @@ pimcore.plugin.iceCatHelper = Class.create({
                     loginButtonEle.prop('disabled', false);
                     this.hidePanels();
                 } else {
-                    loginMsgEle.html('<p style="color:green">Logged In Successfully</p>');
+                    //loginMsgEle.html('<p style="color:green">Logged In Successfully</p>');
+                    loginMsgEle.html('');
                     loginMsgEle.show();
-                    loginButtonEle.prop('disabled', true);
+                    //loginButtonEle.prop('disabled', true);
                     loginScreen.hide();
                     logoutScreen.show();
                     this.showPanels();

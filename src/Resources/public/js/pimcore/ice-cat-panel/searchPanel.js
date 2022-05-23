@@ -232,9 +232,13 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
     },
 
     addComboFields: function(component, value) {
+        if(!this.isLanguageSelected()) {
+            return false;
+        }
         this.store.removeAll();
         this.searchpanel.getForm().findField("brand").reset();
         this.brandStore.getProxy().setExtraParam("category", value);
+        this.brandStore.getProxy().setExtraParam("language", this.searchpanel.getForm().findField("language").getValue());
         this.brandStore.reload();
         
         Ext.Ajax.request({
@@ -376,22 +380,27 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
     },
 
     find: function() {
-        var formValues = this.searchpanel.getForm().getFieldValues();
-        if(formValues.language === null) {
-            Ext.Msg.alert('Error', 'Please select a language');
+        if(!this.isLanguageSelected()) {
             return false;
         }
-
         var proxy = this.store.getProxy();
+        var formValues = this.searchpanel.getForm().getFieldValues();
         proxy.extraParams = formValues;
         this.pagingToolbar.moveFirst();
     },
 
     clearValues: function(component, value) {
+        
         this.categoryStore.getProxy().setExtraParam("language", value);
         this.categoryStore.reload();
 
+        this.brandStore.getProxy().setExtraParam("language", value);
+        this.brandStore.getProxy().setExtraParam("category", value);
+        this.brandStore.reload();
+
+        this.searchpanel.getForm().findField("brand").reset();
         this.searchpanel.getForm().findField("category").reset();
+        
         this.searchpanel.remove(1);
         pimcore.layout.refresh();
 
@@ -409,5 +418,15 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                 combo.reset();
             }
         }
+    },
+
+    isLanguageSelected: function() {
+        var formValues = this.searchpanel.getForm().getFieldValues();
+        if(formValues.language === null || formValues.language == "") {
+            Ext.Msg.alert('Error', 'Please select a language');
+            return false;
+        }
+        return true;
     }
+
 });

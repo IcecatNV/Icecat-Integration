@@ -724,7 +724,11 @@ class DefaultController extends FrontendController
      */
     public function getCategoriesAction(Request $request)
     {
-        $lang = $request->get('language', 'en');
+        $lang = $request->get('language');
+        if(!$lang) {
+            return $this->json(['success' => true, 'data' => []]);
+        }
+
         $listing = new \Pimcore\Model\DataObject\IcecatCategory\Listing();
         $listing->loadIdList();
 
@@ -750,6 +754,11 @@ class DefaultController extends FrontendController
      */
     public function getBrandsAction(Request $request, SearchService $searchService)
     {
+        $lang = $request->get('language');
+        if(!$lang) {
+            return $this->json(['success' => true, 'data' => []]);
+        }
+
         $brands = $searchService->getBrands($request);
 
         return $this->json(['success' => true, 'data' => $brands]);
