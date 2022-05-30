@@ -668,7 +668,7 @@ class CreateObjectService
                     if (empty($asset)) {
                         //Saving video in asset folder
                         $newAsset = new \Pimcore\Model\Asset();
-                        $newAsset->setFilename(uniqid());
+                        $newAsset->setFilename(uniqid(). $extension);
                         $newAsset->setData(file_get_contents($videos['URL']));
                         $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                         $newAsset->save();
