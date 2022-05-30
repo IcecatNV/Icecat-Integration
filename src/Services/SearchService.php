@@ -29,7 +29,10 @@ class SearchService extends AbstractService
             $sql = "SELECT COUNT(*) as c FROM object_localized_icecat_category_{$lang} WHERE trim(name) != ''";
             $result = \Pimcore\Db::get()->fetchAssoc($sql);
             if ((int)$result['c'] !== 0) {
-                $data[] = $lang;
+                $data[] = [
+                    'key'=> $lang,
+                    'value' => \Locale::getDisplayLanguage($lang)
+                ];
             }
         }
 
@@ -59,7 +62,7 @@ class SearchService extends AbstractService
     public function getValuesForCSKey($request, $keyData, $language)
     {
         $category = trim($request->get('categoryID'));
-        $brand = trim($request->get('brand'));
+        $brands = $request->get('brand', []);
 
         $sql = "SELECT DISTINCT c.value FROM object_localized_Icecat_{$language} o
                 INNER JOIN object_classificationstore_data_Icecat c
@@ -71,11 +74,19 @@ class SearchService extends AbstractService
             $sql .= " AND o.RelatedCategories LIKE '%,{$category},%' ";
         }
 
-        if ($brand) {
-            $sql .= " AND o.Brand = '{$brand}' ";
+        if (is_array($brands) && count($brands)) {
+            $sql .= " AND ( ";
+            $loopIndex = 1;
+            foreach($brands as $brand) {
+                $sql .= " o.Brand = '{$brand}' ";
+                $sql .= $loopIndex !== count($brands) ? " OR " : "";
+                $loopIndex++;
+            }
+            $sql .= " ) ";
         }
 
         $sql .= " AND c.keyId = {$keyData['id']} AND c.language = '{$language}'";
+
 
         $values = \Pimcore\Db::get()->fetchCol($sql);
 
@@ -91,8 +102,15 @@ class SearchService extends AbstractService
                 $sql .= " AND o.RelatedCategories LIKE '%,{$category},%' ";
             }
 
-            if ($brand) {
-                $sql .= " AND o.Brand = '{$brand}' ";
+            if (is_array($brands) && count($brands)) {
+                $sql .= " AND ( ";
+                $loopIndex = 1;
+                foreach($brands as $brand) {
+                    $sql .= " o.Brand = '{$brand}' ";
+                    $sql .= $loopIndex !== count($brands) ? " OR " : "";
+                    $loopIndex++;
+                }
+                $sql .= " ) ";
             }
 
             $sql .= " AND c.keyId = {$keyData['id']} AND c.language = '{$language}'";
@@ -192,7 +210,7 @@ class SearchService extends AbstractService
     {
         $language = $request->get('language', 'en');
         $category = trim($request->get('category'));
-        $brand = trim($request->get('brand'));
+        $brands = $request->get('brand', []);
 
         $parameters = $request->request->all();
         $featuresValues = [];
@@ -233,8 +251,15 @@ class SearchService extends AbstractService
             $sql .= " AND o.RelatedCategories LIKE '%,{$category},%' ";
         }
 
-        if ($brand) {
-            $sql .= " AND o.Brand = '{$brand}' ";
+        if (is_array($brands) && count($brands)) {
+            $sql .= " AND ( ";
+            $loopIndex = 1;
+            foreach($brands as $brand) {
+                $sql .= " o.Brand = '{$brand}' ";
+                $sql .= $loopIndex !== count($brands) ? " OR " : "";
+                $loopIndex++;
+            }
+            $sql .= " ) ";
         }
 
         return $sql;

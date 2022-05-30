@@ -172,7 +172,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     name: 'categorization',
                     value: this.configData.categorization ? this.configData.categorization : false,
                     handler:function (component, value) {
-                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "on" : "off") +" Icecat categorization setting"),
+                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "make" : "lose") +" Icecat categorization leading in the Pimcore.\n Do you want to switch "+ (value == true ? "on" : "off") +" the Icecat categorization?"),
                             function (buttonValue) {
                                 if (buttonValue == "yes") {
                                     Ext.Ajax.request({

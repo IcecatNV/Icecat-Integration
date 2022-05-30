@@ -136,7 +136,7 @@ class DataService extends InfoService
             $gtins = '("dummyText")';
         }
 
-        $sql = 'SELECT if(gtin in ' . $gtins . ', 1, 0) as sel, gtin, original_gtin ,product_name, is_product_found, created_at as fetching_date FROM '
+        $sql = 'SELECT if(gtin in ' . $gtins . ', 1, 0) as sel, language, gtin, original_gtin ,product_name, is_product_found, created_at as fetching_date FROM '
             .  self::DATA_IMPORT_TABLE
             . ' WHERE job_id="' . $jobId . '" AND is_product_found=1 '
             . ' LIMIT ' . $start . ',' . $limit;

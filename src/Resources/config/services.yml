@@ -19,11 +19,16 @@ services:
     # ---------------------------------------------------------
     IceCatBundle\Command\:
         resource: '../../Command'
-        tags: ['console.command']    
+        tags: ['console.command']
+
     IceCatBundle\Services\:
         resource: '../../Services'
         public: true
-    
+
+    IceCatBundle\EventSubscriber\:
+      resource: '../../EventSubscriber'
+      tags: ["kernel.event_subscriber"]
+
     IceCatBundle\Website\LinkGenerator\Demo:
         public: true
     

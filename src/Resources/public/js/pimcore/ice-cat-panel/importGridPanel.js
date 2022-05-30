@@ -196,7 +196,10 @@ pimcore.plugin.iceCatImportGridPanel = Class.create({
                 let gtinsPage = this.grid.getStore().currentPage;
 
                 this.helper.createObject(ids, gtinsPage);
-                e.stopPropagation();
+                if(typeof e !== undefined) {
+                    //e.stopPropagation();
+                }
+                
             }.bind(this)
         });
 
@@ -330,7 +333,7 @@ pimcore.plugin.iceCatImportGridPanel = Class.create({
         
             
              createObjectButton.addCls("test2");
-             buttonText.setStyle("color","white");
+             //buttonText.setStyle("color","white");
            
           }
         });

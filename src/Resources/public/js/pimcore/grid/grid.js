@@ -273,6 +273,14 @@ pimcore.plugin.IceCatGrid = Class.create({
                     dataIndex: 'gtin',
                     filter: "string"
                 });
+            } else if (field.key == "language") {
+                gridColumns.push({
+                    text: "Language",
+                    width: this.getColumnWidth(field, 200),
+                    sortable: true,
+                    dataIndex: 'language',
+                    filter: "string"
+                });
             } else if (field.key == "original_gtin") {
                 gridColumns.push({
                     text: "GTIN",

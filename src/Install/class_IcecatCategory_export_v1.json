@@ -1,7 +1,7 @@
 {
     "id": "icecat_category",
     "description": "",
-    "modificationDate": 1653297618,
+    "modificationDate": 1653839659,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -81,8 +81,8 @@
                                 "datatype": "data",
                                 "relationType": false,
                                 "invisible": false,
-                                "visibleGridView": false,
-                                "visibleSearch": false,
+                                "visibleGridView": true,
+                                "visibleSearch": true,
                                 "defaultValueGenerator": ""
                             },
                             {
@@ -130,8 +130,8 @@
                                         "datatype": "data",
                                         "relationType": false,
                                         "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false,
+                                        "visibleGridView": true,
+                                        "visibleSearch": true,
                                         "defaultValueGenerator": ""
                                     }
                                 ],

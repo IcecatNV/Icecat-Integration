@@ -4,13 +4,13 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
     initialize: function (uploadPanel) {
         this.uploadPanel = uploadPanel;
         this.selectedLanguages = [];
-        
-        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().searchLanguages !== undefined) {
-            this.uploadPanel.getConfigData().searchLanguages.forEach(function(v) {
-                this.selectedLanguages.push({'key':v, 'value': v});
+
+        if (this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().searchLanguages !== undefined) {
+            this.uploadPanel.getConfigData().searchLanguages.forEach(function (v) {
+                this.selectedLanguages.push({ 'key': v.key, 'value': v.value });
             }.bind(this));
         }
-        
+
         this.languagesStore = new Ext.data.JsonStore({
             autoDestroy: true,
             data: this.selectedLanguages,
@@ -26,7 +26,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
     },
 
     getPanel: function () {
-        if(!this.panel) {
+        if (!this.panel) {
 
             var panelConfig = {
                 border: false,
@@ -35,7 +35,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
             };
 
             panelConfig.title = t("Search By Category");
-            panelConfig.id =  "iceCatBundle_searchPanel";
+            panelConfig.id = "iceCatBundle_searchPanel";
             panelConfig.tooltip = t("Search By Category");
             this.panel = new Ext.Panel(panelConfig);
 
@@ -72,8 +72,8 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                     'id', 'icecat_productid', 'producttitle', 'productcode', 'brand', 'gtin', 'productfamily'
                 ],
                 itemsPerPage, {
-                    autoLoad: false
-                }
+                autoLoad: false
+            }
             );
 
             var reader = this.store.getProxy().getReader();
@@ -81,26 +81,26 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
             reader.setTotalProperty('p_totalCount');
 
             this.pagingToolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
-            
+
             this.resultpanel = new Ext.grid.GridPanel({
                 store: this.store,
                 title: t("Search Results"),
-                trackMouseOver:false,
-                disableSelection:true,
+                trackMouseOver: false,
+                disableSelection: true,
                 autoScroll: true,
                 region: "center",
-                columns:[{
+                columns: [{
                     text: t("ID"),
                     dataIndex: 'id',
                     flex: 20,
                     align: 'left',
                     sortable: true
-                },{
+                }, {
                     text: t("Icecat Product ID"),
                     dataIndex: 'icecat_productid',
                     flex: 30,
                     sortable: true,
-                },{
+                }, {
                     text: t("Product Title"),
                     dataIndex: 'producttitle',
                     flex: 120,
@@ -108,27 +108,27 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                     renderer: function (s) {
                         return Ext.util.Format.htmlEncode(s);
                     }
-                },{
+                }, {
                     text: t("Product Code"),
                     dataIndex: 'productcode',
                     flex: 25,
                     sortable: true
-                },{
+                }, {
                     text: t("Brand"),
                     dataIndex: 'brand',
                     flex: 25,
                     sortable: true
-                },{
+                }, {
                     text: t("GTIN/EAN"),
                     dataIndex: 'gtin',
                     flex: 25,
                     sortable: true
-                },{
+                }, {
                     text: t("Product Family"),
                     dataIndex: 'productfamily',
                     flex: 25,
                     sortable: true
-                },{
+                }, {
                     text: t("Action"),
                     dataIndex: 'id',
                     flex: 25,
@@ -142,11 +142,11 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                     },
                 }],
                 viewConfig: {
-                    forceFit:true,
+                    forceFit: true,
                     enableTextSelection: true
                 },
                 bbar: this.pagingToolbar
-            });      
+            });
 
             this.searchpanel = new Ext.FormPanel({
                 region: "west",
@@ -166,20 +166,20 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                     handler: this.find.bind(this),
                     iconCls: "pimcore_icon_search"
                 }],
-                items: [ {
-                    xtype:'fieldset',
-                    autoHeight:true,
+                items: [{
+                    xtype: 'fieldset',
+                    autoHeight: true,
                     labelWidth: 150,
-                    items :[
+                    items: [
                         {
-                            xtype:'combo',
+                            xtype: 'combo',
                             name: 'language',
                             store: this.languagesStore,
                             fieldLabel: t('Language'),
                             width: 335,
                             listWidth: 150,
                             mode: 'local',
-                            typeAhead:true,
+                            typeAhead: true,
                             forceSelection: true,
                             triggerAction: 'all',
                             displayField: 'value',
@@ -187,15 +187,15 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                             listeners: {
                                 'change': this.clearValues.bind(this)
                             }
-                        },{
-                            xtype:'combo',
+                        }, {
+                            xtype: 'combo',
                             name: 'category',
                             store: this.categoryStore,
                             fieldLabel: t('Category'),
                             width: 333,
                             listWidth: 150,
                             mode: 'local',
-                            typeAhead:true,
+                            typeAhead: true,
                             forceSelection: true,
                             triggerAction: 'all',
                             displayField: 'name',
@@ -203,21 +203,40 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                             listeners: {
                                 'change': this.addComboFields.bind(this)
                             }
-                        },{
-                            xtype:'combo',
-                            name: 'brand',
-                            store: this.brandStore,
-                            fieldLabel: t('Brand'),
-                            width: 333,
-                            listWidth: 150,
-                            mode: 'local',
-                            typeAhead:true,
-                            forceSelection: true,
-                            triggerAction: 'all',
-                            displayField: 'value',
-                            valueField: 'key'
-                        }]
-                }]});
+                        }, {
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'tagfield',
+                                name: 'brand[]',
+                                store: this.brandStore,
+                                multiselect: true,
+                                fieldLabel: t('Brand'),
+                                width: 333,
+                                listWidth: 150,
+                                mode: 'local',
+                                typeAhead: true,
+                                forceSelection: true,
+                                triggerAction: 'all',
+                                displayField: 'value',
+                                valueField: 'key',
+                                listeners: {
+                                    'beforeselect': this.setBrandCheckbox.bind(this),
+                                    'beforedeselect': this.unsetBrandCheckbox.bind(this)
+                                }
+                            }, {
+                                xtype: 'checkbox',
+                                name: "checkbox_brand",
+                                tooltip: 'Select/Unselect all values',
+                                width: 100,
+                                style: 'margin-left: 5px',
+                                handler: this.toggleBrandComboValues.bind(this)
+                            }]
+                        }
+                    ]
+                }]
+            });
 
             var layout = new Ext.Panel({
                 border: false,
@@ -231,48 +250,48 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         return this.panel;
     },
 
-    addComboFields: function(component, value) {
-        if(!this.isLanguageSelected()) {
+    addComboFields: function (component, value) {
+        if (!this.isLanguageSelected()) {
             return false;
         }
         this.store.removeAll();
-        this.searchpanel.getForm().findField("brand").reset();
+        this.searchpanel.getForm().findField("brand[]").reset();
         this.brandStore.getProxy().setExtraParam("category", value);
         this.brandStore.getProxy().setExtraParam("language", this.searchpanel.getForm().findField("language").getValue());
         this.brandStore.reload();
-        
+
         Ext.Ajax.request({
             url: Routing.generate('icecat_searchablefeatures_list'),
             params: {
                 categoryID: value,
-                brand: this.searchpanel.getForm().findField("brand").getValue(),
+                brand: this.searchpanel.getForm().findField("brand[]").getValue(),
                 language: this.searchpanel.getForm().findField("language").getValue()
             },
             method: 'GET',
             success: function (res) {
                 var response = Ext.decode(res.responseText);
-                if(response.success === false) {
+                if (response.success === false) {
                     return;
                 }
 
                 var fieldset = {
-                    xtype:'fieldset',
+                    xtype: 'fieldset',
                     title: 'Category specific filters',
-                    autoHeight:true,
+                    autoHeight: true,
                     labelWidth: 150,
-                    items :[]
+                    items: []
                 }
 
-                if(response.data && response.data.featuresList !== undefined) {
-                    response.data.featuresList.forEach(function(item) {
-                        if(item.type == "quantityValue") {
+                if (response.data && response.data.featuresList !== undefined) {
+                    response.data.featuresList.forEach(function (item) {
+                        if (item.type == "quantityValue") {
                             fieldset.items.push({
                                 xtype: 'fieldcontainer',
                                 layout: 'hbox',
                                 combineErrors: true,
                                 items: [
                                     {
-                                        xtype:'tagfield',
+                                        xtype: 'tagfield',
                                         multiselect: true,
                                         width: 300,
                                         store: new Ext.data.JsonStore({
@@ -286,17 +305,21 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                             },
                                             fields: ['value', 'key'],
                                         }),
-                                        name: "feature_"+item.id+"[]",
+                                        name: "feature_" + item.id + "[]",
                                         fieldLabel: item.title,
                                         mode: 'local',
-                                        typeAhead:true,
+                                        typeAhead: true,
                                         forceSelection: true,
                                         triggerAction: 'all',
                                         displayField: 'value',
                                         valueField: 'key',
+                                        listeners: {
+                                            'beforeselect': this.setCheckbox.bind(this),
+                                            'beforedeselect': this.unsetCheckbox.bind(this)
+                                        }
                                     },
                                     {
-                                        xtype:'combo',
+                                        xtype: 'combo',
                                         store: new Ext.data.JsonStore({
                                             autoDestroy: true,
                                             data: response.data.stores[item.id].units,
@@ -308,17 +331,19 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                             },
                                             fields: ['longname', 'id'],
                                         }),
-                                        name: "feature_unit_"+item.id,
+                                        name: "feature_unit_" + item.id,
                                         mode: 'local',
                                         width: 100,
-                                        typeAhead:true,
+                                        typeAhead: true,
                                         forceSelection: true,
                                         triggerAction: 'all',
                                         displayField: 'longname',
                                         valueField: 'id',
-                                    },{
-                                        xtype:'checkbox',
-                                        name: "checkbox_"+item.id,
+                                        value: response.data.stores[item.id].units[0] !== undefined ? response.data.stores[item.id].units[0].id : null,
+                                        disabled: true
+                                    }, {
+                                        xtype: 'checkbox',
+                                        name: "checkbox_" + item.id,
                                         tooltip: 'Select/Unselect all values',
                                         width: 100,
                                         style: 'margin-left: 5px',
@@ -326,14 +351,14 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                     }
                                 ]
                             });
-                            
+
                         } else {
                             fieldset.items.push({
                                 xtype: 'fieldcontainer',
                                 layout: 'hbox',
                                 combineErrors: true,
-                                items:[{
-                                    xtype:'tagfield',
+                                items: [{
+                                    xtype: 'tagfield',
                                     multiselect: true,
                                     width: 300,
                                     store: new Ext.data.JsonStore({
@@ -347,17 +372,21 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                         },
                                         fields: ['value', 'key'],
                                     }),
-                                    name: "feature_"+item.id+"[]",
+                                    name: "feature_" + item.id + "[]",
                                     fieldLabel: item.title,
                                     mode: 'local',
-                                    typeAhead:true,
+                                    typeAhead: true,
                                     forceSelection: true,
                                     triggerAction: 'all',
                                     displayField: 'value',
                                     valueField: 'key',
-                                },{
-                                    xtype:'checkbox',
-                                    name: "checkbox_"+item.id,
+                                    listeners: {
+                                        'beforeselect': this.setCheckbox.bind(this),
+                                        'beforedeselect': this.unsetCheckbox.bind(this)
+                                    }
+                                }, {
+                                    xtype: 'checkbox',
+                                    name: "checkbox_" + item.id,
                                     tooltip: 'Select/Unselect all values',
                                     width: 100,
                                     style: 'margin-left: 5px',
@@ -379,8 +408,8 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         });
     },
 
-    find: function() {
-        if(!this.isLanguageSelected()) {
+    find: function () {
+        if (!this.isLanguageSelected()) {
             return false;
         }
         var proxy = this.store.getProxy();
@@ -389,8 +418,8 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         this.pagingToolbar.moveFirst();
     },
 
-    clearValues: function(component, value) {
-        
+    clearValues: function (component, value) {
+
         this.categoryStore.getProxy().setExtraParam("language", value);
         this.categoryStore.reload();
 
@@ -398,21 +427,21 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         this.brandStore.getProxy().setExtraParam("category", value);
         this.brandStore.reload();
 
-        this.searchpanel.getForm().findField("brand").reset();
+        this.searchpanel.getForm().findField("brand[]").reset();
         this.searchpanel.getForm().findField("category").reset();
-        
+
         this.searchpanel.remove(1);
         pimcore.layout.refresh();
 
         this.store.removeAll();
     },
 
-    toggleComboValues: function(component, value) {
+    toggleComboValues: function (component, value) {
         var featureId = component.name.split('_')[1];
         var featureFieldName = `feature_${featureId}[]`;
         var combo = Ext.getCmp("search_form").getForm().findField(featureFieldName);
-        if(combo) {
-            if(value) {
+        if (combo) {
+            if (value) {
                 combo.select(combo.getStore().getRange());
             } else {
                 combo.reset();
@@ -420,9 +449,66 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         }
     },
 
-    isLanguageSelected: function() {
+    toggleBrandComboValues: function (component, value) {
+        var combo = Ext.getCmp("search_form").getForm().findField('brand[]');
+        if (combo) {
+            if (value) {
+                combo.select(combo.getStore().getRange());
+            } else {
+                combo.reset();
+            }
+        }
+    },
+
+    setCheckbox: function (component) {
+        var featureIdWithBraces = component.name.split('_')[1];
+        var featureId = featureIdWithBraces.split('[]')[0];
+        var featureFieldName = `feature_${featureId}[]`;
+        var combo = Ext.getCmp("search_form").getForm().findField(featureFieldName);
+
+        // +1 because event is called before select
+        if(combo.getValue().length+1 === combo.getStore().getRange().length) {
+            var checkboxFieldName = `checkbox_${featureId}`;
+            var checkbox = Ext.getCmp("search_form").getForm().findField(checkboxFieldName);
+            if (checkbox) {
+                checkbox.setRawValue(true);
+            }
+        }
+    },
+
+    unsetCheckbox: function (component) {
+        var featureIdWithBraces = component.name.split('_')[1];
+        var featureId = featureIdWithBraces.split('[]')[0];
+        var checkboxFieldName = `checkbox_${featureId}`;
+        var checkbox = Ext.getCmp("search_form").getForm().findField(checkboxFieldName);
+        if (checkbox) {
+            checkbox.setRawValue(false);
+        }
+    },
+
+    setBrandCheckbox: function (component) {
+        var combo = Ext.getCmp("search_form").getForm().findField('brand[]');
+        console.log(component.getValue());
+        console.log(this.brandStore.getRange().length);
+        // +1 because event is called before select
+        if(combo.getValue().length+1 === this.brandStore.getRange().length) {
+            var checkbox = Ext.getCmp("search_form").getForm().findField('checkbox_brand');
+            if (checkbox) {
+                checkbox.setRawValue(true);
+            }
+        }
+    },
+
+    unsetBrandCheckbox: function (component) {
+        var checkbox = Ext.getCmp("search_form").getForm().findField('checkbox_brand');
+        if (checkbox) {
+            checkbox.setRawValue(false);
+        }
+    },
+
+    isLanguageSelected: function () {
         var formValues = this.searchpanel.getForm().getFieldValues();
-        if(formValues.language === null || formValues.language == "") {
+        if (formValues.language === null || formValues.language == "") {
             Ext.Msg.alert('Error', 'Please select a language');
             return false;
         }
