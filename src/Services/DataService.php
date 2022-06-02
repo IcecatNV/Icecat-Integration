@@ -142,13 +142,19 @@ class DataService extends InfoService
             . ' LIMIT ' . $start . ',' . $limit;
         $data = $this->db->fetchAll($sql);
 
+        $finalData = [];
+        foreach($data as $d) {
+            $d['language'] = \Locale::getDisplayLanguage($d['language']);
+            $finalData[] = $d;
+        }
+
         $sql = 'SELECT count(gtin) as count  FROM '
             .  self::DATA_IMPORT_TABLE
             . ' WHERE job_id="' . $jobId . '" AND is_product_found=1 ';
 
         $count = $this->db->fetchRow($sql);
         //        return ['data' => $data, 'total' => $totalRecords];
-        return ['data' => $data, 'total' => $count['count']];
+        return ['data' => $finalData, 'total' => $count['count']];
     }
 
     public function commitNotToImportRecords($jobId)
