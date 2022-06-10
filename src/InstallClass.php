@@ -319,6 +319,11 @@ class InstallClass extends SettingsStoreAwareInstaller
             $class->setGroup('Icecat');
             $json = file_get_contents($filepath);
             \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
+
+            // set store id
+            $classConfig = \json_decode($json, true);
+            $classConfig['layoutDefinitions']['childs'][0]['childs'][4]['childs'][0]['storeId'] = $this->storeId;
+            \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, \json_encode($classConfig));
         }
 
         $classname = 'IcecatCategory';
