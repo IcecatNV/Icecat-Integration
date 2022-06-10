@@ -32,7 +32,7 @@ class Demo implements LinkGeneratorInterface
 
         //getting active language
 
-        $activatedLanguage = Tool::getValidLanguages();
+        $activated = Tool::getValidLanguages();
         $defaultLocale = Tool::getSupportedLocales();
         $activatedLangWithDisplayValue = array_intersect_key($defaultLocale, array_flip($activatedLanguage));
         $finalResult = [];

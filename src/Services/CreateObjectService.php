@@ -197,7 +197,7 @@ class CreateObjectService
                         $this->createDynamicFields($importArray['data'], $iceCatobject);
                     }
 
-                    if(!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
+                    if (!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
                         $iceCatobject->setCategorization(null);
                     } else {
                         $iceCatobject->setCategorization(true);
@@ -361,7 +361,6 @@ class CreateObjectService
             } else {
                 $iceCatobject->setRelatedCategories([]);
             }
-
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -668,7 +667,7 @@ class CreateObjectService
                     if (empty($asset)) {
                         //Saving video in asset folder
                         $newAsset = new \Pimcore\Model\Asset();
-                        $newAsset->setFilename(uniqid(). "." . $extension);
+                        $newAsset->setFilename(uniqid(). '.' . $extension);
                         $newAsset->setData(file_get_contents($videos['URL']));
                         $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                         $newAsset->save();

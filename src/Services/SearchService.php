@@ -30,7 +30,7 @@ class SearchService extends AbstractService
             $result = \Pimcore\Db::get()->fetchAssoc($sql);
             if ((int)$result['c'] !== 0) {
                 $data[] = [
-                    'key'=> $lang,
+                    'key' => $lang,
                     'value' => \Locale::getDisplayLanguage($lang)
                 ];
             }
@@ -75,18 +75,17 @@ class SearchService extends AbstractService
         }
 
         if (is_array($brands) && count($brands)) {
-            $sql .= " AND ( ";
+            $sql .= ' AND ( ';
             $loopIndex = 1;
-            foreach($brands as $brand) {
+            foreach ($brands as $brand) {
                 $sql .= " o.Brand = '{$brand}' ";
-                $sql .= $loopIndex !== count($brands) ? " OR " : "";
+                $sql .= $loopIndex !== count($brands) ? ' OR ' : '';
                 $loopIndex++;
             }
-            $sql .= " ) ";
+            $sql .= ' ) ';
         }
 
         $sql .= " AND c.keyId = {$keyData['id']} AND c.language = '{$language}'";
-
 
         $values = \Pimcore\Db::get()->fetchCol($sql);
 
@@ -103,14 +102,14 @@ class SearchService extends AbstractService
             }
 
             if (is_array($brands) && count($brands)) {
-                $sql .= " AND ( ";
+                $sql .= ' AND ( ';
                 $loopIndex = 1;
-                foreach($brands as $brand) {
+                foreach ($brands as $brand) {
                     $sql .= " o.Brand = '{$brand}' ";
-                    $sql .= $loopIndex !== count($brands) ? " OR " : "";
+                    $sql .= $loopIndex !== count($brands) ? ' OR ' : '';
                     $loopIndex++;
                 }
-                $sql .= " ) ";
+                $sql .= ' ) ';
             }
 
             $sql .= " AND c.keyId = {$keyData['id']} AND c.language = '{$language}'";
@@ -252,14 +251,14 @@ class SearchService extends AbstractService
         }
 
         if (is_array($brands) && count($brands)) {
-            $sql .= " AND ( ";
+            $sql .= ' AND ( ';
             $loopIndex = 1;
-            foreach($brands as $brand) {
+            foreach ($brands as $brand) {
                 $sql .= " o.Brand = '{$brand}' ";
-                $sql .= $loopIndex !== count($brands) ? " OR " : "";
+                $sql .= $loopIndex !== count($brands) ? ' OR ' : '';
                 $loopIndex++;
             }
-            $sql .= " ) ";
+            $sql .= ' ) ';
         }
 
         return $sql;

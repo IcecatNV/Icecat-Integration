@@ -725,7 +725,7 @@ class DefaultController extends FrontendController
     public function getCategoriesAction(Request $request)
     {
         $lang = $request->get('language');
-        if(!$lang) {
+        if (!$lang) {
             return $this->json(['success' => true, 'data' => []]);
         }
 
@@ -755,7 +755,7 @@ class DefaultController extends FrontendController
     public function getBrandsAction(Request $request, SearchService $searchService)
     {
         $lang = $request->get('language');
-        if(!$lang) {
+        if (!$lang) {
             return $this->json(['success' => true, 'data' => []]);
         }
 

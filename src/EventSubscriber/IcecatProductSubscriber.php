@@ -5,7 +5,6 @@ namespace IceCatBundle\EventSubscriber;
 use Pimcore\Event\DataObjectEvents;
 use Pimcore\Event\Model\DataObjectEvent;
 use Pimcore\Model\DataObject;
-use Pimcore\Model\DataObject\AbstractObject;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class IcecatProductSubscriber implements EventSubscriberInterface
@@ -28,12 +27,11 @@ class IcecatProductSubscriber implements EventSubscriberInterface
     {
         $object = $event->getObject();
         if ($object instanceof DataObject\Icecat) {
-            if(is_array($object->getRelatedCategories()) && count($object->getRelatedCategories())) {
+            if (is_array($object->getRelatedCategories()) && count($object->getRelatedCategories())) {
                 $object->setCategorization(true);
             } else {
                 $object->setCategorization(false);
             }
         }
-
     }
 }

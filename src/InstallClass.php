@@ -104,16 +104,18 @@ class InstallClass extends SettingsStoreAwareInstaller
      */
     public function removeClass()
     {
-        $class = ClassDefinition::getByName('Icecat');
+        $class = \Pimcore\Model\DataObject\ClassDefinition::getByName('IcecatCategory');
         if ($class) {
             try {
                 $class->delete();
             } catch (\Throwable $e) {
+                p_r($e);
+                die;
                 // do fancy things here ..
             }
         }
 
-        $class = \Pimcore\Model\DataObject\ClassDefinition::getByName('IcecatCategory');
+        $class = ClassDefinition::getByName('Icecat');
         if ($class) {
             try {
                 $class->delete();
@@ -319,12 +321,12 @@ class InstallClass extends SettingsStoreAwareInstaller
             $class->setGroup('Icecat');
             $json = file_get_contents($filepath);
             \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
-
-            // set store id
-            $classConfig = \json_decode($json, true);
-            $classConfig['layoutDefinitions']['childs'][0]['childs'][4]['childs'][0]['storeId'] = $this->storeId;
-            \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, \json_encode($classConfig));
         }
+
+        // set store id
+        $classConfig = \json_decode($json, true);
+        $classConfig['layoutDefinitions']['childs'][0]['childs'][3]['childs'][0]['storeId'] = $this->storeId;
+        \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, \json_encode($classConfig));
 
         $classname = 'IcecatCategory';
         $filepath = __DIR__ . '/Install/class_IcecatCategory_export_v1.json';

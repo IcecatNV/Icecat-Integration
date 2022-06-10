@@ -143,7 +143,7 @@ class DataService extends InfoService
         $data = $this->db->fetchAll($sql);
 
         $finalData = [];
-        foreach($data as $d) {
+        foreach ($data as $d) {
             $d['language'] = \Locale::getDisplayLanguage($d['language']);
             $finalData[] = $d;
         }

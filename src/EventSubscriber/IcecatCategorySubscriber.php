@@ -31,21 +31,19 @@ class IcecatCategorySubscriber implements EventSubscriberInterface
             $sql = "SELECT * FROM object_Icecat WHERE RelatedCategories LIKE ',{$object->getId()},'";
             $result = \Pimcore\Db::get()->fetchAll($sql);
 
-            foreach($result as $r) {
+            foreach ($result as $r) {
                 $productId = $r['oo_id'];
                 $productObject = AbstractObject::getById($productId);
-                $categoryIds = array_filter(explode(',',$r['RelatedCategories']));
+                $categoryIds = array_filter(explode(',', $r['RelatedCategories']));
 
-                if(count($categoryIds) === 1) {
+                if (count($categoryIds) === 1) {
                     \Pimcore\Db::get()->executeQuery("UPDATE object_query_Icecat SET categorization = NULL WHERE oo_id = {$productId}");
                     \Pimcore\Db::get()->executeQuery("UPDATE object_store_Icecat SET categorization = NULL WHERE oo_id = {$productId}");
-                    if($productObject) {
+                    if ($productObject) {
                         \Pimcore\Cache::clearTags($productObject->getCacheTags());
                     }
                 }
             }
-
         }
-
     }
 }
