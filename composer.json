@@ -1,6 +1,6 @@
 {
     "name": "icecat/icecat-integration",
-    "description": "This plugin provides integrtaion of pimcore with Icecat",
+    "description": "This plugin provides integration of pimcore with Icecat",
     "type": "pimcore-bundle",
     "license": "MIT",
     "authors": [{

@@ -1,22 +1,19 @@
 <?php
 
-
 namespace IceCatBundle\Services;
-
 
 use Pimcore\Db;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 
 class AbstractService
 {
     const LOGIN_TABLE = 'icecat_user_login';
-    protected  $request;
+    protected $request;
     const USER_INFO_SESSION_KEY = 'session_iceCatUserInfo';
     const SELECTED_GTIN_INFO_SESSION_KEY = 'session_iceCatNotToImportGtins';
-    const ICE_CAT_PROCESSES_TABLE = "ice_cat_processes";
-    const DATA_IMPORT_TABLE = "icecat_imported_data";
+    const ICE_CAT_PROCESSES_TABLE = 'ice_cat_processes';
+    const DATA_IMPORT_TABLE = 'icecat_imported_data';
     const JOB_FINISHED_STATUSES = [
         'completed', 'failed'
     ];
@@ -32,8 +29,9 @@ class AbstractService
 
     public function getObjectCreationProcess($jobId)
     {
-        $sql = "SELECT * FROM " . self::ICE_CAT_PROCESSES_TABLE . " WHERE processed_records is not null AND jobid=" . $this->db->quote($jobId);
+        $sql = 'SELECT * FROM ' . self::ICE_CAT_PROCESSES_TABLE . ' WHERE processed_records is not null AND jobid=' . $this->db->quote($jobId);
         $result = $this->db->fetchAll($sql);
+
         return $result;
     }
 
@@ -44,6 +42,7 @@ class AbstractService
             mkdir($path, 0777, true);
             $exist = is_dir($path);
         }
+
         return $exist;
     }
 
@@ -64,7 +63,7 @@ class AbstractService
             $all = array_merge($all, $gtins);
             $storedGtins['all'] = implode(',', array_unique($all));
             $storedGtins[$page] = implode(',', $gtins);
-            $bag['gtins'] =  $storedGtins;
+            $bag['gtins'] = $storedGtins;
         }
 
         $session->set(self::SELECTED_GTIN_INFO_SESSION_KEY, $bag);
@@ -73,46 +72,47 @@ class AbstractService
     public function getDataFromSession($key)
     {
         $session = $this->request->getSession();
+
         return $session->get($key);
     }
 
     public function setDataInSession($key, $data)
     {
         $session = $this->request->getSession();
+
         return $session->set($key, $data);
     }
 
-
-
     public function getRunningJob()
     {
-        $sql = "SELECT * FROM " . self::ICE_CAT_PROCESSES_TABLE . " WHERE completed=0 order by created_at desc";
+        $sql = 'SELECT * FROM ' . self::ICE_CAT_PROCESSES_TABLE . ' WHERE completed=0 order by created_at desc';
         $result = $this->db->fetchAll($sql);
         if (empty($result)) {
             return false;
         }
+
         return $result[0];
     }
 
     public function getFetchingProcess($jobId)
     {
-        $sql = "SELECT * FROM " . self::ICE_CAT_PROCESSES_TABLE . " WHERE fetched_records is not null and jobid="  . $this->db->quote($jobId);
+        $sql = 'SELECT * FROM ' . self::ICE_CAT_PROCESSES_TABLE . ' WHERE fetched_records is not null and jobid='  . $this->db->quote($jobId);
         $result = $this->db->fetchAll($sql);
+
         return $result;
     }
 
     public function getTotalFetchedProducts($jobId)
     {
-
-        $sql = "SELECT count(id) as fetched_records FROM " . self::DATA_IMPORT_TABLE . " WHERE  is_product_found = 1 and job_id="  . $this->db->quote($jobId);
+        $sql = 'SELECT count(id) as fetched_records FROM ' . self::DATA_IMPORT_TABLE . ' WHERE  is_product_found = 1 and job_id='  . $this->db->quote($jobId);
         $result = $this->db->fetchRow($sql);
 
         return $result;
     }
+
     public function getInfoForUnfoundProducts($jobId)
     {
-
-        $sql = "SELECT * FROM " . self::DATA_IMPORT_TABLE . " WHERE is_product_found = 0 and  job_id="  . $this->db->quote($jobId);
+        $sql = 'SELECT * FROM ' . self::DATA_IMPORT_TABLE . ' WHERE is_product_found = 0 and  job_id='  . $this->db->quote($jobId);
         $result = $this->db->fetchAll($sql);
 
         return $result;
@@ -120,24 +120,23 @@ class AbstractService
 
     public function checkIfFetchingDone($jobId)
     {
-        $sql = "SELECT * FROM " . self::ICE_CAT_PROCESSES_TABLE . " WHERE status is not null and  status != 'fetching' AND jobid="  . $this->db->quote($jobId);
+        $sql = 'SELECT * FROM ' . self::ICE_CAT_PROCESSES_TABLE . " WHERE status is not null and  status != 'fetching' AND jobid="  . $this->db->quote($jobId);
         $result = $this->db->fetchAll($sql);
         if (empty($result)) {
             return false;
         }
+
         return true;
     }
 
     public function getUserInfo()
     {
-        //        p_r(\Pimcore\Tool\Admin::getCurrentUser());die;
         if ((\Pimcore\Tool\Admin::getCurrentUser())) {
-
             $pimUserId = (\Pimcore\Tool\Admin::getCurrentUser())->getId();
         } else {
             $pimUserId = $this->getDataFromSession('pimUserId');
         }
-        $sql = "SELECT * FROM " . self::LOGIN_TABLE . " WHERE login_status=1 AND pim_user_id=" . $pimUserId;
+        $sql = 'SELECT * FROM ' . self::LOGIN_TABLE . ' WHERE login_status=1 AND pim_user_id=' . $pimUserId;
         $result = $this->db->fetchAll($sql);
         if (!empty($result)) {
             return $result[0];
@@ -148,17 +147,18 @@ class AbstractService
 
     public function getIfAnyUploadDone()
     {
-        $sql = "SELECT * FROM " . self::ICE_CAT_PROCESSES_TABLE . " WHERE completed=0";
+        $sql = 'SELECT * FROM ' . self::ICE_CAT_PROCESSES_TABLE . ' WHERE completed=0';
         $result = $this->db->fetchAll($sql);
         if (empty($result)) {
             return false;
         }
+
         return true;
     }
 
     public function getIfAnyFetchingProcess($jobId)
     {
-        $sql = "SELECT * FROM " . self::ICE_CAT_PROCESSES_TABLE . " WHERE (status = 'fetched' OR status='fetching') AND jobid=" . $this->db->quote($jobId);
+        $sql = 'SELECT * FROM ' . self::ICE_CAT_PROCESSES_TABLE . " WHERE (status = 'fetched' OR status='fetching') AND jobid=" . $this->db->quote($jobId);
         $result = $this->db->fetchAll($sql);
         if (!empty($result)) {
             //            return ['fetching' => true, 'jobId' => $result[0]['jobid'],
@@ -167,6 +167,7 @@ class AbstractService
             //            ];
             return true;
         }
+
         return false;
         //        return ['fetching' => false];
     }
@@ -177,6 +178,7 @@ class AbstractService
         if (!empty($result)) {
             return true;
         }
+
         return false;
     }
 
@@ -199,6 +201,7 @@ class AbstractService
     {
         $this->request->getSession()->set(self::USER_INFO_SESSION_KEY, []);
     }
+
     public function saveUserInfoInSession($info)
     {
         $this->request->getSession()->set(self::USER_INFO_SESSION_KEY, $info);
@@ -209,7 +212,6 @@ class AbstractService
         $this->emptySelectedGtinsFromSession();
         $this->emptyUserInfoFromSession();
     }
-
 
     public function getNotToImportGtinsFromSession($page = 0)
     {
@@ -227,6 +229,7 @@ class AbstractService
         if ($page == 'all') {
             return $storedGtins['all'];
         }
+
         return isset($storedGtins[$page]) ? $storedGtins[$page] : '';
     }
 }

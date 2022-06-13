@@ -2,18 +2,12 @@
 
 namespace IceCatBundle\Services;
 
-use Throwable;
-use IceCatBundle\Services\AbstractService;
-
-
-
 class IceCatCsvLogger
 {
-
     protected $log = [];
     protected $path = [];
     protected $counter = 0;
-    public  $logFilePath  = PIMCORE_PRIVATE_VAR . '/log';
+    public $logFilePath = PIMCORE_PRIVATE_VAR . '/log';
     public $abstractObj;
     protected $currentFileName;
     const LOG_TYPE = [
@@ -21,13 +15,10 @@ class IceCatCsvLogger
         'OBJECT_CREATE' => 'OBJECT_CREATE',
     ];
 
-
-
-    function __construct(AbstractService $abstract)
+    public function __construct(AbstractService $abstract)
     {
         $this->abstractObj = $abstract;
     }
-
 
     public function addLogRow($gtin, $status, $message, $fileName)
     {
@@ -50,9 +41,9 @@ class IceCatCsvLogger
         } catch (\Throwable $e) {
         }
     }
+
     public function cleanUpLogger()
     {
-
         try {
             if (count($this->log) > 100) {
                 $this->saveLog($this->currentFileName, self::LOG_TYPE['OBJECT_CREATE']);
@@ -63,15 +54,12 @@ class IceCatCsvLogger
 
     public function saveLog($fileName, $logType)
     {
-
         try {
-
             if ($logType == self::LOG_TYPE['FILE_IMPORT']) {
                 $logFilePath = $this->logFilePath . '/FILE-IMPORT';
             } elseif ($logType == self::LOG_TYPE['OBJECT_CREATE']) {
                 $logFilePath = $this->logFilePath . '/OBJECT-CREATE';
             }
-
 
             if (!$this->abstractObj->checkFilePathExist($logFilePath, true)) {
                 echo 'error: unable to create dir';
@@ -79,8 +67,7 @@ class IceCatCsvLogger
             $path = $logFilePath . '/' . str_replace(' ', '-', $fileName) . '.csv';
 
             if (!file_exists($path)) {
-
-                (array_unshift($this->log, ["GTIN", "STATUS", "MESSAGE"]));
+                (array_unshift($this->log, ['GTIN', 'STATUS', 'MESSAGE']));
             }
 
             // Saving file in csv
@@ -103,12 +90,12 @@ class IceCatCsvLogger
             $fileDetail = [];
             $i = 0;
             foreach ($files as $file) {
-
-                $fileDetail[$i]['path']  = $file;
+                $fileDetail[$i]['path'] = $file;
                 $fileDetail[$i]['name'] = basename($file, '.csv');
 
                 $i++;
             }
+
             return array_reverse($fileDetail);
         } catch (\Throwable $e) {
         }

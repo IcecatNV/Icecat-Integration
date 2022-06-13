@@ -3,9 +3,15 @@
 namespace IceCatBundle;
 
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
+use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 
 class IceCatBundle extends AbstractPimcoreBundle
 {
+    use PackageVersionTrait;
+
+    /**
+     * {@inheritdoc}
+     */
     public function getJsPaths()
     {
         return [
@@ -18,6 +24,7 @@ class IceCatBundle extends AbstractPimcoreBundle
             '/bundles/icecat/js/pimcore/ice-cat-screen/tabPanels.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/loginPanel.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/uploadFilePanel.js',
+            '/bundles/icecat/js/pimcore/ice-cat-panel/searchPanel.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/importGridPanel.js',
             // '/bundles/icecat/js/pimcore/ice-cat-panel/logGridPanel.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/unfetchedProductGrid.js',
@@ -30,6 +37,9 @@ class IceCatBundle extends AbstractPimcoreBundle
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getCssPaths()
     {
         return [
@@ -43,5 +53,13 @@ class IceCatBundle extends AbstractPimcoreBundle
     public function getInstaller()
     {
         return $this->container->get(\IceCatBundle\InstallClass::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getComposerPackageName(): string
+    {
+        return 'icecat/icecat-integration';
     }
 }

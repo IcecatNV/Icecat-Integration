@@ -1,12 +1,13 @@
 pimcore.registerNS("pimcore.plugin.iceCatHelper");
 pimcore.plugin.iceCatHelper = Class.create({
-    initialize : function(parent) {
+    initialize: function (parent) {
         // this.getPanel();
         this.uploadPanel = new pimcore.plugin.iceCatUploadFilePanel();
         this.importGridPanel = new pimcore.plugin.iceCatImportGridPanel();
         // this.runningProcessesPanel = new pimcore.plugin.iceCatRunningProcessesPanel();
-       this.unfetchedProductGrid = new pimcore.plugin.unfetchedProductGrid();
+        this.unfetchedProductGrid = new pimcore.plugin.unfetchedProductGrid();
         this.applicationLogGridPanel = new pimcore.plugin.iceCatApplicationLogGridPanel();
+        this.searchPanel = new pimcore.plugin.iceCatSearchPanel(this.uploadPanel);
     },
     addFileTabIndex: 1,
     intervalObj: '',
@@ -19,18 +20,31 @@ pimcore.plugin.iceCatHelper = Class.create({
         if (!ufp.child('#iceCatBundle_importGridPanel')) {
             ufp.add(this.importGridPanel.getPanel());
         }
-       
-         if (!ufp.child('#iceCatBundle_unfetchedProductGrid')) {
+
+        if (!ufp.child('#iceCatBundle_unfetchedProductGrid')) {
             ufp.add(this.unfetchedProductGrid.getPanel());
         }
-           if (!ufp.child('#icecatApplicationLoggerPanel')) {
+        if (!ufp.child('#icecatApplicationLoggerPanel')) {
             ufp.add(this.applicationLogGridPanel.getTabPanel());
         }
+
+        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
+        && this.uploadPanel.getConfigData().showSearchPanel) {
+            if (!ufp.child('#iceCatBundle_searchPanel')) {
+                ufp.add(this.searchPanel.getPanel());
+            }
+        }
+        
+
         ufp.child('#iceCatBundle_uploadFilePanel').tab.show();
         ufp.child('#iceCatBundle_importGridPanel').tab.show();
         ufp.child('#icecatApplicationLoggerPanel').tab.show();
         ufp.child('#iceCatBundle_unfetchedProductGrid').tab.show();
-
+        
+        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
+        && this.uploadPanel.getConfigData().showSearchPanel) {
+            ufp.child('#iceCatBundle_searchPanel').tab.show();
+        }
 
         Ext.Ajax.request({
             url: Routing.generate('icecat_check_product_count'),
@@ -38,8 +52,7 @@ pimcore.plugin.iceCatHelper = Class.create({
 
                 responseData = Ext.decode(response.responseText);
 
-                if(responseData.status == 'true')
-                {
+                if (responseData.status == 'true') {
 
                     new pimcore.plugin.iceCatObjectGridPanel(responseData.id);
                 }
@@ -51,16 +64,16 @@ pimcore.plugin.iceCatHelper = Class.create({
         });
     },
 
-    setActiveTab: function(tabIndex = this.addFileTabIndex) {
-      if (Ext.getCmp('pimcore_iceCat_tabPanel')) {
-          previousActiveTab =  Ext.getCmp('pimcore_iceCat_tabPanel').getActiveTab();
-          previousActiveTabId = previousActiveTab.getId();
+    setActiveTab: function (tabIndex = this.addFileTabIndex) {
+        if (Ext.getCmp('pimcore_iceCat_tabPanel')) {
+            previousActiveTab = Ext.getCmp('pimcore_iceCat_tabPanel').getActiveTab();
+            previousActiveTabId = previousActiveTab.getId();
             Ext.getCmp('pimcore_iceCat_tabPanel').setActiveTab(tabIndex);
-          if (tabIndex == 2 && previousActiveTabId != 'iceCatBundle_importGridPanel' ) {
-              if (Ext.getCmp('icecat_data_grid') && Ext.getCmp('icecat_data_grid').dockedItems && Ext.getCmp('icecat_data_grid').dockedItems.items && Ext.getCmp('icecat_data_grid').dockedItems.items.length)
-              Ext.getCmp('icecat_data_grid').dockedItems.items[0].doRefresh();
-          }
-      }
+            if (tabIndex == 2 && previousActiveTabId != 'iceCatBundle_importGridPanel') {
+                if (Ext.getCmp('icecat_data_grid') && Ext.getCmp('icecat_data_grid').dockedItems && Ext.getCmp('icecat_data_grid').dockedItems.items && Ext.getCmp('icecat_data_grid').dockedItems.items.length)
+                    Ext.getCmp('icecat_data_grid').dockedItems.items[0].doRefresh();
+            }
+        }
     },
 
     hidePanels: function () {
@@ -80,19 +93,22 @@ pimcore.plugin.iceCatHelper = Class.create({
         if (ufp.child('#iceCatBundle_unfetchedProductGrid')) {
             ufp.child('#iceCatBundle_unfetchedProductGrid').tab.hide();
         }
-        if (!ufp.child('#icecatApplicationLoggerPanel')) {
-             ufp.child('#icecatApplicationLoggerPanel').tab.hide();
+
+        if (ufp.child('#icecatApplicationLoggerPanel')) {
+            ufp.child('#icecatApplicationLoggerPanel').tab.hide();
         }
-         
-        
 
         if (ufp.child('#iceCatBundle_objectGridPanel')) {
             ufp.child('#iceCatBundle_objectGridPanel').tab.hide();
         }
+        
+        if (ufp.child('#iceCatBundle_searchPanel')) {
+            ufp.child('#iceCatBundle_searchPanel').tab.hide();
+        }
 
     },
 
-        loginIceCatUser: function (userName, password, loginMsgEle, loginButtonEle, loginScreen, logoutScreen) {
+    loginIceCatUser: function (userName, password, loginMsgEle, loginButtonEle, loginScreen, logoutScreen) {
         Ext.Ajax.request({
             url: Routing.generate('icecat_login'),
             params: {
@@ -102,15 +118,17 @@ pimcore.plugin.iceCatHelper = Class.create({
             success: function (response) {
                 let res = JSON.parse(response.responseText);
                 this.setOtherInfo(res);
+                console.log(res);
                 if (res.status === "error") {
                     loginMsgEle.html('<p style="color:red">Invalid User name/Password!</p>');
                     loginMsgEle.show();
                     loginButtonEle.prop('disabled', false);
                     this.hidePanels();
                 } else {
-                    loginMsgEle.html('<p style="color:green">Logged In Successfully</p>');
+                    //loginMsgEle.html('<p style="color:green">Logged In Successfully</p>');
+                    loginMsgEle.html('');
                     loginMsgEle.show();
-                    loginButtonEle.prop('disabled', true);
+                    //loginButtonEle.prop('disabled', true);
                     loginScreen.hide();
                     logoutScreen.show();
                     this.showPanels();
@@ -145,7 +163,7 @@ pimcore.plugin.iceCatHelper = Class.create({
 
     },
 
-    getOtherInfo: function (showPanels=true, activateAddFileTab=true) {
+    getOtherInfo: function (showPanels = true, activateAddFileTab = true) {
         Ext.Ajax.request({
             url: Routing.generate('icecat_other-info'),
             success: function (response) {
@@ -166,7 +184,7 @@ pimcore.plugin.iceCatHelper = Class.create({
 
     },
 
-    getOtherInfos: function (showPanels=true) {
+    getOtherInfos: function (showPanels = true) {
         Ext.Ajax.request({
             url: Routing.generate('icecat_other-info'),
             success: function (response) {
@@ -181,8 +199,8 @@ pimcore.plugin.iceCatHelper = Class.create({
         });
 
     },
- 
-    setOtherInfo: function(res) {
+
+    setOtherInfo: function (res) {
         if (res.otherInfo) {
             pimcore.globalmanager.add('iceCatData', {
                 uploadExist: res.otherInfo.uploadExist,
@@ -193,7 +211,7 @@ pimcore.plugin.iceCatHelper = Class.create({
                 jobId: res.otherInfo.jobId,
             })
         }
-    }, 
+    },
 
     createObject: function (gtins, gtinsPage) {
         if (gtins) {
@@ -237,7 +255,7 @@ pimcore.plugin.iceCatHelper = Class.create({
         });
     },
 
-    showObjects: function() {
+    showObjects: function () {
         Ext.Ajax.request({
             url: Routing.generate('icecat_open-object-listing'),
             success: function (response) {
@@ -255,13 +273,36 @@ pimcore.plugin.iceCatHelper = Class.create({
             }.bind(this)
         });
     },
-    reactivateforNewProcess:function(){
+
+    reactivateforNewProcess: function () {
+        Ext.Ajax.request({
+            async: false,
+            url: Routing.generate('icecat_getfolderids'),
+            success: function (response) {
+                let res = JSON.parse(response.responseText);
+                if (res.success) {
+                    if(res.data.productfolderid) {
+                        
+                        setTimeout(() => {  pimcore.elementservice.refreshNodeAllTrees('object', res.data.productfolderid); console.log('products refreshed'); }, 200);  
+                    } 
+                    if(res.data.categoryfolderid) {
+                       
+                        setTimeout(() => {  pimcore.elementservice.refreshNodeAllTrees('object', res.data.categoryfolderid);  console.log('categories refreshed');}, 7000);
+                    }  
+                    
+                }
+            }.bind(this),
+            failure: function (err) {
+
+            }.bind(this)
+        });
+        
 
         window.setTimeout(function (id) {
-                    new  pimcore.plugin.iceCatScreen();
-                    }.bind(window, this.id), 100);
-                Ext.getCmp('ice_cat_integration_panel').close();
-        
+            new pimcore.plugin.iceCatScreen();
+        }.bind(window, this.id), 100);
+        Ext.getCmp('ice_cat_integration_panel').close();
+
 
     },
     clearPBarInterval: function () {

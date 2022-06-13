@@ -2,25 +2,18 @@
 
 namespace IceCatBundle\Services;
 
-use Exception;
-use IceCatBundle\Services\JobHandlerService;
-use Pimcore\Model\Asset;
+use IceCatBundle\Model\Configuration;
 use Pimcore\Log\ApplicationLogger;
-use IceCatBundle\Services\IceCatLogger;
-use IceCatBundle\Services\IceCatCsvLogger;
-use Pimcore\Log\FileObject;
+use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Data\BlockElement;
-
 
 class CreateObjectService
 {
-
-
-
-    const DATAOBJECT_FOLDER = "ICECAT";
-    const ASSET_FOLDER = "ICECAT";
-    const JOB_DATA_CONTAINER_TABLE = "ice_cat_processes";
-    const IMPORTED_DATA_CONTAINER_TABLE = "icecat_imported_data";
+    const DATAOBJECT_FOLDER = 'ICECAT';
+    const CAT_DATAOBJECT_FOLDER = 'ICECAT/CATEGORIES';
+    const ASSET_FOLDER = 'ICECAT';
+    const JOB_DATA_CONTAINER_TABLE = 'ice_cat_processes';
+    const IMPORTED_DATA_CONTAINER_TABLE = 'icecat_imported_data';
     const LOG_STATUS = [
         'SUCCESSFUL' => 'SUCCESSFUL',
         'ERROR' => 'ERROR',
@@ -28,7 +21,7 @@ class CreateObjectService
     const APPLOGGER_PREFIX = 'ICECAT';
     const PROCESS_TYPE = [
         'OBJECT_CREATION' => 'OBJECT-CREATION',
-        'DATA_IMPORT'    => 'DATA-IMPORT'
+        'DATA_IMPORT' => 'DATA-IMPORT'
     ];
 
     private $logger;
@@ -38,39 +31,42 @@ class CreateObjectService
     private $csvLogFileName;
     protected $appLogger;
 
+    /**
+     * @var Configuration|null
+     */
+    protected $config;
 
     private $ClassName;
-    private $iceCatClass = "Icecat";
+    private $iceCatClass = 'Icecat';
     private $storeId;
     private $groupId;
     private $keyId;
     private $valueToBeInsert;
     private $unitPrefix = 'icecat';
-    private $dataTypes = array(
-        'numerical'             => 'QuantityValue',
-        'dropdown'              => 'Select',
-        'textarea'              => 'Textarea',
-        'alphanumeric'          => 'InputQuantityValue',
-        'range'                 => 'InputQuantityValue',
-        'multi_dropdown'        => 'Multiselect',
-        'y_n'                   => 'BooleanSelect',
-        '3d'                    => 'InputQuantityValue',
-        '2d'                    => 'InputQuantityValue',
-        'text'                  => 'Input',
-        'contrast ratio'        => 'Input'
-    );
-
+    private $dataTypes = [
+        'numerical' => 'QuantityValue',
+        'dropdown' => 'Select',
+        'textarea' => 'Textarea',
+        'alphanumeric' => 'InputQuantityValue',
+        'range' => 'InputQuantityValue',
+        'multi_dropdown' => 'Multiselect',
+        'y_n' => 'BooleanSelect',
+        '3d' => 'InputQuantityValue',
+        '2d' => 'InputQuantityValue',
+        'text' => 'Input',
+        'contrast ratio' => 'Input'
+    ];
 
     protected $jobId;
     protected $currentProductId;
     protected $currentGtin;
 
     protected $processingError = [];
-    private  $status = array(
+    private $status = [
         'PROCESSING' => 'PROCESSING',
         'PROCESSED' => 'PROCESSED',
 
-    );
+    ];
 
     private $quantityUnitId;
 
@@ -78,17 +74,16 @@ class CreateObjectService
     protected $currentFeatureGroup = [];
     protected $jobHandler;
 
-
-
     public function __construct(IceCatLogger $logger, IceCatCsvLogger $csvLogger, ApplicationLogger $appLogger, JobHandlerService $jobHandler)
     {
-        $this->logger =  $logger;
+        $this->logger = $logger;
         $this->csvLogger = $csvLogger;
         $this->appLogger = $appLogger;
         $this->jobHandler = $jobHandler;
+        $this->config = Configuration::load();
     }
 
-    public  function setStoreId()
+    public function setStoreId()
     {
         $db = \Pimcore\Db::get();
         $query = "SELECT id FROM `classificationstore_stores` WHERE `name` = 'icecat-store' ";
@@ -99,21 +94,19 @@ class CreateObjectService
     public function updateCurrentProcess($table, $updateArray, $identifierCol, $identifierVal)
     {
         $db = \Pimcore\Db::get();
-        $updateCols = "";
+        $updateCols = '';
         foreach ($updateArray as $key => $value) {
             $updateCols .= " $key  =   '$value' ,";
         }
         $updateCols = rtrim($updateCols, ',');
-        $updateQuery = "UPDATE " . $table . " SET $updateCols
+        $updateQuery = 'UPDATE ' . $table . " SET $updateCols
         WHERE $identifierCol =  '$identifierVal' ";
         $db->exec($updateQuery);
     }
 
     public static function processDataObjectFolder()
     {
-
         if (!\Pimcore\Model\DataObject\Service::pathExists('/' . self::DATAOBJECT_FOLDER)) {
-
             $folder = \Pimcore\Model\DataObject\Folder::create([
                 'o_parentId' => 1,
                 'o_creationDate' => time(),
@@ -127,7 +120,6 @@ class CreateObjectService
     public static function processAssetObjectFolder()
     {
         if (!\Pimcore\Model\Asset\Service::pathExists('/' . self::ASSET_FOLDER)) {
-
             $assetFolder = Asset::create(1, [
                 'filename' => self::ASSET_FOLDER,
                 'type' => 'folder',
@@ -137,69 +129,59 @@ class CreateObjectService
         }
     }
 
-
-
-
     public function CreateObject($userId, $jobId)
     {
-
-
         $this->csvLogFileName = date('Y-m-d H:i:s');
         $this->csvLogMessage = [];
         $counter = 0;
-        $importData  = $this->getImportArray($jobId);
+        $importData = $this->getImportArray($jobId);
 
         if (!$importData) {
-
             $this->logMessage = 'NOTHING TO IMPORT TERMINATING OBJECT CREATION FOR JOB ID :' . $jobId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            # Updating import to be completed
-            $updateArray = array('completed' => 1);
+            // Updating import to be completed
+            $updateArray = ['completed' => 1];
             $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
+
             return 0;
         }
 
         try {
-            #Processing folders
+            //Processing folders
             self::processDataObjectFolder();
             self::processAssetObjectFolder();
             //setting icecat store id
             $this->setStoreId();
 
-            $iceCatClass  = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
-
-            # Updating processing status and Total Records
-            $updateArray = array('total_records' => count($importData), 'processed_records' => 0, 'processing_status' => $this->status['PROCESSING']);
+            $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
+            // Updating processing status and Total Records
+            $updateArray = ['total_records' => count($importData), 'processed_records' => 0, 'processing_status' => $this->status['PROCESSING']];
             $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
             foreach ($importData as $data) {
+                $time_start = microtime(true);
                 try {
-
-
-
-
                     $this->jobId = $jobId;
 
-                    $isJobAlive  = $this->jobHandler->isLive($this->jobId);
+                    $isJobAlive = $this->jobHandler->isLive($this->jobId);
                     if ($isJobAlive === false) {
                         $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
                         $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+
                         return true;
                     }
-                    \Pimcore\Cache::clearAll();
+                    //\Pimcore\Cache::clearAll();
 
                     $this->currentProductId = $data['gtin'];
                     $this->currentGtin = $data['original_gtin'];
                     $this->currentLanguage = $data['language'];
 
-
                     $this->logMessage = 'STARTING OBJECT CREATION FOR JOB ID : ' . $this->jobId . ' AND PRODUCT ID :' . $this->currentProductId;
                     $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
                     $importArray = json_decode(base64_decode($data['data_encoded']), true);
-                    if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) :
-
-
+                    if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
+                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
                         $iceCatobject = new $iceCatClass();
                         $this->createFixFields($importArray['data'], $iceCatobject);
                         $this->createGallery($importArray['data'], $iceCatobject);
@@ -207,35 +189,37 @@ class CreateObjectService
                         $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
                         $iceCatobject->setKey($this->currentProductId);
                         $iceCatobject->setPublished(true);
-                        $iceCatobject->save();
-
-                    else :
-
-                        $iceCatobject =  $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
-
+                    } else {
+                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
+                        $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
                         $this->createFixFields($importArray['data'], $iceCatobject);
                         $this->createGallery($importArray['data'], $iceCatobject);
                         $this->createDynamicFields($importArray['data'], $iceCatobject);
+                    }
 
-                        $iceCatobject->save();
+                    if (!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
+                        $iceCatobject->setCategorization(null);
+                    } else {
+                        $iceCatobject->setCategorization(true);
+                    }
 
-                    endif;
+                    $iceCatobject->save();
 
                     ++$counter;
-                    # Updating Processed Record
+                    // Updating Processed Record
                     $this->logMessage = ' BEFORE UPDATE:' .    $counter;
                     $this->logger->addLog('create-object', $this->logMessage, 'INFO');
-                    $updateArray = array('processed_records' => $counter);
+                    $updateArray = ['processed_records' => $counter];
                     $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
-                    # Setting Product to be Processed
-                    $updateArray = array('is_product_proccessed' => 1);
+                    // Setting Product to be Processed
+                    $updateArray = ['is_product_proccessed' => 1];
                     $this->updateCurrentProcess(self::IMPORTED_DATA_CONTAINER_TABLE, $updateArray, 'id', $data['id']);
 
-                    # Object Creation successful
+                    // Object Creation successful
                     $this->logMessage = 'OBJECT CREATION SUCCESSFUL FOR JOB ID :' . $this->jobId . ' AND PRODUCT ID :' . $this->currentProductId . 'id:' . $iceCatobject->getId();
                     $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-                    $this->csvLogger->addLogRow($this->currentProductId, self::LOG_STATUS['SUCCESSFUL'], ["OBJECT CREATED SUCESSFULLY"], $this->csvLogFileName);
+                    $this->csvLogger->addLogRow($this->currentProductId, self::LOG_STATUS['SUCCESSFUL'], ['OBJECT CREATED SUCESSFULLY'], $this->csvLogFileName);
 
                     $appLoggerMessage = "OBJECT CREATION SUCCESSFUL FOR JOB ID :  $this->jobId   AND PRODUCT ID : . $this->currentProductId";
                     $this->appLogger->info($appLoggerMessage, [
@@ -243,13 +227,12 @@ class CreateObjectService
                         'relatedObject' => $iceCatobject
                     ]);
                 } catch (\Throwable $e) {
-
                     \Pimcore\Db::get()->rollback();
                     ++$counter;
-                    # Updating Processed Record
-                    $updateArray = array('processed_records' => $counter);
+                    // Updating Processed Record
+                    $updateArray = ['processed_records' => $counter];
                     $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $this->jobId);
-                    $this->csvLogMessage[] = "ERROR IN OBJECT CREATION :" . $e->getMessage();
+                    $this->csvLogMessage[] = 'ERROR IN OBJECT CREATION :' . $e->getMessage();
                     $this->csvLogger->addLogRow($this->currentProductId, self::LOG_STATUS['ERROR'], $this->csvLogMessage, $this->csvLogFileName);
                     $this->csvLogger->saveLog($this->csvLogFileName, 'OBJECT_CREATE');
                     $this->logMessage = 'ERROR IN  OBJECT CREATION FOR JOB ID :' . $this->jobId . ' AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
@@ -261,24 +244,29 @@ class CreateObjectService
                         'relatedObject' => $iceCatobject
                     ]);
                 }
+                $time_end = microtime(true);
+                $execution_time = ($time_end - $time_start);
+
+                // //execution time of the script
+                // echo '<b>Total Execution Time:</b> '.$execution_time.' sec';
+                // // if you get weird results, use number_format((float) $execution_time, 10)
+                // die;
             }
 
-            $updateArray = array('completed' => 1, 'processing_error ' => (!empty($this->processingError)) ? json_encode($this->processingError) : 'NO-ERROR', 'processing_status' => $this->status['PROCESSED']);
+            $updateArray = ['completed' => 1, 'processing_error ' => (!empty($this->processingError)) ? json_encode($this->processingError) : 'NO-ERROR', 'processing_status' => $this->status['PROCESSED']];
             $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
 
             $this->csvLogger->saveLog($this->csvLogFileName, 'OBJECT_CREATE');
             $this->logMessage = ' OBJECT CREATION COMPLETED JOB ID :' . $jobId;
             $this->logger->addLog('create-object', $this->logMessage, 'INFO');
         } catch (\Exception $e) {
-
-
             $this->csvLogger->addLogRow($this->currentProductId, self::LOG_STATUS['ERROR'], $this->csvLogMessage, $this->csvLogFileName);
-            $this->csvLogMessage[] = "ERROR IN OBJECT CREATION : " . $e->getMessage();
+            $this->csvLogMessage[] = 'ERROR IN OBJECT CREATION : ' . $e->getMessage();
             $this->csvLogger->saveLog($this->csvLogFileName, 'OBJECT_CREATE');
 
             $this->processingError[] = $e->getMessage();
-            # Updating processing status and processing error (if no error it will be empty)
-            $updateArray = array('completed' => 1, 'processing_error ' => json_encode($this->processingError), 'processing_status' => $this->status['PROCESSED']);
+            // Updating processing status and processing error (if no error it will be empty)
+            $updateArray = ['completed' => 1, 'processing_error ' => json_encode($this->processingError), 'processing_status' => $this->status['PROCESSED']];
             $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
 
             $this->logMessage = 'ERROR IN JOB CREATION FOR JOB ID :' . $jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
@@ -292,12 +280,6 @@ class CreateObjectService
         }
     }
 
-
-
-
-
-
-
     /***
      * Mehtods : fetch the object json from db,and
      * return it in array format
@@ -305,17 +287,15 @@ class CreateObjectService
     public function getImportArray($id)
     {
         $db = \Pimcore\Db::get();
-        $query = "select * from " . self::IMPORTED_DATA_CONTAINER_TABLE . " where job_id = '$id'  and is_product_found = 1 and to_be_created = 1";
+        $query = 'select * from ' . self::IMPORTED_DATA_CONTAINER_TABLE . " where job_id = '$id'  and is_product_found = 1 and to_be_created = 1";
         $data = $db->fetchAll($query);
+
         return $data;
     }
 
     public function createFixFields($attributeArray, $iceCatobject)
     {
-
-
         try {
-
             $this->logMessage = 'STARTING FIX FIELD CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
@@ -330,8 +310,6 @@ class CreateObjectService
             $iceCatobject->setShort_Summary($basicInformation['SummaryDescription']['ShortSummaryDescription'], $this->currentLanguage);
             $iceCatobject->setProductTitle($basicInformation['Title'], $this->currentLanguage);
             $iceCatobject->setGtin($this->currentGtin, $this->currentLanguage);
-
-
 
             if (isset($basicInformation['Description']['LongDesc'])) {
                 $iceCatobject->setLongDescription($basicInformation['Description']['LongDesc'], $this->currentLanguage);
@@ -355,7 +333,6 @@ class CreateObjectService
                 $iceCatobject->setProductSeries($basicInformation['ProductSeries']['Value'], $this->currentLanguage);
             }
 
-
             if (isset($basicInformation['BulletPoints']['Values'])) {
                 $bulletPointsArray = $basicInformation['BulletPoints']['Values'];
                 $bulletHtml = '<ul>';
@@ -368,21 +345,24 @@ class CreateObjectService
 
             $this->createBrandLogo($basicInformation, $iceCatobject);
 
-
             $this->createReasonsToBuy($attributeArray, $iceCatobject);
 
-            # Insert Images in 3d Tour fields if it is available
+            // Insert Images in 3d Tour fields if it is available
             $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
 
-            # Insert Videos in video fields if it is available
+            // Insert Videos in video fields if it is available
             $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
             $this->setStoryField($attributeArray, $iceCatobject);
             $this->setMultiMedia($attributeArray, $iceCatobject);
             $this->setGalleryIcons($attributeArray, $iceCatobject);
+
+            if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
+                $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
+            } else {
+                $iceCatobject->setRelatedCategories([]);
+            }
         } catch (\Exception $e) {
-
-
-            $this->csvLogMessage[] = "ERROR IN FIX FIELD CREATION :" . $e->getMessage();
+            $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN FIX FIELD FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
@@ -390,12 +370,58 @@ class CreateObjectService
         }
     }
 
+    /**
+     * @param array $categoryInformation
+     * @param \Pimcore\Model\DataObject\Icecat $iceCatobject
+     *
+     * @return void
+     */
+    protected function setCategories($categoryInformation, $attributeArray, $iceCatobject)
+    {
+        $categoryId = $categoryInformation['CategoryID'] ?? null;
+        $categoryName = $categoryInformation['Name']['Value'] ?? null;
+        $language = $categoryInformation['Name']['Language'] ?? null;
+
+        if ($categoryId) {
+            $categoryObject = \Pimcore\Model\DataObject\IcecatCategory::getByIcecat_id($categoryId, true);
+            if (!$categoryObject) {
+                $categoryObject = new \Pimcore\Model\DataObject\IcecatCategory();
+                $categoryObject->setParent(\Pimcore\Model\DataObject\Service::createFolderByPath('/'.self::CAT_DATAOBJECT_FOLDER));
+                $categoryObject->setKey($categoryId);
+                $categoryObject->setIcecat_id($categoryId);
+                $categoryObject->setPublished(true);
+            }
+
+            $categoryObject->setName($categoryName, strtolower($language));
+            $data = [];
+            if (!empty($attributeArray['FeaturesGroups'])) {
+                $parentArray = $attributeArray['FeaturesGroups'];
+
+                foreach ($parentArray as $featureGroup) {
+                    if (!empty($featureGroup['Features'])) {
+                        foreach ($featureGroup['Features'] as $features) {
+                            if ($features['Searchable']) {
+                                $data[] = [
+                                    'type' => $features['Type'],
+                                    'id' => $features['Feature']['ID'],
+                                    'keyType' => $this->dataTypes[$features['Type']]
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+
+            $categoryObject->setSearchableFeatures(\json_encode($data));
+            $categoryObject->save();
+
+            $iceCatobject->setRelatedCategories([$categoryObject]);
+        }
+    }
 
     public function setMultiMedia($attributeArray, $iceCatobject)
     {
-
         try {
-
             $this->logMessage = 'SETTING PDF DOCUMENTS  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
             $multimediaArray = $attributeArray['Multimedia'];
@@ -408,24 +434,22 @@ class CreateObjectService
                 }
             });
 
-            # saving assets
+            // saving assets
             $counter = 0;
             $assetArray = [];
 
             foreach ($multimediaNewArray  as $media) {
-
                 $link = $media['URL'];
                 // Setting file name from link
                 try {
-                    $name  = pathinfo($media['URL'], PATHINFO_FILENAME);
+                    $name = pathinfo($media['URL'], PATHINFO_FILENAME);
                     $extension = pathinfo($media['URL'], PATHINFO_EXTENSION);
                     $fileName = $name . '.' . $extension;
                 } catch (\Exception $e) {
-
                     $fileName = uniqid();
                 }
                 // Setting assets from link
-                $asset = \Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER . "/$fileName");
+                $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                 if (!empty($asset)) {
                     $asset->setData(file_get_contents($link));
                     $asset->save();
@@ -436,7 +460,7 @@ class CreateObjectService
                     $newAsset = new \Pimcore\Model\Asset();
                     $newAsset->setFilename("$fileName");
                     $newAsset->setData(file_get_contents($link));
-                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER));
+                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                     $newAsset->save();
 
                     $assetArray[$counter]['object'] = $newAsset;
@@ -451,8 +475,6 @@ class CreateObjectService
             $objectArray = [];
             $counter = 0;
             foreach ($assetArray as $mediaObject) {
-
-
                 $objectMetadata = new \Pimcore\Model\DataObject\Data\ElementMetadata(
                     'multiMedia',
                     ['description', 'contentType'],
@@ -466,7 +488,6 @@ class CreateObjectService
             }
             $iceCatobject->setMultiMedia($objectArray, $this->currentLanguage);
         } catch (\Exception $e) {
-
             $this->logMessage = 'ERROR IN PDF FIELD CREATION  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
         }
@@ -478,49 +499,49 @@ class CreateObjectService
 
             //return true;
 
-
             $this->logMessage = 'SETTING GALLERY ICONS  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            $featuresIconMasterArray =  $attributeArray['FeatureLogos'];
+            $featuresIconMasterArray = $attributeArray['FeatureLogos'];
             if (!empty($featuresIconMasterArray)) :
 
                 $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-                $array = [];
-                foreach ($featuresIconMasterArray as $featureIconArray) {
-                    $iconUrl = $featureIconArray['LogoPic'];
-                    $iconToolTipData = (isset($featureIconArray['Description'])) ? $featureIconArray['Description']['Value'] : '';
-                    $data = \Pimcore\Tool::getHttpData($iconUrl);
-                    $filename = basename($iconUrl);
-                    $asset = \Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER . "/$filename");
+            $array = [];
+            foreach ($featuresIconMasterArray as $featureIconArray) {
+                $iconUrl = $featureIconArray['LogoPic'];
+                $iconToolTipData = (isset($featureIconArray['Description'])) ? $featureIconArray['Description']['Value'] : '';
+                $data = \Pimcore\Tool::getHttpData($iconUrl);
+                $filename = basename($iconUrl);
+                $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$filename");
 
-                    if (!empty($asset)) {
-                        $asset->setData($data);
-                        $asset->save();
-                    } else {
-                        $asset = new \Pimcore\Model\Asset\Image();
-                        $asset->setFilename("$filename");
-                        $asset->setData($data);
-                        $asset->setParent(\Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER));
-                        $asset->save();
-                    }
-                    $data =  [
-                        "galleryIcon" => new BlockElement('galleryIcon', 'image', $asset),
-                        "galleryIconDescription" => new BlockElement('galleryIconDescription', 'textArea', $iconToolTipData),
+                if (!empty($asset)) {
+                    $asset->setData($data);
+                    $asset->save();
+                } else {
+                    $asset = new \Pimcore\Model\Asset\Image();
+                    $asset->setFilename("$filename");
+                    $asset->setData($data);
+                    $asset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                    $asset->save();
+                }
+                $data = [
+                        'galleryIcon' => new BlockElement('galleryIcon', 'image', $asset),
+                        'galleryIconValue' => new BlockElement('galleryIconValue', 'input', ($featureIconArray['Value'] ?? null)),
+                        'galleryIconDescription' => new BlockElement('galleryIconDescription', 'textArea', $iconToolTipData),
 
                     ];
-                    $array[] = $data;
-                }
-                $iceCatobject->setgalleryIconBlock($array, $this->currentLanguage);
+
+                $array[] = $data;
+            }
+            $iceCatobject->setgalleryIconBlock($array, $this->currentLanguage);
             endif;
         } catch (\Exception $th) {
-
-
             $this->logMessage = 'ERROR IN GALLERY_ICON FIELD CREATION  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $th->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, [$th->getTraceAsString()], 'ERROR');
         }
     }
+
     public function setStoryField($attributeArray, $iceCatobject)
     {
         try {
@@ -528,7 +549,7 @@ class CreateObjectService
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
             if (isset($attributeArray['ProductStory'][0])) :
                 $storyUrl = $attributeArray['ProductStory'][0]['URL'];
-                $iceCatobject->setStoryUrl($storyUrl, $this->currentLanguage);
+            $iceCatobject->setStoryUrl($storyUrl, $this->currentLanguage);
             endif;
         } catch (\Exception $e) {
             $this->logMessage = 'ERROR IN STORY FIELD CREATION  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
@@ -538,54 +559,47 @@ class CreateObjectService
 
     public function createBrandLogo($basicInformation, $iceCatobject)
     {
-
         try {
-
             if (isset($basicInformation['BrandLogo'])) :
 
                 $this->logMessage = 'SETTING BRAND LOGO  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
-                $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+            $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-                $brandLogoUrl  = $basicInformation["BrandLogo"];
-                try {
-                    $name  = pathinfo($brandLogoUrl, PATHINFO_FILENAME);
-                    $extension = pathinfo($brandLogoUrl, PATHINFO_EXTENSION);
-                    $fileName = $name . '.' . $extension;
-                } catch (\Exception $e) {
-
-                    $fileName = uniqid();
-                }
-                // Setting assets from link
-                $asset = \Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER . "/$fileName");
-                if (!empty($asset)) {
-                    $asset->setData(file_get_contents($brandLogoUrl));
-                    $asset->save();
-                    $asset  = $asset;
-                } else {
-                    $newAsset = new \Pimcore\Model\Asset\Image();
-                    $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($brandLogoUrl));
-                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER));
-                    $newAsset->save();
-                    $asset = $newAsset;
-                }
-                $iceCatobject->setBrandLogo($asset);
+            $brandLogoUrl = $basicInformation['BrandLogo'];
+            try {
+                $name = pathinfo($brandLogoUrl, PATHINFO_FILENAME);
+                $extension = pathinfo($brandLogoUrl, PATHINFO_EXTENSION);
+                $fileName = $name . '.' . $extension;
+            } catch (\Exception $e) {
+                $fileName = uniqid();
+            }
+            // Setting assets from link
+            $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+            if (!empty($asset)) {
+                $asset->setData(file_get_contents($brandLogoUrl));
+                $asset->save();
+                $asset = $asset;
+            } else {
+                $newAsset = new \Pimcore\Model\Asset\Image();
+                $newAsset->setFilename("$fileName");
+                $newAsset->setData(file_get_contents($brandLogoUrl));
+                $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                $newAsset->save();
+                $asset = $newAsset;
+            }
+            $iceCatobject->setBrandLogo($asset);
 
             endif;
         } catch (\Exception $e) {
-
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING BRAND LOGO  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
         }
     }
 
-
     public function createReasonsToBuy($attributeArray, $iceCatobject)
     {
         try {
-
-
             $flag = 'LEFT';
             if (isset($attributeArray['ReasonsToBuy'])) {
                 $reasonsHtml = '<div class="col-md-12">';
@@ -594,20 +608,17 @@ class CreateObjectService
                     if (isset($reasons['HighPic']) && (!empty($reasons['HighPic']))) :
                         if ($flag === 'LEFT') :
                             $reasonsHtml .= ' <div class = "col-md-8 col-sm-8 col-xs-8"> <h5><b>' . $reasons['Title'] . '</b></h5>';
-                            $reasonsHtml  .= '<span>' . $reasons['Value'] . '</span></div>';
-                            $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
-                            $flag = 'RIGHT';
-                        else :
+                    $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
+                    $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
+                    $flag = 'RIGHT'; else :
                             $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
-                            $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
-                            $reasonsHtml  .= '<span>' . $reasons['Value'] . '</span></div>';
+                    $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
+                    $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
 
-                            $flag = 'LEFT';
-                        endif;
-
-                    else :
+                    $flag = 'LEFT';
+                    endif; else :
                         $reasonsHtml .= '<div class = "col-md-12"> <h5><b>' . $reasons['Title'] . '</b></h5>';
-                        $reasonsHtml  .= '<span>' . $reasons['Value'] . '</span></div>';
+                    $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
                     endif;
                     $reasonsHtml .= '</div>';
                 }
@@ -620,11 +631,8 @@ class CreateObjectService
 
     public function createVideoField($multimediaArray, $iceCatobject)
     {
-
         try {
-
             if (!empty($multimediaArray)) {
-
                 $this->logMessage = 'STARTING VIDEO FIELD CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
                 $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
@@ -639,45 +647,42 @@ class CreateObjectService
 
                 $arrayHavingVideo = array_values($arrayHavingVideo);
 
-                #Taking only one array for now
+                //Taking only one array for now
                 if (isset($arrayHavingVideo[0])) {
-                    $videos  = $arrayHavingVideo[0];
+                    $videos = $arrayHavingVideo[0];
 
                     $videoLink = $videos['URL'];
 
-                    # Getting Name from url
+                    // Getting Name from url
                     try {
-                        $name  = pathinfo($videoLink, PATHINFO_FILENAME);
+                        $name = pathinfo($videoLink, PATHINFO_FILENAME);
                         $extension = pathinfo($videoLink, PATHINFO_EXTENSION);
                         $fileName = $name . '.' . $extension;
                     } catch (\Exception $e) {
-
                         $fileName = uniqid();
                     }
 
-
                     // Setting assets from link
-                    $asset = \Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER . "/$fileName");
+                    $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                     if (empty($asset)) {
                         //Saving video in asset folder
                         $newAsset = new \Pimcore\Model\Asset();
-                        $newAsset->setFilename(uniqid());
+                        $newAsset->setFilename(uniqid(). '.' . $extension);
                         $newAsset->setData(file_get_contents($videos['URL']));
-                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER));
+                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                         $newAsset->save();
 
                         $videoData = new \Pimcore\Model\DataObject\Data\Video();
                         $videoData->setData($newAsset);
-                        $videoData->setType("asset");
+                        $videoData->setType('asset');
 
                         $iceCatobject->setVideo($videoData);
                     }
                 }
             }
         } catch (\Exception $e) {
-
             $this->processingError[] = $e->getMessage();
-            $this->csvLogMessage[] = "ERROR IN VIDEO FIELD CREATION :" . $e->getMessage();
+            $this->csvLogMessage[] = 'ERROR IN VIDEO FIELD CREATION :' . $e->getMessage();
 
             $this->logMessage = 'ERROR VIDEO FIELD FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
@@ -686,11 +691,8 @@ class CreateObjectService
 
     public function create3dTourField($multimediaArray, $iceCatobject)
     {
-
         try {
-
             if (!empty($multimediaArray)) {
-
                 $this->logMessage = 'STARTING TOUR FIELD CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
                 $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
@@ -703,28 +705,24 @@ class CreateObjectService
                     }
                 });
 
-                #Taking only one array for now
+                //Taking only one array for now
                 if (isset($array3dTour[0]['3DTour'])) {
-
-
                     $images3d = $array3dTour[0]['3DTour'];
 
                     $assetArray = [];
                     foreach ($images3d  as $images) {
-
                         $link = $images['Link'];
                         // Setting file name from link
                         // Ex: https://images.icecat.biz/img/360_original/raw/36972460_57b597c9-1c16-4390-bfd1-e3fd28b08583_0.jpg
                         try {
-                            $name  = pathinfo($images['Link'], PATHINFO_FILENAME);
+                            $name = pathinfo($images['Link'], PATHINFO_FILENAME);
                             $extension = pathinfo($images['Link'], PATHINFO_EXTENSION);
                             $fileName = $name . '.' . $extension;
                         } catch (\Exception $e) {
-
                             $fileName = uniqid();
                         }
                         // Setting assets from link
-                        $asset = \Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER . "/$fileName");
+                        $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                         if (!empty($asset)) {
                             $asset->setData(file_get_contents($link));
                             $asset->save();
@@ -733,7 +731,7 @@ class CreateObjectService
                             $newAsset = new \Pimcore\Model\Asset\Image();
                             $newAsset->setFilename("$fileName");
                             $newAsset->setData(file_get_contents($link));
-                            $newAsset->setParent(\Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER));
+                            $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                             $newAsset->save();
                             $assetArray[] = $newAsset;
                         }
@@ -742,7 +740,6 @@ class CreateObjectService
                     if (!empty($assetArray)) {
                         $items = [];
                         foreach ($assetArray as $img) {
-
                             $advancedImage = new \Pimcore\Model\DataObject\Data\Hotspotimage();
                             $advancedImage->setImage($img);
                             $items[] = $advancedImage;
@@ -753,7 +750,7 @@ class CreateObjectService
                 }
             }
         } catch (\Exception $e) {
-            $this->csvLogMessage[] = "ERROR IN 3D TOUR FIELD CREATION : " . $e->getMessage();
+            $this->csvLogMessage[] = 'ERROR IN 3D TOUR FIELD CREATION : ' . $e->getMessage();
 
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR TOUR FIELD FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
@@ -763,20 +760,17 @@ class CreateObjectService
 
     public function createGallery($attributeArray, $iceCatobject)
     {
-
         try {
-
             $this->logMessage = 'STARTING GALLERY CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            $galleryImagesParent = $attributeArray["Gallery"];
-            $assetArray = array();
+            $galleryImagesParent = $attributeArray['Gallery'];
+            $assetArray = [];
             foreach ($galleryImagesParent as $galleryImages) {
+                $fileName = $galleryImages['ID'];
+                $imageUrl = $galleryImages['Pic'];
 
-                $fileName  = $galleryImages['ID'];
-                $imageUrl =  $galleryImages['Pic'];
-
-                $asset = \Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER . "/$fileName");
+                $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
 
                 if (!empty($asset)) {
                     $asset->setData(file_get_contents($imageUrl));
@@ -786,7 +780,7 @@ class CreateObjectService
                     $newAsset = new \Pimcore\Model\Asset\Image();
                     $newAsset->setFilename("$fileName");
                     $newAsset->setData(file_get_contents($imageUrl));
-                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath("/" . self::ASSET_FOLDER));
+                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                     $newAsset->save();
                     $assetArray[] = $newAsset;
                 }
@@ -794,7 +788,6 @@ class CreateObjectService
             if (!empty($assetArray)) {
                 $items = [];
                 foreach ($assetArray as $img) {
-
                     $advancedImage = new \Pimcore\Model\DataObject\Data\Hotspotimage();
                     $advancedImage->setImage($img);
                     $items[] = $advancedImage;
@@ -805,7 +798,6 @@ class CreateObjectService
             $this->logMessage = 'COMPLETED GALLERY CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
         } catch (\Exception $e) {
-
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN GALLERY CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
@@ -814,9 +806,7 @@ class CreateObjectService
 
     public function createDynamicFields($attributeArray, $iceCatobject)
     {
-
         try {
-
             $this->logMessage = 'STARTING DYNAMIC FIELDS CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
@@ -824,34 +814,31 @@ class CreateObjectService
                 $parentArray = $attributeArray['FeaturesGroups'];
 
                 foreach ($parentArray as $featureGroup) {
-                    # Setting current feature group category , needs to empty it each time
+                    // Setting current feature group category , needs to empty it each time
                     $this->currentFeatureGroup = [];
                     $this->currentFeatureGroup[$this->currentLanguage] = $featureGroup['FeatureGroup']['Name']['Value'];
                     if (!empty($featureGroup['Features'])) {
                         foreach ($featureGroup['Features'] as $features) {
-
-                            $type  = $features['Type'];
-                            #$keyName =  $features['Feature']['Name']['Value'];
+                            $type = $features['Type'];
+                            //$keyName =  $features['Feature']['Name']['Value'];
                             $keyName = $features['Feature']['ID'];
                             $sign = $features['Feature']['Measure']['Signs']['_'];
 
-
                             // find key
                             try {
-
                                 $dataType = $this->dataTypes[$type];
 
-                                if ($dataType == 'QuantityValue' && empty($sign))
+                                if ($dataType == 'QuantityValue' && empty($sign)) {
                                     $dataType = 'Input';
-                                if ($dataType == 'InputQuantityValue' && empty($sign))
+                                }
+                                if ($dataType == 'InputQuantityValue' && empty($sign)) {
                                     $dataType == 'Numeric';
+                                }
                             } catch (\Exception $e) {
-
                                 $this->logMessage = 'SKIPING FIELDS  DYNAMIC FIELDS CREATIONFOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
                                 $this->logger->addLog('create-object', $this->logMessage, "FIELD TYPE : $type", 'ERROR');
                                 continue;
                             }
-
 
                             $keyOb = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId);
                             if (empty($keyOb)) {
@@ -869,8 +856,7 @@ class CreateObjectService
                 }
             }
         } catch (\Exception $e) {
-
-            $this->csvLogMessage[] = "ERROR IN DYNAMICE FIELD CREATION :" . $e->getMessage();
+            $this->csvLogMessage[] = 'ERROR IN DYNAMICE FIELD CREATION :' . $e->getMessage();
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN DYNAMIC FIELDS CREATIONFOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
@@ -879,79 +865,75 @@ class CreateObjectService
 
     public function createStoreKey($features)
     {
-
         try {
-
             $this->logMessage = 'STARTING CLASSFICATION STORE KEY CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-
-            $type  = $features['Type'];
-            #  $keyName =  $features['Feature']['Name']['Value'];
+            $type = $features['Type'];
+            //  $keyName =  $features['Feature']['Name']['Value'];
             $keyName = $features['Feature']['ID'];
-            $title =  $features['Feature']['Name']['Value'];
+            $title = $features['Feature']['Name']['Value'];
             $sign = $features['Feature']['Measure']['Signs']['_'];
 
             $dataType = $this->dataTypes[$type];
 
-            if ($dataType == 'QuantityValue' && empty($sign))
+            if ($dataType == 'QuantityValue' && empty($sign)) {
                 $dataType = 'Input';
-            if ($dataType == 'InputQuantityValue' && empty($sign))
+            }
+            if ($dataType == 'InputQuantityValue' && empty($sign)) {
                 $dataType == 'Numeric';
+            }
 
-
-
-
-            $className = "\Pimcore\Model\DataObject\ClassDefinition\Data" . "\\" . $dataType;
+            $className = "\Pimcore\Model\DataObject\ClassDefinition\Data" . '\\' . $dataType;
             $definition = new $className();
             $definition->setName($keyName);
             $definition->setTitle($title);
-            $value  = '';
+            $value = '';
             switch ($dataType):
 
-                case "QuantityValue":
+                case 'QuantityValue':
 
-                    $tempValue =  $features['RawValue'];
-                    $signid =  $this->processQuantityValueUnit($sign);
-                    $value  = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
-                    break;
-                case "Select":
+                    $tempValue = $features['RawValue'];
+            $signid = $this->processQuantityValueUnit($sign);
+            $value = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
+            break;
+            case 'Select':
                     $value = $features['Value'];
-                    $optionSetterArray = array(["key" => "$value", "value" => "$value"]);
-                    $definition->setOptions($optionSetterArray);
-                    break;
-                case "Textarea":
+            $optionSetterArray = [['key' => "$value", 'value' => "$value"]];
+            $definition->setOptions($optionSetterArray);
+            break;
+            case 'Textarea':
                     $value = $features['Value'];
-                    break;
-                case "InputQuantityValue":
-                    $tempValue =  $features['RawValue'];
-                    $signid =  $this->processQuantityValueUnit($sign);
-                    $value  = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
-                    break;
-                case "Multiselect":
+            break;
+            case 'InputQuantityValue':
+                    $tempValue = $features['RawValue'];
+            $signid = $this->processQuantityValueUnit($sign);
+            $value = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
+            break;
+            case 'Multiselect':
                     $value = $features['Value'];
-                    $value = (explode(",", $value));
-                    foreach ($value as $key) {
-                        $optionSetterArray[] = array("key" => "$key", "value" => "$key");
-                    }
+            $value = (explode(',', $value));
+            foreach ($value as $key) {
+                $optionSetterArray[] = ['key' => "$key", 'value' => "$key"];
+            }
 
-                    $definition->setOptions($optionSetterArray);
-                    break;
-                case "BooleanSelect":
+            $definition->setOptions($optionSetterArray);
+            break;
+            case 'BooleanSelect':
                     $value = $features['Value'];
-                    $definition->setNoLabel('NO');
-                    $definition->setYesLabel('YES');
-                    $definition->setEmptyLabel('EMPTY');
-                    $value = ($value == "Y") ? true : false;
+            $definition->setNoLabel('NO');
+            $definition->setYesLabel('YES');
+            $definition->setEmptyLabel('EMPTY');
+            $value = ($value == 'Y') ? true : false;
 
-                    break;
-                case "Input":
+            break;
+            case 'Input':
                     $value = $features['Value'];
-                    break;
+            break;
 
             endswitch;
             //Creating collecton
-            $collectionId  =  $this->createCollection($keyName, $dataType);
+            $collectionId = $this->createCollection($keyName, $dataType);
             //Creating Group
             $groupId = $this->createGroup($keyName, $dataType);
             //Adding group to  collection
@@ -961,8 +943,7 @@ class CreateObjectService
             $keyConfig = new \Pimcore\Model\DataObject\Classificationstore\KeyConfig();
             $keyConfig->setName($keyName . $dataType);
 
-            # set description
-
+            // set description
 
             $keyConfig->setDescription(serialize($this->currentFeatureGroup));
             $keyConfig->setEnabled(true);
@@ -979,29 +960,22 @@ class CreateObjectService
             $this->valueToBeInsert = $value;
             $this->groupId = $groupId;
         } catch (\Exception $e) {
-
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN CLASSFICATION STORE KEY CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
         }
     }
 
-
     public function updateStoreKey($features)
     {
-
         $this->logMessage = 'STARTING CLASSFICATION STORE KEY UPDATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
         $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
         try {
-
-
-
             $ob = new \Pimcore\Model\DataObject\ClassDefinition\Data\QuantityValue();
 
-
-            $type  = $features['Type'];
-            # $keyName =  $features['Feature']['Name']['Value'];
+            $type = $features['Type'];
+            // $keyName =  $features['Feature']['Name']['Value'];
             $keyName = $features['Feature']['ID'];
             $sign = $features['Feature']['Measure']['Signs']['_'];
 
@@ -1010,11 +984,11 @@ class CreateObjectService
                 $dataType = 'Input';
             }
 
-            if ($dataType == 'InputQuantityValue' && empty($sign))
+            if ($dataType == 'InputQuantityValue' && empty($sign)) {
                 $dataType == 'Numeric';
+            }
 
-
-            $className = "\Pimcore\Model\DataObject\ClassDefinition\Data" . "\\" . $dataType;
+            $className = "\Pimcore\Model\DataObject\ClassDefinition\Data" . '\\' . $dataType;
             $definition = new $className();
             $definition->setName($keyName);
 
@@ -1023,92 +997,84 @@ class CreateObjectService
 
             $previousDefiniton = json_decode($keyConfig->getDefinition(), true);
 
-            # Setting Title from previous Definition
+            // Setting Title from previous Definition
             $title = $previousDefiniton['title'];
             $definition->setTitle($title);
 
             $value = '';
             switch ($dataType):
-                case "QuantityValue":
-                    $tempValue =  $features['RawValue'];
-                    $signid =  $this->processQuantityValueUnit($sign);
-                    $value  = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
-                    break;
-                case "Select":
+                case 'QuantityValue':
+                    $tempValue = $features['RawValue'];
+            $signid = $this->processQuantityValueUnit($sign);
+            $value = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
+            break;
+            case 'Select':
                     $keyConfigDef = json_decode($keyConfig->getDefinition(), true);
 
-                    $value = $features['Value'];
-                    $previousOptions = $keyConfigDef['options'];
+            $value = $features['Value'];
+            $previousOptions = $keyConfigDef['options'];
 
-                    if (array_search($value, array_column($previousOptions, 'value')) === false) {
-                        $previousOptions[] = ["key" => "$value", 'value' => "$value"];
-                    }
-                    $definition->setOptions($previousOptions);
-                    break;
-                case "Textarea":
+            if (array_search($value, array_column($previousOptions, 'value')) === false) {
+                $previousOptions[] = ['key' => "$value", 'value' => "$value"];
+            }
+            $definition->setOptions($previousOptions);
+            break;
+            case 'Textarea':
                     $value = $features['Value'];
-                    break;
-                case "InputQuantityValue":
-                    $tempValue =  $features['RawValue'];
-                    $signid =  $this->processQuantityValueUnit($sign);
-                    $value  = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
+            break;
+            case 'InputQuantityValue':
+                    $tempValue = $features['RawValue'];
+            $signid = $this->processQuantityValueUnit($sign);
+            $value = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
 
-                    break;
-                case "Multiselect":
+            break;
+            case 'Multiselect':
                     $keyConfigDef = json_decode($keyConfig->getDefinition(), true);
+            $value = $features['Value'];
+            $value = (explode(',', $value));
+            $previousOptions = $keyConfigDef['options'];
+            foreach ($value as $key) {
+                if (array_search($value, array_column($previousOptions, 'value')) === false) {
+                    $previousOptions[] = ['key' => "$key", 'value' => "$key"];
+                }
+            }
+
+            $definition->setOptions($previousOptions);
+
+            break;
+            case 'BooleanSelect':
                     $value = $features['Value'];
-                    $value = (explode(",", $value));
-                    $previousOptions = $keyConfigDef['options'];
-                    foreach ($value as $key) {
+            $definition->setNoLabel('NO');
+            $definition->setYesLabel('YES');
+            $definition->setEmptyLabel('EMPTY');
+            $value = ($value == 'Y') ? true : false;
 
-                        if (array_search($value, array_column($previousOptions, 'value')) === false) {
-                            $previousOptions[] = ["key" => "$key", 'value' => "$key"];
-                        }
-                    }
-
-                    $definition->setOptions($previousOptions);
-
-                    break;
-                case "BooleanSelect":
+            break;
+            case 'Input':
                     $value = $features['Value'];
-                    $definition->setNoLabel('NO');
-                    $definition->setYesLabel('YES');
-                    $definition->setEmptyLabel('EMPTY');
-                    $value = ($value == "Y") ? true : false;
-
-                    break;
-                case "Input":
-                    $value = $features['Value'];
-                    break;
+            break;
 
             endswitch;
 
-            # Updating key description because it store category according language
+            // Updating key description because it store category according language
             $previousDescriptionSerailazedArray = $keyConfig->getDescription();
             $previousDescriptionArray = unserialize($previousDescriptionSerailazedArray);
-
 
             $keyConfig->setDescription(serialize(array_merge($previousDescriptionArray, $this->currentFeatureGroup)));
             $keyConfig->setDefinition(json_encode($definition)); // The definition is used in object editor to render fields
             $keyConfig->save();
 
-
-
             $previousDescriptionSerailazedArray = $keyConfig->getDescription();
             $previousDescriptionArray = unserialize($previousDescriptionSerailazedArray);
-
 
             //setting properties
 
             $this->keyId = $keyConfig->getId();
             $this->valueToBeInsert = $value;
 
-
-            $groupObject =  \Pimcore\Model\DataObject\Classificationstore\GroupConfig::getByName($keyName . $dataType . "Group", $this->storeId);
+            $groupObject = \Pimcore\Model\DataObject\Classificationstore\GroupConfig::getByName($keyName . $dataType . 'Group', $this->storeId);
             $this->groupId = $groupObject->getId();
         } catch (\Exception $e) {
-
-
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN CLASSFICATION STORE KEY UPDATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
@@ -1124,6 +1090,7 @@ class CreateObjectService
             $unit->setLongname($sign);
             $unit->setId($this->unitPrefix . $sign);
             $unit->save();
+
             return   $unit->getId();
         } else {
             //do nothing;
@@ -1133,24 +1100,26 @@ class CreateObjectService
 
     public function createGroup($keyName, $dataType)
     {
-        $name = $keyName . $dataType . "Group";
+        $name = $keyName . $dataType . 'Group';
         $groupConfig = new \Pimcore\Model\DataObject\Classificationstore\GroupConfig();
         $groupConfig->setName($name);
         //Description will be use for categorizing groups
         $groupConfig->setDescription($keyName);
         $groupConfig->setStoreId($this->storeId);
         $groupConfig->save();
+
         return $groupConfig->getId();
     }
 
     public function createCollection($keyName, $dataType)
     {
-        $name = $keyName . $dataType . "Collection";
+        $name = $keyName . $dataType . 'Collection';
         $collectionConfig = new \Pimcore\Model\DataObject\Classificationstore\CollectionConfig();
         $collectionConfig->setName($name);
         $collectionConfig->setDescription($keyName);
         $collectionConfig->setStoreId($this->storeId);
         $collectionConfig->save();
+
         return $collectionConfig->getId();
     }
 

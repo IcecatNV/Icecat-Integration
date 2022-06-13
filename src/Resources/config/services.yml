@@ -19,19 +19,20 @@ services:
     # ---------------------------------------------------------
     IceCatBundle\Command\:
         resource: '../../Command'
-        tags: ['console.command']    
+        tags: ['console.command']
+
     IceCatBundle\Services\:
         resource: '../../Services'
         public: true
-    IceCatBundle\InstallClass:
-        public: true
+
+    IceCatBundle\EventSubscriber\:
+      resource: '../../EventSubscriber'
+      tags: ["kernel.event_subscriber"]
+
     IceCatBundle\Website\LinkGenerator\Demo:
         public: true
-        
-
-# add more services, or override services that need manual wiring
-#    IceCatBundle\ExampleClass:
-#        arguments:
-#            - "@service_id"
-#            - "plain_value"
-#            - "%parameter%"
+    
+    IceCatBundle\InstallClass:
+        public: true
+        arguments:
+            $bundle: "@=service('kernel').getBundle('IceCatBundle')"

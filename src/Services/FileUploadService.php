@@ -1,16 +1,11 @@
 <?php
 
-
 namespace IceCatBundle\Services;
-
-
-use Pimcore\Tool\Admin;
 
 class FileUploadService extends InfoService
 {
     public function saveFile($file, $user)
     {
-
         $userId = $user->getId();
         $newFileName = $file->getClientOriginalName();
         $uploadDir = self::$fileUploadPath . '/' . $userId;

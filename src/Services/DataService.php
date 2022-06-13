@@ -1,23 +1,13 @@
 <?php
 
-
 namespace IceCatBundle\Services;
 
-
-use Pimcore\Db;
-use Pimcore\Logger;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class DataService extends InfoService
 {
-
-
-
-
     public function __construct(RequestStack $requestStack)
     {
-
         parent::__construct($requestStack);
     }
 
@@ -28,14 +18,16 @@ class DataService extends InfoService
             return ['jobid' => false, 'total' => '0'];
         }
 
-        $fetchedRecords =  $this->getTotalFetchedProducts($jobId);
+        $fetchedRecords = $this->getTotalFetchedProducts($jobId);
         if ($fetchedRecords) {
             $result = ['jobid' => true, 'total' => $fetchedRecords['fetched_records']];
         } else {
             $result = ['jobid' => true, 'total' => '0'];
         }
+
         return $result;
     }
+
     public function getProductThatareNotFound()
     {
         $jobId = $this->getRunningJobId();
@@ -43,15 +35,17 @@ class DataService extends InfoService
             return ['jobid' => false, 'product' => '0'];
         }
 
-        $notFoundsProduct  =  $this->getInfoForUnfoundProducts($jobId);
+        $notFoundsProduct = $this->getInfoForUnfoundProducts($jobId);
 
         if ($notFoundsProduct) {
             $result = ['jobid' => true, 'product' => $notFoundsProduct];
         } else {
             $result = ['jobid' => true, 'product' => '0'];
         }
+
         return $result;
     }
+
     public function getDataForFetchingProgressbar()
     {
         $jobId = $this->getRunningJobId();
@@ -65,7 +59,6 @@ class DataService extends InfoService
 
         $pbData = current($pbData);
 
-        //        p_r($pbData);die;
         $totalSteps = $pbData['total_fetch_records'];
         $blankRecords = $pbData['fetched_blank_records'] * $pbData['total_languages'];
         if (!empty($blankRecords)) {
@@ -118,6 +111,7 @@ class DataService extends InfoService
         if ($steps === 0 || $totalSteps === 0) {
             return 0;
         }
+
         return ($steps * 100) / $totalSteps;
     }
 
@@ -142,25 +136,26 @@ class DataService extends InfoService
             $gtins = '("dummyText")';
         }
 
-        $sql = "SELECT if(gtin in " . $gtins . ", 1, 0) as sel, gtin, original_gtin ,product_name, is_product_found, created_at as fetching_date FROM "
+        $sql = 'SELECT if(gtin in ' . $gtins . ', 1, 0) as sel, language, gtin, original_gtin ,product_name, is_product_found, created_at as fetching_date FROM '
             .  self::DATA_IMPORT_TABLE
             . ' WHERE job_id="' . $jobId . '" AND is_product_found=1 '
             . ' LIMIT ' . $start . ',' . $limit;
-        $data =  $this->db->fetchAll($sql);
+        $data = $this->db->fetchAll($sql);
 
+        $finalData = [];
+        foreach ($data as $d) {
+            $d['language'] = \Locale::getDisplayLanguage($d['language']);
+            $finalData[] = $d;
+        }
 
-
-
-        $sql = "SELECT count(gtin) as count  FROM "
+        $sql = 'SELECT count(gtin) as count  FROM '
             .  self::DATA_IMPORT_TABLE
             . ' WHERE job_id="' . $jobId . '" AND is_product_found=1 ';
 
-        $count =  $this->db->fetchRow($sql);
+        $count = $this->db->fetchRow($sql);
         //        return ['data' => $data, 'total' => $totalRecords];
-        return ['data' => $data, 'total' => $count['count']];
+        return ['data' => $finalData, 'total' => $count['count']];
     }
-
-
 
     public function commitNotToImportRecords($jobId)
     {
@@ -168,22 +163,21 @@ class DataService extends InfoService
         $gtins = $this->getNotToImportGtinsFromSession('all');
         $this->emptySelectedGtinsFromSession();
 
-
-        $sql = "UPDATE " . self::DATA_IMPORT_TABLE . " SET to_be_created=0 WHERE job_id='" . $jobId . "'";
+        $sql = 'UPDATE ' . self::DATA_IMPORT_TABLE . " SET to_be_created=0 WHERE job_id='" . $jobId . "'";
         $this->db->exec($sql);
 
         if (empty($gtins)) {
             return ['error' => 'NoData'];
         }
 
-        $gtins = explode(",", $gtins);
+        $gtins = explode(',', $gtins);
 
         $totalGtins = count($gtins);
         $processedCounter = 0;
         for ($start = 0; $start < $totalGtins / $gtinsBatch; $start++) {
             $values = array_slice($gtins, $processedCounter, $gtinsBatch);
             $values = '"' . implode('","', $values) . '"';
-            $sql = "UPDATE " . self::DATA_IMPORT_TABLE . " SET to_be_created=1 WHERE gtin in (" . $values .   ") and job_id='" . $jobId . "'";
+            $sql = 'UPDATE ' . self::DATA_IMPORT_TABLE . ' SET to_be_created=1 WHERE gtin in (' . $values .   ") and job_id='" . $jobId . "'";
             $this->db->exec($sql);
             $processedCounter += $gtinsBatch;
             if ($processedCounter > $totalGtins) {

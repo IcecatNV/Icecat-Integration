@@ -3,11 +3,11 @@
 namespace IceCatBundle\Controller;
 
 use IceCatBundle\Services\DataService;
+use IceCatBundle\Services\LoginService;
 use Pimcore\Controller\FrontendController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use  IceCatBundle\Services\LoginService;
 
 class LoginController extends FrontendController
 {
@@ -21,9 +21,9 @@ class LoginController extends FrontendController
         $dataService->emptyIceCatSession();
         $response = $loginObject->Authapi($username, $password);
         $response['otherInfo'] = $dataService->getOtherInfo(true);
+
         return new JsonResponse($response);
     }
-
 
     /**
      * @Route("/admin/icecat/get-login-page", name="icecat_get-login-page", options={"expose"=true})
@@ -34,8 +34,9 @@ class LoginController extends FrontendController
         $result = $service->getLoginStatus();
 
         $result['otherInfo'] = $service->getOtherInfo(true);
+
         return $this->render(
-            "@IceCat/login/getLoginPage.twig",
+            '@IceCat/login/getLoginPage.twig',
             $result
         );
     }
@@ -48,6 +49,7 @@ class LoginController extends FrontendController
         $service->emptyIceCatSession();
         $service->logOutUser();
         $result = $service->getLoginStatus();
+
         return new JsonResponse($result);
     }
 
@@ -57,6 +59,7 @@ class LoginController extends FrontendController
     public function getOtherInfo(LoginService $service)
     {
         $response['otherInfo'] = $service->getOtherInfo(true);
+
         return new JsonResponse($response);
     }
 }

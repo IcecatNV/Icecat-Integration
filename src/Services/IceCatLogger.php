@@ -4,23 +4,19 @@ namespace IceCatBundle\Services;
 
 use Psr\Log\LoggerInterface;
 
-
-
-
 class IceCatLogger
 {
-
-
     private $importlogger;
     private $objectcreatelogger;
     protected $logMessage;
     protected $logDetail;
     protected $logLevel;
-    const LEVEL = array('ERROR' => 'ERROR', 'INFO' => 'INFO', 'NOTICE' => 'NOTICE', 'DEBUG' => 'DEBUG');
+    const LEVEL = ['ERROR' => 'ERROR', 'INFO' => 'INFO', 'NOTICE' => 'NOTICE', 'DEBUG' => 'DEBUG'];
+
     public function __construct(LoggerInterface $clientdataimportLogger, LoggerInterface $clientobjectcreateLogger)
     {
-        $this->importlogger =  $clientdataimportLogger;
-        $this->objectcreatelogger =  $clientobjectcreateLogger;
+        $this->importlogger = $clientdataimportLogger;
+        $this->objectcreatelogger = $clientobjectcreateLogger;
     }
 
     /**
@@ -30,13 +26,13 @@ class IceCatLogger
      * @param string $logMessage
      * @param string $logDetail
      * @param string $logLevel
+     *
      * @return void
      */
-    public function addLog($logType, $logMessage, $logDetail = "", $logLevel = 'DEBUG')
+    public function addLog($logType, $logMessage, $logDetail = '', $logLevel = 'DEBUG')
     {
-
         $this->logMessage = $logMessage;
-        $this->logDetail  = $logDetail;
+        $this->logDetail = $logDetail;
         $this->logLevel = $logLevel;
         if ($logType == 'import') {
             $this->importLog();
@@ -48,7 +44,7 @@ class IceCatLogger
     /**
      * Generate log for import action
      *
-     * 
+     *
      */
     public function importLog()
     {

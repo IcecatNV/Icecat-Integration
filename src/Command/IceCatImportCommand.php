@@ -2,19 +2,16 @@
 
 namespace IceCatBundle\Command;
 
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use IceCatBundle\Services\ImportService;
 use Pimcore\Console\AbstractCommand;
-use Pimcore\Model\Asset;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use IceCatBundle\Services\ImportService;
 
 class IceCatImportCommand extends AbstractCommand
 {
-
-
     private $importObject;
+
     public function __construct(ImportService $ob)
     {
         $this->importObject = $ob;
@@ -34,13 +31,13 @@ class IceCatImportCommand extends AbstractCommand
     {
         $jobId = $input->getArgument('jobId');
         $result = $this->importObject->importData($jobId);
-        die;
+        if ($result['status'] == 'success') {
+            $this->writeInfo('Import Completed');
 
-        if ($result['status'] == "success") {
-            $this->writeInfo("Import Completed");
             return 0;
         } else {
-            $this->writeInfo("Import Completed with error: " . $result['message']);
+            $this->writeInfo('Import Completed with error: ' . $result['message']);
+
             return 1;
         }
     }
