@@ -18,6 +18,14 @@ To install this plugin use following commands:
 - Create Products in pimcoreusing imported data.
 - Provide Products preview.
 
+**New features in v2.0.0**
+- Automatic product categorization
+- Searching products by category / brand / attributes
+- Bug fixes 
+- Improved code quality
+
+[Click here for detailed features descriptions for v2.0.0](./doc/plugin_v2.md)
+
 **Steps to use :**
 1. After successful installation, you can see the icecat integration logo in your pimcore panel.
 2. You can open the icecat integration panel by clicking on it .
