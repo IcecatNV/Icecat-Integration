@@ -9,7 +9,7 @@ $ composer require icecat/icecat-integration:2.0.0
 **Update existing icecat plugin**
 
 ~~~~~~~~~~~~~~~~~~~~~
-$ composer update icecat/icecat-integration:2.0.0
+$ composer require icecat/icecat-integration:2.0.0
 $ bin/console doctrine:migrations:migrate --prefix=IceCatBundle\\Migrations
 ~~~~~~~~~~~~~~~~~~~~~
 
