@@ -16,6 +16,7 @@ $ bin/console doctrine:migrations:migrate --prefix=IceCatBundle\\Migrations
 **New features listing**
 
 **Automatic product categorization**
+
 A flag has been added on the icecat screen to on / off categorization. If import is done with categorization on, it will create a master list of categories (IcecatCategory class objects) and attach them to products.
 
 Below screenshot shows from where to on / off categorization.
@@ -35,6 +36,7 @@ Category object contains Icecat category internal ID and localized name.
 ![img1](./images/category_object.png)
 
 **Search screen**
+
 A new search screen is added under icecat panel which shows when system contains atleast one IcecatCategory class object. The purpose of this screen is to allow users to search Icecat products by category / brands / attributes. 
 
 When importing categories from Icecat, system gets the information what are the searchable attributes configured for that category. Pimcore stores that information and on search screen when category is changed, based on the attributes configured, it creates the search filters on the fly.
