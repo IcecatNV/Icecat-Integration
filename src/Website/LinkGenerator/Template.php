@@ -282,29 +282,28 @@ $arr = [];
                 <ul class="nav nav-tabs">
 
                     <?php
-                $i = 0;
-                foreach ($finalResult as $language) : ?>
+                    $i = 0;
+                    foreach ($finalResult as $language) : ?>
                     <li class="<?php echo ($defaultLocale == $language['key']) ? 'active' : ''; ?>">
                         <a data-toggle="tab" href="#lang<?= $language['key'] ?>"><?= $language['display_value'] ?></a>
                     </li>
-                    <?php $i++;
-                endforeach; ?>
+                        <?php $i++;
+                    endforeach; ?>
                 </ul>
 
                 <div id="myTabContent" class="tab-content">
 
                     <?php
-                $j = 0;
+                    $j = 0;
 
-                foreach ($finalResult as $language) :
-                    $arr = [];
-                    $i = 0;
-                ?>
+                    foreach ($finalResult as $language) :
+                        $arr = [];
+                        $i = 0;
+                        ?>
 
                     <div class="tab-pane fade  <?php echo ($defaultLocale == $language['key']) ? 'active in' : ''; ?> "
                         id="lang<?= $language['key'] ?>">
                         <?php if (!empty($data->getProductTitle($language['key']))) : ?>
-
                         <div class="col-md-12 mt-10">
                             <div class="row">
 
@@ -440,7 +439,7 @@ $arr = [];
                                                         <span class="tip-anchor tip-anchor-text">Data-sheet quality</span><span>:</span>
                                                         <a href="/en/search?supplierLocalName=HP" title="Search HP data-sheets">
                                                             <span class="data"><?php // $data->getData_Sheet_Quality($language['key'])
-                                                                                ?></span>
+                                                            ?></span>
                                                         </a>
                                                     </div>
                                                 <?php //}
@@ -451,7 +450,7 @@ $arr = [];
                                                         <span class="tip-anchor tip-anchor-text">Product views</span><span>:</span>
                                                         <a href="/en/search?supplierLocalName=HP" title="Search HP data-sheets">
                                                             <span class="data"><?php // $data->getProduct_Views($language['key'])
-                                                                                ?></span>
+                                                            ?></span>
                                                         </a>
                                                     </div>
                                                 <?php //}
@@ -472,39 +471,39 @@ $arr = [];
                                                 <div class="info-item pdf">
 
                                                     <?php
-                                                        if (!empty($data->getMultiMedia($language['key']))) {
-                                                            $pdfElementObject = $data->getMultiMedia($language['key']);
+                                                    if (!empty($data->getMultiMedia($language['key']))) {
+                                                        $pdfElementObject = $data->getMultiMedia($language['key']);
 
-                                                            foreach ($pdfElementObject as $pdfObject) {
-                                                                $relatedPdfObject = $pdfObject->getElement();
+                                                        foreach ($pdfElementObject as $pdfObject) {
+                                                            $relatedPdfObject = $pdfObject->getElement();
 
-                                                                if ($pdfObject->getContentType($language['key']) != 'application/pdf') {
-                                                                    ?>
+                                                            if ($pdfObject->getContentType($language['key']) != 'application/pdf') {
+                                                                ?>
                                                     <span>
                                                         <img class="jpg-icon" src="/bundles/icecat/img/jpg-icon.jpg">
                                                         <a id="" target="_blank"
                                                             href="<?= $relatedPdfObject->getFullPath() ?>">
-                                                            <?= $pdfObject->getDescription(); ?>
+                                                                <?= $pdfObject->getDescription(); ?>
                                                         </a>
                                                     </span>
 
-                                                    <?php
-                                                                } else {
-                                                                    ?>
+                                                                <?php
+                                                            } else {
+                                                                ?>
 
                                                     <span><i class="fa fa-file-pdf-o" aria-hidden="true"></i>
                                                         <a id="" target="_blank"
                                                             href="<?= $relatedPdfObject->getFullPath() ?>">
-                                                            <?= $pdfObject->getDescription(); ?>
+                                                                <?= $pdfObject->getDescription(); ?>
                                                         </a>
                                                     </span>
 
-                                                    <?php
-                                                                }
+                                                                <?php
                                                             }
                                                         }
+                                                    }
 
-                                                        ?>
+                                                    ?>
 
 
                                                 </div>
@@ -514,22 +513,20 @@ $arr = [];
                                 </div>
                                 <div class="col-md-6 col-sm-6 col-xs-6">
                                     <?php if (!empty($data->getGallery()->getItems())) { ?>
-
-
                                     <div id="myCarousel<?= $language['key'] ?>" class="carousel slide"
                                         data-ride="carousel">
 
                                         <div class="carousel-inner side-slider">
                                             <?php $i = 0;
-                                                    foreach ($data->getGallery() as $img) { ?>
+                                            foreach ($data->getGallery() as $img) { ?>
                                             <div class="item <?php if ($i == 0) {
                                                         echo 'active';
-                                                    } ?>">
+                                                             } ?>">
                                                 <img src="<?= $img->getImage()->getPath() ?>/<?= $img->getImage()->getFilename() ?>"
                                                     alt="" style="width:100%;">
                                             </div>
-                                            <?php $i++;
-                                                    } ?>
+                                                <?php $i++;
+                                            } ?>
 
                                         </div>
 
@@ -549,8 +546,6 @@ $arr = [];
 
                                     <?php } ?>
                                     <?php if (!empty($data->getGalleryIconBlock($language['key']))) : ?>
-
-
                                     <div id="owl-demo" class="owl-carousel owl-theme">
                                         <?php foreach ($data->getGalleryIconBlock($language['key']) as $blockItemMaster) {
                                                         $icon = ($blockItemMaster['galleryIcon']->getData());
@@ -560,8 +555,8 @@ $arr = [];
                                                 title="<?= $decription ?>" src="<?= $icon->getFullPath() ?>"
                                                 alt="no-image"></div>
 
-                                        <?php
-                                                    }  ?>
+                                            <?php
+                                        }  ?>
                                     </div>
                                     <?php endif; ?>
 
@@ -677,60 +672,60 @@ $arr = [];
                                         <div class="col-md-12 col-sm-12 col-lg-12">
                                             <div class="row">
                                                 <?php if (!empty($store->getGroups())) { ?>
-                                                <?php
-                                                        foreach ($store->getGroups() as $group) {
-                                                            foreach ($group->getKeys() as $key) {
-                                                                $keyConfiguration = $key->getConfiguration();
-                                                                $value = $key->getValue($language['key'], true, true);
-                                                                if ($value instanceof \Pimcore\Model\DataObject\Data\QuantityValue) {
-                                                                    $value = (string)$value;
-                                                                }
-                                                                $arr[] = [
-                                                                    $keyConfiguration->getTitle(),
-                                                                    $value,
-                                                                    $keyConfiguration->getDescription(),
-                                                                ];
-                                                            } ?>
-                                                <?php
-                                                        }
+                                                    <?php
+                                                    foreach ($store->getGroups() as $group) {
+                                                        foreach ($group->getKeys() as $key) {
+                                                            $keyConfiguration = $key->getConfiguration();
+                                                            $value = $key->getValue($language['key'], true, true);
+                                                            if ($value instanceof \Pimcore\Model\DataObject\Data\QuantityValue) {
+                                                                $value = (string)$value;
+                                                            }
+                                                            $arr[] = [
+                                                                $keyConfiguration->getTitle(),
+                                                                $value,
+                                                                $keyConfiguration->getDescription(),
+                                                            ];
+                                                        } ?>
+                                                        <?php
+                                                    }
                                                         $mainArray = [];
 
-                                                        foreach ($arr as $key) {
-                                                            $categoryArrayLanguageWise = unserialize($key[2]);
-                                                            $mainArray[$categoryArrayLanguageWise[$language['key']]][] = $key;
-                                                        }
+                                                    foreach ($arr as $key) {
+                                                        $categoryArrayLanguageWise = unserialize($key[2]);
+                                                        $mainArray[$categoryArrayLanguageWise[$language['key']]][] = $key;
+                                                    }
 
                                                         $specifications = [];
 
-                                                        try {
-                                                            $specificationOrder = ($finalJson[$language['key']]['data']['FeaturesGroups']);
+                                                    try {
+                                                        $specificationOrder = ($finalJson[$language['key']]['data']['FeaturesGroups']);
 
-                                                            foreach ($specificationOrder as $specificationOrderRow) {
-                                                                $keyName = $specificationOrderRow['FeatureGroup']['Name']['Value'];
+                                                        foreach ($specificationOrder as $specificationOrderRow) {
+                                                            $keyName = $specificationOrderRow['FeatureGroup']['Name']['Value'];
 
-                                                                if (isset($mainArray[$keyName])) {
-                                                                    $specifications[$keyName] = $mainArray[$keyName];
-                                                                }
+                                                            if (isset($mainArray[$keyName])) {
+                                                                $specifications[$keyName] = $mainArray[$keyName];
                                                             }
-                                                        } catch (\Throwable $th) {
-                                                            echo 'Something  went wrong .';
-                                                            die;
                                                         }
+                                                    } catch (\Throwable $th) {
+                                                        echo 'Something  went wrong .';
+                                                        die;
+                                                    }
 
                                                         $keys = array_keys($specifications);
 
                                                         $halved = array_chunk($specifications, ceil(count($mainArray) / 2));
 
                                                         $firstArray = $halved[0];
-                                                        if (isset($halved[1])) {
-                                                            $secondArray = $halved[1];
-                                                        }
-                                                        ?>
+                                                    if (isset($halved[1])) {
+                                                        $secondArray = $halved[1];
+                                                    }
+                                                    ?>
                                                 <div
                                                     class="<?= (!isset($halved[1]) ? 'col-md-12 col-sm-12 col-lg-12' : 'col-md-6 col-sm-6 col-lg-6') ?> ">
                                                     <?php
                                                             $i = 0;
-                                                            foreach ($firstArray as $mainArrayKey => $values) { ?>
+                                                    foreach ($firstArray as $mainArrayKey => $values) { ?>
                                                     <div class="inner-spec-head">
                                                         <table class="table table-custom">
                                                             <div>
@@ -743,29 +738,29 @@ $arr = [];
                                                                     </td>
                                                                     <td class="text-fix">
                                                                         <?php
-                                                                                        if (is_array($features[1])) : ?>
-                                                                        <?php echo implode(',', $features[1]);
-                                                                                        elseif (is_bool($features[1])) :
-                                                                                            if ($features[1] == true) :
-                                                                                                echo '<i class="fa fa-check" style="font-size:16px;color:green"></i>';
-                                                                                            else :
+                                                                        if (is_array($features[1])) : ?>
+                                                                            <?php echo implode(',', $features[1]);
+                                                                        elseif (is_bool($features[1])) :
+                                                                            if ($features[1] == true) :
+                                                                                echo '<i class="fa fa-check" style="font-size:16px;color:green"></i>';
+                                                                            else :
                                                                                                 echo '<i class="fa fa-times" style="font-size:16px;color:red"></i>';
-                                                                                            endif;
-
-                                                                                        else : echo $features[1];
-                                                                                        endif; ?>
+                                                                            endif;
+                                                                        else :
+                                                                                            echo $features[1];
+                                                                        endif; ?>
                                                                     </td>
                                                                 </tr>
                                                                 <?php } ?>
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                    <?php $i++;
-                                                            } ?>
+                                                        <?php $i++;
+                                                    } ?>
                                                 </div>
-                                                <?php if (isset($secondArray)) { ?>
+                                                    <?php if (isset($secondArray)) { ?>
                                                 <div class="col-md-6 col-sm-6 col-lg-6">
-                                                    <?php foreach ($secondArray as $mainArrayKey2 => $values) { ?>
+                                                        <?php foreach ($secondArray as $mainArrayKey2 => $values) { ?>
                                                     <div class="inner-spec-head">
                                                         <table class="table table-custom">
                                                             <div>
@@ -778,27 +773,27 @@ $arr = [];
                                                                     </td>
                                                                     <td class="text-fix">
                                                                         <?php
-                                                                                            if (is_array($features[1])) : ?>
-                                                                        <?php echo implode(',', $features[1]);
-                                                                                            elseif (is_bool($features[1])) :
-                                                                                                if ($features[1] == true) :
-                                                                                                    echo '<i class="fa fa-check" style="font-size:16px;color:green"></i>';
-                                                                                                else :
+                                                                        if (is_array($features[1])) : ?>
+                                                                            <?php echo implode(',', $features[1]);
+                                                                        elseif (is_bool($features[1])) :
+                                                                            if ($features[1] == true) :
+                                                                                echo '<i class="fa fa-check" style="font-size:16px;color:green"></i>';
+                                                                            else :
                                                                                                     echo '<i class="fa fa-times" style="font-size:16px;color:red"></i>';
-                                                                                                endif;
-
-                                                                                            else : echo $features[1];
-                                                                                            endif; ?>
+                                                                            endif;
+                                                                        else :
+                                                                                                echo $features[1];
+                                                                        endif; ?>
                                                                     </td>
                                                                 </tr>
                                                                 <?php } ?>
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                    <?php $i++;
-                                                                } ?>
+                                                            <?php $i++;
+                                                        } ?>
                                                 </div>
-                                                <?php } ?>
+                                                    <?php } ?>
                                                 <?php } else { ?>
                                                 <div class="col-md-6 col-sm-6 col-lg-6">
                                                     <div class="inner-spec-head">
@@ -824,11 +819,11 @@ $arr = [];
                                     <div class="spec-head">
 
                                         <?php if (!empty(strip_tags($data->getReasons_to_buy($language['key'])))) {
-                                                                    ?>
+                                            ?>
 
-                                        <?= $data->getReasons_to_buy($language['key']) ?>
-                                        <?php
-                                                                } else { ?>
+                                            <?= $data->getReasons_to_buy($language['key']) ?>
+                                            <?php
+                                        } else { ?>
                                         <h5>Empty!!!</h5>
                                         <?php }   ?>
 
@@ -859,13 +854,12 @@ $arr = [];
 
 
                                         <?php if (!empty($data->getTour()->getItems())) { ?>
-                                        <?php $i = 0;
-                                                foreach ($data->getTour() as $img) { ?>
+                                            <?php $i = 0;
+                                            foreach ($data->getTour() as $img) { ?>
                                         <img src="<?= $img->getImage()->getPath() ?>/<?= $img->getImage()->getFilename() ?>"
                                             alt="" style="width:50%;">
-                                        <?php } ?>
+                                            <?php } ?>
                                         <?php } else { ?>
-
                                         <h5>Empty!!!</h5>
 
 
@@ -889,18 +883,17 @@ $arr = [];
                                             ///  $newAsset = new Pimcore\Model\Asset();
                                             //   newe \Pimcore\Model\Asset\Video::
 
-                                            if (!empty($data->getVideo())) {
-                                                $videoData = $data->getVideo()->getData();
-                                                $videoAssetId = $videoData->getId();
-                                                $videoAsset = Pimcore\Model\Asset::getById($videoAssetId);
+                                        if (!empty($data->getVideo())) {
+                                            $videoData = $data->getVideo()->getData();
+                                            $videoAssetId = $videoData->getId();
+                                            $videoAsset = Pimcore\Model\Asset::getById($videoAssetId);
 
-                                                $path = ($videoAsset->getFullPath()); ?>
+                                            $path = ($videoAsset->getFullPath()); ?>
                                         <video width="320" height="240" controls>
                                             <source src="<?= $path ?>" type="video/mp4">
                                         </video>
-                                        <?php
-                                            } else { ?>
-
+                                            <?php
+                                        } else { ?>
                                         <h5>Empty!!!</h5>
 
 
@@ -938,10 +931,10 @@ $arr = [];
 
 
 
-                    <?php
-                    ++$j;
-                    ++$i;
-                endforeach; ?>
+                        <?php
+                        ++$j;
+                        ++$i;
+                    endforeach; ?>
 
 
 

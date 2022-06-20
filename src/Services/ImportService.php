@@ -99,7 +99,6 @@ class ImportService
     public function processFileData($fileName, $fileExtension, $pimUserId)
     {
         try {
-
             // LOGGING
             $this->logMessage = 'PROCESSING FILE FOR JOB ID :' . $this->currentJObId;
             $this->logger->addLog('import', $this->logMessage, '', 'NOTICE');
@@ -192,7 +191,6 @@ class ImportService
 
             return $result;
         } catch (\Exception $e) {
-
             // LOGGING
             $this->logMessage = 'ERROR IN  PROCESSING ROW FOR JOB ID :' .  $this->currentJObId;
             $this->logger->addLog('import', $this->logMessage, [addslashes($e->getMessage()), $e->getTraceAsString()], 'ERROR');
@@ -243,7 +241,6 @@ class ImportService
                 $response = $this->fetchIceCatData($url);
                 $responseArray = json_decode($response, true);
             } catch (Exception $e) {
-
                 // IN CASE OF INTERNET ACCESSIBLITY IS NOT AVAILABEL OR ICE CAT'S SERVER IS DOWN
                 $response = '';
                 $responseArray['COULD_NOT_RESOLVE_HOST'] = true;
@@ -262,7 +259,6 @@ class ImportService
                 $reason = self::REASON['COULD_NOT_RESOLVE_HOST'];
                 $isProductFound = 0;
             } elseif (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
-
                 //Product Found
                 $reason = '';
                 $isProductFound = 1;
@@ -407,7 +403,6 @@ class ImportService
 
             return $response;
         } catch (\Exception $e) {
-
             // LOGGING
             $this->logMessage = 'ERROR IN  OBJECT IMPORT FOR JOB ID :' .  $this->currentJObId;
             $this->logger->addLog('import', $this->logMessage, $e->getTraceAsString(), 'ERROR');

@@ -43,7 +43,6 @@ class LoginService extends InfoService
                 $finalResponse = strpos(json_encode(simplexml_load_string($response, 'SimpleXMLElement', LIBXML_NOCDATA)), 'ErrorMessage') > 0 ? 1 : 0;
 
                 if ($finalResponse == 0) {
-
                     // user not found
                     $this->saveUser($username);
                     $response = ['status' => 'success', 'message' => 'User found'];
