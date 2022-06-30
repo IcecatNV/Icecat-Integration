@@ -438,7 +438,7 @@ class CreateObjectService
             $counter = 0;
             $assetArray = [];
 
-            foreach ($multimediaNewArray  as $media) {
+            foreach ($multimediaNewArray as $media) {
                 $link = $media['URL'];
                 // Setting file name from link
                 try {
@@ -496,7 +496,6 @@ class CreateObjectService
     public function setGalleryIcons($attributeArray, $iceCatobject)
     {
         try {
-
             //return true;
 
             $this->logMessage = 'SETTING GALLERY ICONS  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
@@ -504,37 +503,36 @@ class CreateObjectService
 
             $featuresIconMasterArray = $attributeArray['FeatureLogos'];
             if (!empty($featuresIconMasterArray)) :
-
                 $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            $array = [];
-            foreach ($featuresIconMasterArray as $featureIconArray) {
-                $iconUrl = $featureIconArray['LogoPic'];
-                $iconToolTipData = (isset($featureIconArray['Description'])) ? $featureIconArray['Description']['Value'] : '';
-                $data = \Pimcore\Tool::getHttpData($iconUrl);
-                $filename = basename($iconUrl);
-                $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$filename");
+                $array = [];
+                foreach ($featuresIconMasterArray as $featureIconArray) {
+                    $iconUrl = $featureIconArray['LogoPic'];
+                    $iconToolTipData = (isset($featureIconArray['Description'])) ? $featureIconArray['Description']['Value'] : '';
+                    $data = \Pimcore\Tool::getHttpData($iconUrl);
+                    $filename = basename($iconUrl);
+                    $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$filename");
 
-                if (!empty($asset)) {
-                    $asset->setData($data);
-                    $asset->save();
-                } else {
-                    $asset = new \Pimcore\Model\Asset\Image();
-                    $asset->setFilename("$filename");
-                    $asset->setData($data);
-                    $asset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                    $asset->save();
-                }
-                $data = [
+                    if (!empty($asset)) {
+                        $asset->setData($data);
+                        $asset->save();
+                    } else {
+                        $asset = new \Pimcore\Model\Asset\Image();
+                        $asset->setFilename("$filename");
+                        $asset->setData($data);
+                        $asset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                        $asset->save();
+                    }
+                    $data = [
                         'galleryIcon' => new BlockElement('galleryIcon', 'image', $asset),
                         'galleryIconValue' => new BlockElement('galleryIconValue', 'input', ($featureIconArray['Value'] ?? null)),
                         'galleryIconDescription' => new BlockElement('galleryIconDescription', 'textArea', $iconToolTipData),
 
                     ];
 
-                $array[] = $data;
-            }
-            $iceCatobject->setgalleryIconBlock($array, $this->currentLanguage);
+                    $array[] = $data;
+                }
+                $iceCatobject->setgalleryIconBlock($array, $this->currentLanguage);
             endif;
         } catch (\Exception $th) {
             $this->logMessage = 'ERROR IN GALLERY_ICON FIELD CREATION  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $th->getMessage();
@@ -549,7 +547,7 @@ class CreateObjectService
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
             if (isset($attributeArray['ProductStory'][0])) :
                 $storyUrl = $attributeArray['ProductStory'][0]['URL'];
-            $iceCatobject->setStoryUrl($storyUrl, $this->currentLanguage);
+                $iceCatobject->setStoryUrl($storyUrl, $this->currentLanguage);
             endif;
         } catch (\Exception $e) {
             $this->logMessage = 'ERROR IN STORY FIELD CREATION  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
@@ -561,34 +559,32 @@ class CreateObjectService
     {
         try {
             if (isset($basicInformation['BrandLogo'])) :
-
                 $this->logMessage = 'SETTING BRAND LOGO  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
-            $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+                $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            $brandLogoUrl = $basicInformation['BrandLogo'];
-            try {
-                $name = pathinfo($brandLogoUrl, PATHINFO_FILENAME);
-                $extension = pathinfo($brandLogoUrl, PATHINFO_EXTENSION);
-                $fileName = $name . '.' . $extension;
-            } catch (\Exception $e) {
-                $fileName = uniqid();
-            }
+                $brandLogoUrl = $basicInformation['BrandLogo'];
+                try {
+                    $name = pathinfo($brandLogoUrl, PATHINFO_FILENAME);
+                    $extension = pathinfo($brandLogoUrl, PATHINFO_EXTENSION);
+                    $fileName = $name . '.' . $extension;
+                } catch (\Exception $e) {
+                    $fileName = uniqid();
+                }
             // Setting assets from link
-            $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
-            if (!empty($asset)) {
-                $asset->setData(file_get_contents($brandLogoUrl));
-                $asset->save();
-                $asset = $asset;
-            } else {
-                $newAsset = new \Pimcore\Model\Asset\Image();
-                $newAsset->setFilename("$fileName");
-                $newAsset->setData(file_get_contents($brandLogoUrl));
-                $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                $newAsset->save();
-                $asset = $newAsset;
-            }
-            $iceCatobject->setBrandLogo($asset);
-
+                $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+                if (!empty($asset)) {
+                    $asset->setData(file_get_contents($brandLogoUrl));
+                    $asset->save();
+                    $asset = $asset;
+                } else {
+                    $newAsset = new \Pimcore\Model\Asset\Image();
+                    $newAsset->setFilename("$fileName");
+                    $newAsset->setData(file_get_contents($brandLogoUrl));
+                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                    $newAsset->save();
+                    $asset = $newAsset;
+                }
+                $iceCatobject->setBrandLogo($asset);
             endif;
         } catch (\Exception $e) {
             $this->processingError[] = $e->getMessage();
@@ -608,17 +604,19 @@ class CreateObjectService
                     if (isset($reasons['HighPic']) && (!empty($reasons['HighPic']))) :
                         if ($flag === 'LEFT') :
                             $reasonsHtml .= ' <div class = "col-md-8 col-sm-8 col-xs-8"> <h5><b>' . $reasons['Title'] . '</b></h5>';
-                    $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
-                    $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
-                    $flag = 'RIGHT'; else :
-                            $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
-                    $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
-                    $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
+                            $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
+                            $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
+                            $flag = 'RIGHT';
+                        else :
+                                    $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
+                            $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
+                            $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
 
-                    $flag = 'LEFT';
-                    endif; else :
+                            $flag = 'LEFT';
+                        endif;
+                    else :
                         $reasonsHtml .= '<div class = "col-md-12"> <h5><b>' . $reasons['Title'] . '</b></h5>';
-                    $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
+                        $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
                     endif;
                     $reasonsHtml .= '</div>';
                 }
@@ -710,7 +708,7 @@ class CreateObjectService
                     $images3d = $array3dTour[0]['3DTour'];
 
                     $assetArray = [];
-                    foreach ($images3d  as $images) {
+                    foreach ($images3d as $images) {
                         $link = $images['Link'];
                         // Setting file name from link
                         // Ex: https://images.icecat.biz/img/360_original/raw/36972460_57b597c9-1c16-4390-bfd1-e3fd28b08583_0.jpg
@@ -889,48 +887,45 @@ class CreateObjectService
             $definition->setName($keyName);
             $definition->setTitle($title);
             $value = '';
-            switch ($dataType):
-
+            switch ($dataType) :
                 case 'QuantityValue':
-
                     $tempValue = $features['RawValue'];
-            $signid = $this->processQuantityValueUnit($sign);
-            $value = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
-            break;
-            case 'Select':
+                    $signid = $this->processQuantityValueUnit($sign);
+                    $value = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
+                    break;
+                case 'Select':
                     $value = $features['Value'];
-            $optionSetterArray = [['key' => "$value", 'value' => "$value"]];
-            $definition->setOptions($optionSetterArray);
-            break;
-            case 'Textarea':
+                    $optionSetterArray = [['key' => "$value", 'value' => "$value"]];
+                    $definition->setOptions($optionSetterArray);
+                    break;
+                case 'Textarea':
                     $value = $features['Value'];
-            break;
-            case 'InputQuantityValue':
+                    break;
+                case 'InputQuantityValue':
                     $tempValue = $features['RawValue'];
-            $signid = $this->processQuantityValueUnit($sign);
-            $value = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
-            break;
-            case 'Multiselect':
+                    $signid = $this->processQuantityValueUnit($sign);
+                    $value = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
+                    break;
+                case 'Multiselect':
                     $value = $features['Value'];
-            $value = (explode(',', $value));
-            foreach ($value as $key) {
-                $optionSetterArray[] = ['key' => "$key", 'value' => "$key"];
-            }
+                    $value = (explode(',', $value));
+                    foreach ($value as $key) {
+                        $optionSetterArray[] = ['key' => "$key", 'value' => "$key"];
+                    }
 
-            $definition->setOptions($optionSetterArray);
-            break;
-            case 'BooleanSelect':
+                    $definition->setOptions($optionSetterArray);
+                    break;
+                case 'BooleanSelect':
                     $value = $features['Value'];
-            $definition->setNoLabel('NO');
-            $definition->setYesLabel('YES');
-            $definition->setEmptyLabel('EMPTY');
-            $value = ($value == 'Y') ? true : false;
+                    $definition->setNoLabel('NO');
+                    $definition->setYesLabel('YES');
+                    $definition->setEmptyLabel('EMPTY');
+                    $value = ($value == 'Y') ? true : false;
 
-            break;
-            case 'Input':
+                    break;
+                case 'Input':
                     $value = $features['Value'];
-            break;
-
+                    break;
             endswitch;
             //Creating collecton
             $collectionId = $this->createCollection($keyName, $dataType);
@@ -1002,58 +997,57 @@ class CreateObjectService
             $definition->setTitle($title);
 
             $value = '';
-            switch ($dataType):
+            switch ($dataType) :
                 case 'QuantityValue':
                     $tempValue = $features['RawValue'];
-            $signid = $this->processQuantityValueUnit($sign);
-            $value = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
-            break;
-            case 'Select':
+                    $signid = $this->processQuantityValueUnit($sign);
+                    $value = new \Pimcore\Model\DataObject\Data\QuantityValue($tempValue, $signid);
+                    break;
+                case 'Select':
                     $keyConfigDef = json_decode($keyConfig->getDefinition(), true);
 
-            $value = $features['Value'];
-            $previousOptions = $keyConfigDef['options'];
-
-            if (array_search($value, array_column($previousOptions, 'value')) === false) {
-                $previousOptions[] = ['key' => "$value", 'value' => "$value"];
-            }
-            $definition->setOptions($previousOptions);
-            break;
-            case 'Textarea':
                     $value = $features['Value'];
-            break;
-            case 'InputQuantityValue':
+                    $previousOptions = $keyConfigDef['options'];
+
+                    if (array_search($value, array_column($previousOptions, 'value')) === false) {
+                        $previousOptions[] = ['key' => "$value", 'value' => "$value"];
+                    }
+                    $definition->setOptions($previousOptions);
+                    break;
+                case 'Textarea':
+                    $value = $features['Value'];
+                    break;
+                case 'InputQuantityValue':
                     $tempValue = $features['RawValue'];
-            $signid = $this->processQuantityValueUnit($sign);
-            $value = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
+                    $signid = $this->processQuantityValueUnit($sign);
+                    $value = new \Pimcore\Model\DataObject\Data\InputQuantityValue($tempValue, $signid);
 
-            break;
-            case 'Multiselect':
+                    break;
+                case 'Multiselect':
                     $keyConfigDef = json_decode($keyConfig->getDefinition(), true);
-            $value = $features['Value'];
-            $value = (explode(',', $value));
-            $previousOptions = $keyConfigDef['options'];
-            foreach ($value as $key) {
-                if (array_search($value, array_column($previousOptions, 'value')) === false) {
-                    $previousOptions[] = ['key' => "$key", 'value' => "$key"];
-                }
-            }
-
-            $definition->setOptions($previousOptions);
-
-            break;
-            case 'BooleanSelect':
                     $value = $features['Value'];
-            $definition->setNoLabel('NO');
-            $definition->setYesLabel('YES');
-            $definition->setEmptyLabel('EMPTY');
-            $value = ($value == 'Y') ? true : false;
+                    $value = (explode(',', $value));
+                    $previousOptions = $keyConfigDef['options'];
+                    foreach ($value as $key) {
+                        if (array_search($value, array_column($previousOptions, 'value')) === false) {
+                            $previousOptions[] = ['key' => "$key", 'value' => "$key"];
+                        }
+                    }
 
-            break;
-            case 'Input':
+                    $definition->setOptions($previousOptions);
+
+                    break;
+                case 'BooleanSelect':
                     $value = $features['Value'];
-            break;
+                    $definition->setNoLabel('NO');
+                    $definition->setYesLabel('YES');
+                    $definition->setEmptyLabel('EMPTY');
+                    $value = ($value == 'Y') ? true : false;
 
+                    break;
+                case 'Input':
+                    $value = $features['Value'];
+                    break;
             endswitch;
 
             // Updating key description because it store category according language
