@@ -1,7 +1,7 @@
 {
     "id": "Icecat",
     "description": "",
-    "modificationDate": 1657982000,
+    "modificationDate": 1653297602,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -82,7 +82,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -105,7 +106,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": true,
-                                        "visibleSearch": true
+                                        "visibleSearch": true,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -128,7 +130,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -151,7 +154,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": true,
-                                        "visibleSearch": true
+                                        "visibleSearch": true,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -174,30 +178,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
-                                    },
-                                    {
-                                        "fieldtype": "input",
-                                        "width": "",
-                                        "defaultValue": null,
-                                        "columnLength": 190,
-                                        "regex": "",
-                                        "unique": false,
-                                        "showCharCount": false,
-                                        "name": "brandPartCode",
-                                        "title": "Brand Part Code",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -220,7 +202,8 @@
                                         "relationType": false,
                                         "invisible": true,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -243,7 +226,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -266,7 +250,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -289,7 +274,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "input",
@@ -312,7 +298,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "numeric",
@@ -338,7 +325,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "fieldtype": "wysiwyg",
@@ -346,6 +334,7 @@
                                         "height": "",
                                         "toolbarConfig": "",
                                         "excludeFromSearchIndex": false,
+                                        "maxCharacters": 0,
                                         "name": "longDescription",
                                         "title": "Long Description",
                                         "tooltip": "",
@@ -367,27 +356,7 @@
                                         "height": "",
                                         "toolbarConfig": "",
                                         "excludeFromSearchIndex": false,
-                                        "name": "middleDescription",
-                                        "title": "Middle Description",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
-                                    },
-                                    {
-                                        "fieldtype": "wysiwyg",
-                                        "width": "",
-                                        "height": "",
-                                        "toolbarConfig": "",
-                                        "excludeFromSearchIndex": false,
+                                        "maxCharacters": 0,
                                         "name": "Long_Summary",
                                         "title": "Long summary",
                                         "tooltip": "",
@@ -409,6 +378,7 @@
                                         "height": "",
                                         "toolbarConfig": "",
                                         "excludeFromSearchIndex": false,
+                                        "maxCharacters": 0,
                                         "name": "Short_Summary",
                                         "title": "Short summary",
                                         "tooltip": "",
@@ -430,6 +400,7 @@
                                         "height": "",
                                         "toolbarConfig": "",
                                         "excludeFromSearchIndex": false,
+                                        "maxCharacters": 0,
                                         "name": "BulletPoints",
                                         "title": "Bullet points",
                                         "tooltip": "",
@@ -451,6 +422,7 @@
                                         "height": "",
                                         "toolbarConfig": "",
                                         "excludeFromSearchIndex": false,
+                                        "maxCharacters": 0,
                                         "name": "Reasons_to_buy",
                                         "title": "Reasons to buy",
                                         "tooltip": "",
@@ -472,52 +444,9 @@
                                         "height": "",
                                         "toolbarConfig": "",
                                         "excludeFromSearchIndex": false,
+                                        "maxCharacters": "",
                                         "name": "Disclaimer",
                                         "title": "Disclaimer",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
-                                    },
-                                    {
-                                        "fieldtype": "wysiwyg",
-                                        "width": "",
-                                        "height": "",
-                                        "toolbarConfig": "",
-                                        "excludeFromSearchIndex": false,
-                                        "name": "warrantyInfo",
-                                        "title": "Warranty Info",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
-                                    },
-                                    {
-                                        "fieldtype": "input",
-                                        "width": "",
-                                        "defaultValue": null,
-                                        "columnLength": 190,
-                                        "regex": "",
-                                        "unique": false,
-                                        "showCharCount": false,
-                                        "name": "url",
-                                        "title": "URL",
                                         "tooltip": "",
                                         "mandatory": false,
                                         "noteditable": false,
@@ -552,53 +481,8 @@
                                         "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
-                                        "visibleSearch": false
-                                    },
-                                    {
-                                        "fieldtype": "input",
-                                        "width": "",
-                                        "defaultValue": null,
-                                        "columnLength": 190,
-                                        "regex": "",
-                                        "unique": false,
-                                        "showCharCount": false,
-                                        "name": "manualPDFURL",
-                                        "title": "Manual PDF URL",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
-                                    },
-                                    {
-                                        "fieldtype": "input",
-                                        "width": "",
-                                        "defaultValue": null,
-                                        "columnLength": 190,
-                                        "regex": "",
-                                        "unique": false,
-                                        "showCharCount": false,
-                                        "name": "leafletPDFURL",
-                                        "title": "Leaflet PDF URL",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
+                                        "visibleSearch": false,
+                                        "defaultValueGenerator": ""
                                     },
                                     {
                                         "columns": [
@@ -636,6 +520,7 @@
                                         "assetTypes": [],
                                         "documentsAllowed": false,
                                         "documentTypes": [],
+                                        "enableTextSelection": false,
                                         "classes": [],
                                         "pathFormatterClass": "",
                                         "name": "multiMedia",
@@ -648,6 +533,28 @@
                                         "style": "",
                                         "permissions": null,
                                         "datatype": "data",
+                                        "invisible": false,
+                                        "visibleGridView": false,
+                                        "visibleSearch": false
+                                    },
+                                    {
+                                        "fieldtype": "wysiwyg",
+                                        "width": "",
+                                        "height": "",
+                                        "toolbarConfig": "",
+                                        "excludeFromSearchIndex": false,
+                                        "maxCharacters": "",
+                                        "name": "Warranty",
+                                        "title": "Warranty",
+                                        "tooltip": "",
+                                        "mandatory": false,
+                                        "noteditable": false,
+                                        "index": false,
+                                        "locked": false,
+                                        "style": "",
+                                        "permissions": null,
+                                        "datatype": "data",
+                                        "relationType": false,
                                         "invisible": false,
                                         "visibleGridView": false,
                                         "visibleSearch": false
@@ -715,7 +622,8 @@
                                                                 "relationType": false,
                                                                 "invisible": false,
                                                                 "visibleGridView": false,
-                                                                "visibleSearch": false
+                                                                "visibleSearch": false,
+                                                                "defaultValueGenerator": ""
                                                             },
                                                             {
                                                                 "fieldtype": "textarea",
@@ -787,48 +695,6 @@
                                         "icon": "",
                                         "labelWidth": 0,
                                         "labelAlign": "left"
-                                    },
-                                    {
-                                        "fieldtype": "date",
-                                        "queryColumnType": "bigint(20)",
-                                        "columnType": "bigint(20)",
-                                        "defaultValue": null,
-                                        "useCurrentDate": false,
-                                        "name": "releaseDate",
-                                        "title": "Release Date",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
-                                    },
-                                    {
-                                        "fieldtype": "date",
-                                        "queryColumnType": "bigint(20)",
-                                        "columnType": "bigint(20)",
-                                        "defaultValue": null,
-                                        "useCurrentDate": false,
-                                        "name": "endOfLifeDate",
-                                        "title": "End Of Life Date",
-                                        "tooltip": "",
-                                        "mandatory": false,
-                                        "noteditable": false,
-                                        "index": false,
-                                        "locked": false,
-                                        "style": "",
-                                        "permissions": null,
-                                        "datatype": "data",
-                                        "relationType": false,
-                                        "invisible": false,
-                                        "visibleGridView": false,
-                                        "visibleSearch": false
                                     }
                                 ],
                                 "name": "localizedfields",
@@ -857,7 +723,7 @@
                                 "invisible": false,
                                 "visibleGridView": true,
                                 "visibleSearch": true,
-                                "labelWidth": "0",
+                                "labelWidth": 0,
                                 "labelAlign": "left"
                             }
                         ],
@@ -870,10 +736,10 @@
                         "fieldtype": "panel",
                         "layout": null,
                         "border": false,
-                        "name": "relatedProductsSlashCategories",
+                        "name": "Categories",
                         "type": null,
                         "region": null,
-                        "title": "Related Products \/ Categories",
+                        "title": "Categories",
                         "width": "",
                         "height": "",
                         "collapsible": false,
@@ -888,39 +754,10 @@
                                 "height": "",
                                 "maxItems": "",
                                 "relationType": true,
-                                "visibleFields": "id,Icecat_Product_Id",
-                                "allowToCreateNewObject": false,
-                                "optimizedAdminLoading": true,
-                                "visibleFieldDefinitions": [],
-                                "classes": [
-                                    {
-                                        "classes": "Icecat"
-                                    }
-                                ],
-                                "pathFormatterClass": "",
-                                "name": "productRelated",
-                                "title": "Product Related",
-                                "tooltip": "",
-                                "mandatory": false,
-                                "noteditable": false,
-                                "index": false,
-                                "locked": false,
-                                "style": "",
-                                "permissions": null,
-                                "datatype": "data",
-                                "invisible": false,
-                                "visibleGridView": false,
-                                "visibleSearch": false
-                            },
-                            {
-                                "fieldtype": "manyToManyObjectRelation",
-                                "width": "",
-                                "height": "",
-                                "maxItems": "",
-                                "relationType": true,
                                 "visibleFields": "id,key,name",
                                 "allowToCreateNewObject": false,
                                 "optimizedAdminLoading": false,
+                                "enableTextSelection": false,
                                 "visibleFieldDefinitions": [],
                                 "classes": [
                                     {
@@ -958,7 +795,8 @@
                                 "relationType": false,
                                 "invisible": false,
                                 "visibleGridView": true,
-                                "visibleSearch": true
+                                "visibleSearch": true,
+                                "defaultValueGenerator": ""
                             }
                         ],
                         "locked": false,
@@ -1059,7 +897,7 @@
                                 "maxTabs": null,
                                 "labelWidth": 0,
                                 "localized": true,
-                                "storeId": "1",
+                                "storeId": "13",
                                 "hideEmptyData": false,
                                 "disallowAddRemove": false,
                                 "fieldDefinitionsCache": null,
