@@ -2,13 +2,16 @@
 
 namespace IceCatBundle\Services;
 
+use IceCatBundle\Lib\IceCateHelper;
 use IceCatBundle\Model\Configuration;
 use Pimcore\Log\ApplicationLogger;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Data\BlockElement;
+use Pimcore\Model\DataObject\Icecat;
 
 class CreateObjectService
 {
+    use IceCateHelper;
     const DATAOBJECT_FOLDER = 'ICECAT';
     const CAT_DATAOBJECT_FOLDER = 'ICECAT/CATEGORIES';
     const ASSET_FOLDER = 'ICECAT';
@@ -73,6 +76,7 @@ class CreateObjectService
     protected $currentDateTimeStamp;
     protected $currentFeatureGroup = [];
     protected $jobHandler;
+    protected $currentLanguage = 'en';
 
     public function __construct(IceCatLogger $logger, IceCatCsvLogger $csvLogger, ApplicationLogger $appLogger, JobHandlerService $jobHandler)
     {
@@ -293,6 +297,10 @@ class CreateObjectService
         return $data;
     }
 
+    /**
+     * @param $attributeArray
+     * @param Icecat $iceCatobject
+     */
     public function createFixFields($attributeArray, $iceCatobject)
     {
         try {
@@ -310,16 +318,36 @@ class CreateObjectService
             $iceCatobject->setShort_Summary($basicInformation['SummaryDescription']['ShortSummaryDescription'], $this->currentLanguage);
             $iceCatobject->setProductTitle($basicInformation['Title'], $this->currentLanguage);
             $iceCatobject->setGtin($this->currentGtin, $this->currentLanguage);
+            $iceCatobject->setBrandPartCode($basicInformation['BrandPartCode'], $this->currentLanguage);
+            $iceCatobject->setReleaseDate($this->getCarbonObjectForDateString($basicInformation['release_date']), $this->currentLanguage);
+            $iceCatobject->setEndOfLifeDate($this->getCarbonObjectForDateString($basicInformation['EndOfLifeDate']), $this->currentLanguage);
 
             if (isset($basicInformation['Description']['LongDesc'])) {
                 $iceCatobject->setLongDescription($basicInformation['Description']['LongDesc'], $this->currentLanguage);
             }
 
+            if (isset($basicInformation['Description']['MiddleDesc'])) {
+                $iceCatobject->setMiddleDescription($basicInformation['Description']['MiddleDesc'], $this->currentLanguage);
+            }
+
             if (isset($basicInformation['Description']['Disclaimer'])) {
                 $iceCatobject->setDisclaimer($basicInformation['Description']['Disclaimer'], $this->currentLanguage);
             }
+
+            if (isset($basicInformation['Description']['ManualPDFURL'])) {
+                $iceCatobject->setManualPDFURL($basicInformation['Description']['ManualPDFURL'], $this->currentLanguage);
+            }
+
+            if (isset($basicInformation['Description']['LeafletPDFURL'])) {
+                $iceCatobject->setLeafletPDFURL($basicInformation['Description']['LeafletPDFURL'], $this->currentLanguage);
+            }
+
+            if (isset($basicInformation['Description']['URL'])) {
+                $iceCatobject->setUrl($basicInformation['Description']['URL'], $this->currentLanguage);
+            }
+
             if (isset($basicInformation['Description']['WarrantyInfo'])) {
-                $iceCatobject->setWarranty($basicInformation['Description']['WarrantyInfo'], $this->currentLanguage);
+                $iceCatobject->setWarrantyInfo($basicInformation['Description']['WarrantyInfo'], $this->currentLanguage);
             }
             if (isset($basicInformation['Description']['LongProductName'])) {
                 $iceCatobject->setProductLongName($basicInformation['Description']['LongProductName'], $this->currentLanguage);
@@ -361,6 +389,7 @@ class CreateObjectService
             } else {
                 $iceCatobject->setRelatedCategories([]);
             }
+            $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -417,6 +446,30 @@ class CreateObjectService
 
             $iceCatobject->setRelatedCategories([$categoryObject]);
         }
+    }
+
+    /**
+     * @param Icecat $object
+     * @param $relatedProductsData
+     */
+    public function setProductRelated($object, $relatedProductsData)
+    {
+        if (empty($relatedProductsData)) {
+            return;
+        }
+        $products = [];
+        foreach ($relatedProductsData as $data) {
+            if (!empty($data['IcecatID'])) {
+                $product = Icecat::getByIcecat_Product_Id($data['IcecatID']);
+                if (!empty($product)) {
+                    $products[] = $product;
+                }
+            }
+        }
+        if (!empty($products)) {
+            $object->setProductRelated($products);
+        }
+
     }
 
     public function setMultiMedia($attributeArray, $iceCatobject)
@@ -646,35 +699,40 @@ class CreateObjectService
                 $arrayHavingVideo = array_values($arrayHavingVideo);
 
                 //Taking only one array for now
-                if (isset($arrayHavingVideo[0])) {
-                    $videos = $arrayHavingVideo[0];
+                if (!empty($arrayHavingVideo)) {
+                    $videosArr = [];
+                    foreach ($arrayHavingVideo as $videos) {
+//                    $videos = $arrayHavingVideo[0];
 
-                    $videoLink = $videos['URL'];
+                        $videoLink = $videos['URL'];
 
-                    // Getting Name from url
-                    try {
-                        $name = pathinfo($videoLink, PATHINFO_FILENAME);
-                        $extension = pathinfo($videoLink, PATHINFO_EXTENSION);
-                        $fileName = $name . '.' . $extension;
-                    } catch (\Exception $e) {
-                        $fileName = uniqid();
+                        // Getting Name from url
+                        try {
+                            $name = pathinfo($videoLink, PATHINFO_FILENAME);
+                            $extension = pathinfo($videoLink, PATHINFO_EXTENSION);
+                            $fileName = $name . '.' . $extension;
+                        } catch (\Exception $e) {
+                            $fileName = uniqid();
+                        }
+
+                        // Setting assets from link
+                        $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+                        if (empty($asset)) {
+                            //Saving video in asset folder
+                            try {
+                                $newAsset = new \Pimcore\Model\Asset();
+                                $newAsset->setFilename(uniqid() . '.' . $extension);
+                                $newAsset->setData(file_get_contents($videos['URL']));
+                                $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                                $newAsset->save();
+                                $videosArr[] = $newAsset;
+                            } catch (\Exception $ex) {
+                                $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $e->getMessage();
+                            }
+                        }
                     }
-
-                    // Setting assets from link
-                    $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
-                    if (empty($asset)) {
-                        //Saving video in asset folder
-                        $newAsset = new \Pimcore\Model\Asset();
-                        $newAsset->setFilename(uniqid(). '.' . $extension);
-                        $newAsset->setData(file_get_contents($videos['URL']));
-                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                        $newAsset->save();
-
-                        $videoData = new \Pimcore\Model\DataObject\Data\Video();
-                        $videoData->setData($newAsset);
-                        $videoData->setType('asset');
-
-                        $iceCatobject->setVideo($videoData);
+                    if (!empty($videosArr)) {
+                        $iceCatobject->setVideos($videosArr);
                     }
                 }
             }
