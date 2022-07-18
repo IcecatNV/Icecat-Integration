@@ -1,7 +1,7 @@
 {
     "id": "Icecat",
     "description": "",
-    "modificationDate": 1657982000,
+    "modificationDate": 1658157423,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -857,7 +857,7 @@
                                 "invisible": false,
                                 "visibleGridView": true,
                                 "visibleSearch": true,
-                                "labelWidth": "0",
+                                "labelWidth": "",
                                 "labelAlign": "left"
                             }
                         ],
@@ -1163,6 +1163,38 @@
                                 "permissions": null,
                                 "datatype": "data",
                                 "relationType": false,
+                                "invisible": true,
+                                "visibleGridView": false,
+                                "visibleSearch": false
+                            },
+                            {
+                                "fieldtype": "manyToManyRelation",
+                                "width": "",
+                                "height": "",
+                                "maxItems": "",
+                                "assetUploadPath": "",
+                                "relationType": true,
+                                "objectsAllowed": false,
+                                "assetsAllowed": true,
+                                "assetTypes": [
+                                    {
+                                        "assetTypes": "video"
+                                    }
+                                ],
+                                "documentsAllowed": false,
+                                "documentTypes": [],
+                                "classes": [],
+                                "pathFormatterClass": "",
+                                "name": "videos",
+                                "title": "Videos",
+                                "tooltip": "",
+                                "mandatory": false,
+                                "noteditable": false,
+                                "index": false,
+                                "locked": false,
+                                "style": "",
+                                "permissions": null,
+                                "datatype": "data",
                                 "invisible": false,
                                 "visibleGridView": false,
                                 "visibleSearch": false
