@@ -233,6 +233,41 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 style: 'margin-left: 5px',
                                 handler: this.toggleBrandComboValues.bind(this)
                             }]
+                        }, {
+                            xtype: 'checkbox',
+                            name: "3dtour",
+                            fieldLabel: t('3D tour'),
+                            tooltip: '3D tour',
+                            width: 150,
+                            labelWidth: 150
+                        }, {
+                            xtype: 'checkbox',
+                            name: "video",
+                            fieldLabel: t('Video'),
+                            tooltip: 'Video',
+                            width: 150,
+                            labelWidth: 150
+                        }, {
+                            xtype: 'checkbox',
+                            name: "reviews",
+                            fieldLabel: t('Reviews'),
+                            tooltip: 'Reviews',
+                            width: 150,
+                            labelWidth: 150
+                        }, {
+                            xtype: 'checkbox',
+                            name: "reasonstobuy",
+                            fieldLabel: t('Reasons to buy'),
+                            tooltip: 'Reasons to buy',
+                            width: 150,
+                            labelWidth: 150
+                        }, {
+                            xtype: 'checkbox',
+                            name: "relatedproducts",
+                            fieldLabel: t('Related products'),
+                            tooltip: 'Related products',
+                            width: 150,
+                            labelWidth: 150
                         }
                     ]
                 }]
@@ -488,8 +523,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
 
     setBrandCheckbox: function (component) {
         var combo = Ext.getCmp("search_form").getForm().findField('brand[]');
-        console.log(component.getValue());
-        console.log(this.brandStore.getRange().length);
+        
         // +1 because event is called before select
         if(combo.getValue().length+1 === this.brandStore.getRange().length) {
             var checkbox = Ext.getCmp("search_form").getForm().findField('checkbox_brand');

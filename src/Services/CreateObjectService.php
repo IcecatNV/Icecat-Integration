@@ -141,14 +141,14 @@ class CreateObjectService
         $importData = $this->getImportArray($jobId);
 
         if (!$importData) {
-            $this->logMessage = 'NOTHING TO IMPORT TERMINATING OBJECT CREATION FOR JOB ID :' . $jobId;
-            $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+            // $this->logMessage = 'NOTHING TO IMPORT TERMINATING OBJECT CREATION FOR JOB ID :' . $jobId;
+            // $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            // Updating import to be completed
-            $updateArray = ['completed' => 1];
-            $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
+            // // Updating import to be completed
+            // $updateArray = ['completed' => 1];
+            // $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
 
-            return 0;
+            // return 0;
         }
 
         try {
@@ -167,13 +167,13 @@ class CreateObjectService
                 try {
                     $this->jobId = $jobId;
 
-                    $isJobAlive = $this->jobHandler->isLive($this->jobId);
-                    if ($isJobAlive === false) {
-                        $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
-                        $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+                    // $isJobAlive = $this->jobHandler->isLive($this->jobId);
+                    // if ($isJobAlive === false) {
+                    //     $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
+                    //     $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-                        return true;
-                    }
+                    //     return true;
+                    // }
                     //\Pimcore\Cache::clearAll();
 
                     $this->currentProductId = $data['gtin'];
@@ -208,7 +208,6 @@ class CreateObjectService
                     }
 
                     $iceCatobject->save();
-
                     ++$counter;
                     // Updating Processed Record
                     $this->logMessage = ' BEFORE UPDATE:' .    $counter;
@@ -319,7 +318,7 @@ class CreateObjectService
             $iceCatobject->setProductTitle($basicInformation['Title'], $this->currentLanguage);
             $iceCatobject->setGtin($this->currentGtin, $this->currentLanguage);
             $iceCatobject->setBrandPartCode($basicInformation['BrandPartCode'], $this->currentLanguage);
-            $iceCatobject->setReleaseDate($this->getCarbonObjectForDateString($basicInformation['release_date']), $this->currentLanguage);
+            //$iceCatobject->setReleaseDate($this->getCarbonObjectForDateString($basicInformation['release_date']), $this->currentLanguage);
             $iceCatobject->setEndOfLifeDate($this->getCarbonObjectForDateString($basicInformation['EndOfLifeDate']), $this->currentLanguage);
 
             if (isset($basicInformation['Description']['LongDesc'])) {
@@ -623,7 +622,8 @@ class CreateObjectService
                 } catch (\Exception $e) {
                     $fileName = uniqid();
                 }
-            // Setting assets from link
+
+                // Setting assets from link
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                 if (!empty($asset)) {
                     $asset->setData(file_get_contents($brandLogoUrl));

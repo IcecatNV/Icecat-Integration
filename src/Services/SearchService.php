@@ -211,6 +211,12 @@ class SearchService extends AbstractService
         $category = trim($request->get('category'));
         $brands = $request->get('brand', []);
 
+        $tour3D = $request->get('3dtour', "false") === "true" ? true : false;
+        $video = $request->get('video') === "true" ? true : false;
+        $reviews = $request->get('reviews') === "true" ? true : false;
+        $reasonsToBuy = $request->get('reasonstobuy') === "true" ? true : false;
+        $relatedProducts = $request->get('relatedproducts') === "true" ? true : false;
+
         $parameters = $request->request->all();
         $featuresValues = [];
         foreach ($parameters as $param => $values) {
@@ -259,6 +265,26 @@ class SearchService extends AbstractService
                 $loopIndex++;
             }
             $sql .= ' ) ';
+        }
+
+        if($tour3D) {
+            $sql .= " AND (o.Tour__images IS NOT NULL AND TRIM(o.Tour__images) != '') ";
+        }
+
+        if($video) {
+            $sql .= " AND (o.videos IS NOT NULL AND TRIM(o.videos) != '') ";
+        }
+
+        if($reviews) {
+            $sql .= " AND (o.Reviews IS NOT NULL AND TRIM(o.Reviews) != '') ";
+        }
+
+        if($reasonsToBuy) {
+            $sql .= " AND (o.Reasons_to_buy IS NOT NULL AND TRIM(o.Reasons_to_buy) != '') ";
+        }
+
+        if($relatedProducts) {
+            $sql .= " AND (o.productRelated IS NOT NULL AND TRIM(o.productRelated) != '') ";
         }
 
         return $sql;
