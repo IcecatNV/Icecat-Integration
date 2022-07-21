@@ -8,6 +8,7 @@ use Pimcore\Log\ApplicationLogger;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Data\BlockElement;
 use Pimcore\Model\DataObject\Icecat;
+use Pimcore\Model\DataObject\Localizedfield;
 
 class CreateObjectService
 {
@@ -33,6 +34,12 @@ class CreateObjectService
     protected $logMessage;
     private $csvLogFileName;
     protected $appLogger;
+
+    protected $fieldNameMappingWithDataKey = [
+        'AwardHighPic' => 'awardHighPic',
+        'AwardLogoPic' => 'awardLogoPic',
+        'LogoPic' => 'logoPic',
+    ];
 
     /**
      * @var Configuration|null
@@ -382,6 +389,7 @@ class CreateObjectService
             $this->setStoryField($attributeArray, $iceCatobject);
             $this->setMultiMedia($attributeArray, $iceCatobject);
             $this->setGalleryIcons($attributeArray, $iceCatobject);
+            $this->setReviewData($attributeArray['Reviews'], $iceCatobject);
 
             if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
                 $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
@@ -396,6 +404,45 @@ class CreateObjectService
             $this->logMessage = 'ERROR IN FIX FIELD FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
         }
+    }
+
+    protected function setReviewData($reviews, $object)
+    {
+        $reviewData = [];
+        if (empty($reviews)) {
+            return;
+        }
+        foreach($reviews as $data) {
+            if (empty($data['Language'])) {
+                $data['Language'] = 'en';
+            }
+
+            $data['Language'] = strtolower($data['Language']);
+
+            $blockData = [
+                [$data['Language']] => [
+                    'awardHighPic' => $this->getImageField($data, 'AwardHighPic'),
+                    'awardLogoPic' => $this->getImageField($data, 'AwardLogoPic'),
+                    'bottomLine' => $data['BottomLine'],
+                    'code' => $data['Code'],
+                    'dateAdded' => $data['DateAdded'],
+                    'group' => $data['Group'],
+                    'reviewId' => $data['ID'],
+                    'logoPic' => $this->getImageField($data, 'LogoPic'),
+                    'Score' => $data['ID'],
+                    'reviewValue' => $data['Value'],
+                    'valueBad' => $data['ValueBad'],
+                    'valueGood' => $data['ValueGood'],
+                    'icecatID' => $data['IcecatID'],
+                    'url' => $data['URL'],
+                    'updated' => $data['Updated'],
+                ],
+            ];
+            $reviewData[] = [
+                "localizedfields" => new BlockElement('localizedfields', 'localizedfields', new Localizedfield($blockData))
+            ];
+        }
+        $object->setReviews($reviewData);
     }
 
     /**
@@ -646,6 +693,50 @@ class CreateObjectService
         }
     }
 
+    /**
+     * @param $data
+     * @param $fieldName
+     * @return Asset|Asset\Image|null
+     */
+    public function getImageField($data, $fieldName)
+    {
+        try {
+            if (empty($data[$fieldName])) {
+                return null;
+            }
+            $this->logMessage = 'SETTING ' . $fieldName .'  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
+            $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+
+            $fieldUrl = $data[$fieldName];
+            try {
+                $name = pathinfo($fieldUrl, PATHINFO_FILENAME);
+                $extension = pathinfo($fieldUrl, PATHINFO_EXTENSION);
+                $fileName = $name . '.' . $extension;
+            } catch (\Exception $e) {
+                $fileName = uniqid();
+            }
+
+            // Setting assets from link
+            $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+            if (!empty($asset)) {
+                $asset->setData(file_get_contents($fieldUrl));
+                $asset->save();
+            } else {
+                $asset = new \Pimcore\Model\Asset\Image();
+                $asset->setFilename("$fileName");
+                $asset->setData(file_get_contents($fieldUrl));
+                $asset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                $asset->save();
+            }
+            return $asset;
+        } catch (\Exception $e) {
+            $this->processingError[] = $e->getMessage();
+            $this->logMessage = 'ERROR IN SETTING  ' . $fieldName .  '  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
+            $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+            return null;
+        }
+    }
+
     public function createReasonsToBuy($attributeArray, $iceCatobject)
     {
         try {
@@ -661,7 +752,7 @@ class CreateObjectService
                             $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
                             $flag = 'RIGHT';
                         else :
-                                    $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
+                            $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
                             $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
                             $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
 
