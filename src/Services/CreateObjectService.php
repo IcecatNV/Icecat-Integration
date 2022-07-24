@@ -35,6 +35,8 @@ class CreateObjectService
     private $csvLogFileName;
     protected $appLogger;
 
+    public static $recursiveFlag = true;
+
     protected $fieldNameMappingWithDataKey = [
         'AwardHighPic' => 'awardHighPic',
         'AwardLogoPic' => 'awardLogoPic',
@@ -78,6 +80,8 @@ class CreateObjectService
 
     ];
 
+    protected $importService;
+    protected $userId;
     private $quantityUnitId;
 
     protected $currentDateTimeStamp;
@@ -85,12 +89,19 @@ class CreateObjectService
     protected $jobHandler;
     protected $currentLanguage = 'en';
 
-    public function __construct(IceCatLogger $logger, IceCatCsvLogger $csvLogger, ApplicationLogger $appLogger, JobHandlerService $jobHandler)
+    public function __construct(
+        IceCatLogger $logger,
+        IceCatCsvLogger $csvLogger,
+        ApplicationLogger $appLogger,
+        JobHandlerService $jobHandler,
+        ImportService $importService
+    )
     {
         $this->logger = $logger;
         $this->csvLogger = $csvLogger;
         $this->appLogger = $appLogger;
         $this->jobHandler = $jobHandler;
+        $this->importService = $importService;
         $this->config = Configuration::load();
     }
 
@@ -142,6 +153,7 @@ class CreateObjectService
 
     public function CreateObject($userId, $jobId)
     {
+
         $this->csvLogFileName = date('Y-m-d H:i:s');
         $this->csvLogMessage = [];
         $counter = 0;
@@ -170,6 +182,7 @@ class CreateObjectService
             $updateArray = ['total_records' => count($importData), 'processed_records' => 0, 'processing_status' => $this->status['PROCESSING']];
             $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
             foreach ($importData as $data) {
+                $this->userId = $data['icecat_username'];
                 $time_start = microtime(true);
                 try {
                     $this->jobId = $jobId;
@@ -183,38 +196,12 @@ class CreateObjectService
                     // }
                     //\Pimcore\Cache::clearAll();
 
-                    $this->currentProductId = $data['gtin'];
-                    $this->currentGtin = $data['original_gtin'];
-                    $this->currentLanguage = $data['language'];
-
                     $this->logMessage = 'STARTING OBJECT CREATION FOR JOB ID : ' . $this->jobId . ' AND PRODUCT ID :' . $this->currentProductId;
                     $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+                    self::$recursiveFlag = true;
 
-                    $importArray = json_decode(base64_decode($data['data_encoded']), true);
-                    if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
-                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
-                        $iceCatobject = new $iceCatClass();
-                        $this->createFixFields($importArray['data'], $iceCatobject);
-                        $this->createGallery($importArray['data'], $iceCatobject);
-                        $this->createDynamicFields($importArray['data'], $iceCatobject);
-                        $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
-                        $iceCatobject->setKey($this->currentProductId);
-                        $iceCatobject->setPublished(true);
-                    } else {
-                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
-                        $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
-                        $this->createFixFields($importArray['data'], $iceCatobject);
-                        $this->createGallery($importArray['data'], $iceCatobject);
-                        $this->createDynamicFields($importArray['data'], $iceCatobject);
-                    }
+                    $iceCatobject = $this->createIceCatObject($data);
 
-                    if (!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
-                        $iceCatobject->setCategorization(null);
-                    } else {
-                        $iceCatobject->setCategorization(true);
-                    }
-
-                    $iceCatobject->save();
                     ++$counter;
                     // Updating Processed Record
                     $this->logMessage = ' BEFORE UPDATE:' .    $counter;
@@ -288,6 +275,43 @@ class CreateObjectService
 
             ]);
         }
+    }
+
+    public function createIceCatObject($data)
+    {
+        $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
+        $this->currentProductId = $data['gtin'];
+        $this->currentGtin = $data['original_gtin'];
+        $this->currentLanguage = $data['language'];
+
+
+
+        $importArray = json_decode(base64_decode($data['data_encoded']), true);
+        if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
+            /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
+            $iceCatobject = new $iceCatClass();
+            $iceCatobject->setPublished(true);
+            $iceCatobject->setKey($this->currentProductId);
+            $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
+            $this->createFixFields($importArray['data'], $iceCatobject);
+            $this->createGallery($importArray['data'], $iceCatobject);
+            $this->createDynamicFields($importArray['data'], $iceCatobject);
+        } else {
+            /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
+            $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
+            $this->createFixFields($importArray['data'], $iceCatobject);
+            $this->createGallery($importArray['data'], $iceCatobject);
+            $this->createDynamicFields($importArray['data'], $iceCatobject);
+        }
+
+        if (!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
+            $iceCatobject->setCategorization(null);
+        } else {
+            $iceCatobject->setCategorization(true);
+        }
+
+        $iceCatobject->save();
+        return $iceCatobject;
     }
 
     /***
@@ -383,20 +407,27 @@ class CreateObjectService
 
             // Insert Images in 3d Tour fields if it is available
             $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
+            $this->logger->addLog('hihihahaha', 'create3dTourField', 'create3dTourField', 'ERROR');
 
             // Insert Videos in video fields if it is available
             $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
+            $this->logger->addLog('hihihahaha', 'createVideoField', 'createVideoField', 'ERROR');
             $this->setStoryField($attributeArray, $iceCatobject);
             $this->setMultiMedia($attributeArray, $iceCatobject);
             $this->setGalleryIcons($attributeArray, $iceCatobject);
+            $this->logger->addLog('hihihahaha', 'setGalleryIcons', 'setGalleryIcons', 'ERROR');
             $this->setReviewData($attributeArray['Reviews'], $iceCatobject);
+            $this->logger->addLog('hihihahaha', 'setReviewData', 'setReviewData', 'ERROR');
 
             if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
                 $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
             } else {
                 $iceCatobject->setRelatedCategories([]);
             }
+            $this->logger->addLog('hihihahaha', 'setRelatedCategories', 'setRelatedCategories', 'ERROR');
             $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
+
+            $this->logger->addLog('hihihahaha', 'setProductRelated', 'setProductRelated', 'ERROR');
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -418,9 +449,8 @@ class CreateObjectService
             }
 
             $data['Language'] = strtolower($data['Language']);
-
             $blockData = [
-                [$data['Language']] => [
+                $data['Language'] => [
                     'awardHighPic' => $this->getImageField($data, 'AwardHighPic'),
                     'awardLogoPic' => $this->getImageField($data, 'AwardLogoPic'),
                     'bottomLine' => $data['BottomLine'],
@@ -429,7 +459,7 @@ class CreateObjectService
                     'group' => $data['Group'],
                     'reviewId' => $data['ID'],
                     'logoPic' => $this->getImageField($data, 'LogoPic'),
-                    'Score' => $data['ID'],
+                    'score' => $data['ID'],
                     'reviewValue' => $data['Value'],
                     'valueBad' => $data['ValueBad'],
                     'valueGood' => $data['ValueGood'],
@@ -437,7 +467,8 @@ class CreateObjectService
                     'url' => $data['URL'],
                     'updated' => $data['Updated'],
                 ],
-            ];
+                ];
+
             $reviewData[] = [
                 "localizedfields" => new BlockElement('localizedfields', 'localizedfields', new Localizedfield($blockData))
             ];
@@ -503,10 +534,33 @@ class CreateObjectService
         if (empty($relatedProductsData)) {
             return;
         }
+        $object->save();
         $products = [];
+        $runTimeFetch = [];
+        $counter = 0;
         foreach ($relatedProductsData as $data) {
             if (!empty($data['IcecatID'])) {
-                $product = Icecat::getByIcecat_Product_Id($data['IcecatID']);
+                $product = Icecat::getByIcecat_Product_Id($data['IcecatID'], null, 1);
+                if (!empty($product)) {
+                    $products[] = $product;
+                } else {
+                    $runTimeFetch[] = $data;
+                    $product = $this->createRelatedProduct($data);
+                    if (!empty($product)) {
+                        $products[] = $product;
+                        break;
+                    }
+                }
+            }
+
+            if ($counter++ > 40) {
+                break;
+            }
+        }
+        if (self::$recursiveFlag) {
+            self::$recursiveFlag = false;
+            foreach ($runTimeFetch as $data) {
+                $product = $this->createRelatedProduct($data);
                 if (!empty($product)) {
                     $products[] = $product;
                 }
@@ -516,6 +570,36 @@ class CreateObjectService
             $object->setProductRelated($products);
         }
 
+    }
+
+    public function createRelatedProduct($data)
+    {
+        try {
+            if (!empty($data['ProductCode']) && !empty($data['Brand'])) {
+                $url = $this->importService->importUrl . "?UserName=" . $this->userId .
+                    "&Language=" . $this->currentLanguage .
+                    "&Brand=" . $data['Brand'] .
+                    "&ProductCode=" . $data['ProductCode'];
+                $completeData = json_decode($this->importService->fetchIceCatData($url), true);
+                if (array_key_exists('statusCode', $completeData)) {
+
+                } elseif (array_key_exists('COULD_NOT_RESOLVE_HOST', $completeData)) {
+                } elseif (array_key_exists('msg', $completeData) && $completeData['msg'] == 'OK') {
+                    $data = $completeData['data'];
+
+                    $importData = [
+                        'gtin' => $data['GeneralInfo']['IcecatId'],
+                        'original_gtin' => !empty($data['GeneralInfo']['GTIN'][0]) ? $data['GeneralInfo']['GTIN'][0] : $data['GeneralInfo']['IcecatId'],
+                        'language' => $this->currentLanguage,
+                        'data_encoded' => base64_encode(json_encode($completeData))
+                    ];
+                    return $this->createIceCatObject($importData);
+                }
+            }
+        } catch (\Exception $ex) {
+            $this->logger->addLog('create-object', $ex->getMessage(), $ex->getTraceAsString(), 'ERROR');
+        }
+        return null;
     }
 
     public function setMultiMedia($attributeArray, $iceCatobject)
@@ -752,7 +836,7 @@ class CreateObjectService
                             $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
                             $flag = 'RIGHT';
                         else :
-                            $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
+                                    $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
                             $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
                             $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
 
@@ -818,7 +902,7 @@ class CreateObjectService
                                 $newAsset->save();
                                 $videosArr[] = $newAsset;
                             } catch (\Exception $ex) {
-                                $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $e->getMessage();
+                                $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $ex->getMessage();
                             }
                         }
                     }
