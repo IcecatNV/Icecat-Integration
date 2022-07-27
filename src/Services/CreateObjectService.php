@@ -237,6 +237,7 @@ class CreateObjectService
                         'relatedObject' => $iceCatobject
                     ]);
                 } catch (\Throwable $e) {
+                    p_r($e);
                     \Pimcore\Db::get()->rollback();
                     ++$counter;
                     // Updating Processed Record
@@ -396,7 +397,7 @@ class CreateObjectService
             } else {
                 $iceCatobject->setRelatedCategories([]);
             }
-            $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
+            //$this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -420,22 +421,22 @@ class CreateObjectService
             $data['Language'] = strtolower($data['Language']);
 
             $blockData = [
-                [$data['Language']] => [
-                    'awardHighPic' => $this->getImageField($data, 'AwardHighPic'),
-                    'awardLogoPic' => $this->getImageField($data, 'AwardLogoPic'),
-                    'bottomLine' => $data['BottomLine'],
-                    'code' => $data['Code'],
-                    'dateAdded' => $data['DateAdded'],
-                    'group' => $data['Group'],
-                    'reviewId' => $data['ID'],
-                    'logoPic' => $this->getImageField($data, 'LogoPic'),
+                $data['Language'] => [
+                    //'awardHighPic' => $this->getImageField($data, 'AwardHighPic'),
+                    //'awardLogoPic' => $this->getImageField($data, 'AwardLogoPic'),
+                    'bottomLine' => $data['BottomLine'] ?? null,
+                    'code' => $data['Code'] ?? null,
+                    'dateAdded' => $data['DateAdded'] ?? null,
+                    'group' => $data['Group'] ?? null,
+                    'reviewId' => $data['ID'] ?? null,
+                    //'logoPic' => $this->getImageField($data, 'LogoPic'),
                     'Score' => $data['ID'],
-                    'reviewValue' => $data['Value'],
-                    'valueBad' => $data['ValueBad'],
-                    'valueGood' => $data['ValueGood'],
-                    'icecatID' => $data['IcecatID'],
-                    'url' => $data['URL'],
-                    'updated' => $data['Updated'],
+                    'reviewValue' => $data['Value'] ?? null,
+                    'valueBad' => $data['ValueBad'] ?? null,
+                    'valueGood' => $data['ValueGood'] ?? null,
+                    //'icecatID' => $data['IcecatID'],
+                    'url' => $data['URL'] ?? null,
+                    //'updated' => $data['Updated'],
                 ],
             ];
             $reviewData[] = [
@@ -506,13 +507,15 @@ class CreateObjectService
         $products = [];
         foreach ($relatedProductsData as $data) {
             if (!empty($data['IcecatID'])) {
-                $product = Icecat::getByIcecat_Product_Id($data['IcecatID']);
+                $product = Icecat::getByIcecat_Product_Id($data['IcecatID'], true);
+                p_r($product);die;
                 if (!empty($product)) {
                     $products[] = $product;
                 }
             }
         }
         if (!empty($products)) {
+            //p_r($products);die;
             $object->setProductRelated($products);
         }
 
@@ -818,7 +821,7 @@ class CreateObjectService
                                 $newAsset->save();
                                 $videosArr[] = $newAsset;
                             } catch (\Exception $ex) {
-                                $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $e->getMessage();
+                                $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $ex->getMessage();
                             }
                         }
                     }
