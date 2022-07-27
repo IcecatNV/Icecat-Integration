@@ -21,6 +21,10 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     if(response.data !== undefined && response.data.categorization !== undefined) {
                         this.configData.categorization = response.data.categorization;
                     }
+
+                    if(response.data !== undefined && response.data.importRelatedProducts !== undefined) {
+                        this.configData.importRelatedProducts = response.data.importRelatedProducts;
+                    }
                     if(response.data !== undefined && response.data.showSearchPanel !== undefined) {
                         this.configData.showSearchPanel = response.data.showSearchPanel;
                     }
@@ -178,6 +182,47 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     Ext.Ajax.request({
                                         url: Routing.generate('icecat_saveconfig'),
                                         params: {categorization: value},
+                                        method: 'GET',
+                                        success: function (res) {
+                                            response = Ext.decode(res.responseText);
+                                            let ufp = Ext.getCmp('pimcore_iceCat_tabPanel');
+                                            if(response.success === false) {
+                                                Ext.Msg.alert('Error', response.message);
+                                                return false;
+                                            }
+                                            this.configData.categorization = value;
+                                            // if(value) {
+                                            //     ufp.child('#iceCatBundle_searchPanel').tab.show();
+                                            // } else {
+                                            //     ufp.child('#iceCatBundle_searchPanel').tab.hide();
+                                            // }
+                                        }.bind(this),
+                                        failure: function (err) {
+                                        }.bind(this)
+                                    });
+                                } else {
+                                    Ext.getCmp("system_settings_general_categorization").setRawValue(!value);
+                                }
+                            }.bind(this));
+                    }.bind(this)
+                },
+                {
+                    xtype: "checkbox",
+                    required: true,
+                    id: "system_settings_general_import_related_products",
+                    fieldLabel: 'Import related Products',
+                    labelWidth: 100,
+                    triggerAction: 'all',
+                    queryMode: 'local',
+                    name: 'categorization',
+                    value: this.configData.importRelatedProducts ? this.configData.importRelatedProducts : false,
+                    handler:function (component, value) {
+                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "make" : "lose") +" importing related products in the Pimcore.\n Do you want to switch "+ (value == true ? "on" : "off") +" the importing of related products?"),
+                            function (buttonValue) {
+                                if (buttonValue == "yes") {
+                                    Ext.Ajax.request({
+                                        url: Routing.generate('icecat_saveconfig'),
+                                        params: {importRelatedProducts: value},
                                         method: 'GET',
                                         success: function (res) {
                                             response = Ext.decode(res.responseText);

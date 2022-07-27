@@ -153,7 +153,6 @@ class CreateObjectService
 
     public function CreateObject($userId, $jobId)
     {
-
         $this->csvLogFileName = date('Y-m-d H:i:s');
         $this->csvLogMessage = [];
         $counter = 0;
@@ -407,27 +406,21 @@ class CreateObjectService
 
             // Insert Images in 3d Tour fields if it is available
             $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
-            $this->logger->addLog('hihihahaha', 'create3dTourField', 'create3dTourField', 'ERROR');
 
             // Insert Videos in video fields if it is available
             $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
-            $this->logger->addLog('hihihahaha', 'createVideoField', 'createVideoField', 'ERROR');
             $this->setStoryField($attributeArray, $iceCatobject);
             $this->setMultiMedia($attributeArray, $iceCatobject);
             $this->setGalleryIcons($attributeArray, $iceCatobject);
-            $this->logger->addLog('hihihahaha', 'setGalleryIcons', 'setGalleryIcons', 'ERROR');
             $this->setReviewData($attributeArray['Reviews'], $iceCatobject);
-            $this->logger->addLog('hihihahaha', 'setReviewData', 'setReviewData', 'ERROR');
 
             if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
                 $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
             } else {
                 $iceCatobject->setRelatedCategories([]);
             }
-            $this->logger->addLog('hihihahaha', 'setRelatedCategories', 'setRelatedCategories', 'ERROR');
             $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
 
-            $this->logger->addLog('hihihahaha', 'setProductRelated', 'setProductRelated', 'ERROR');
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -531,6 +524,7 @@ class CreateObjectService
      */
     public function setProductRelated($object, $relatedProductsData)
     {
+
         if (empty($relatedProductsData)) {
             return;
         }
@@ -545,11 +539,6 @@ class CreateObjectService
                     $products[] = $product;
                 } else {
                     $runTimeFetch[] = $data;
-                    $product = $this->createRelatedProduct($data);
-                    if (!empty($product)) {
-                        $products[] = $product;
-                        break;
-                    }
                 }
             }
 
@@ -557,7 +546,9 @@ class CreateObjectService
                 break;
             }
         }
-        if (self::$recursiveFlag) {
+
+
+        if (self::$recursiveFlag && (bool) $this->config->getImportRelatedProducts()) {
             self::$recursiveFlag = false;
             foreach ($runTimeFetch as $data) {
                 $product = $this->createRelatedProduct($data);
