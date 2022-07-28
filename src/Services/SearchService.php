@@ -163,7 +163,7 @@ class SearchService extends AbstractService
             }
         }
 
-        $sql = "SELECT * FROM object_localized_Icecat_{$language} o ";
+        $sql = "SELECT * FROM object_localized_Icecat_{$language} o JOIN object_store_Icecat os ON o.o_id = os.oo_id ";
         $sql .= $this->getFilterCondition($request);
         $sql .= "LIMIT {$start}, {$limit}";
 
@@ -193,7 +193,7 @@ class SearchService extends AbstractService
     public function getSearchResultCount($request)
     {
         $language = $request->get('language', 'en');
-        $sql = "SELECT COUNT(*) as c FROM object_localized_Icecat_{$language} o ";
+        $sql = "SELECT COUNT(*) as c FROM object_localized_Icecat_{$language} o JOIN object_store_Icecat os ON o.o_id = os.oo_id ";
         $sql .= $this->getFilterCondition($request);
         $result = \Pimcore\Db::get()->fetchAssoc($sql);
 
@@ -214,6 +214,8 @@ class SearchService extends AbstractService
         $tour3D = $request->get('3dtour', "false") === "true" ? true : false;
         $video = $request->get('video') === "true" ? true : false;
         $reviews = $request->get('reviews') === "true" ? true : false;
+        $productStories = $request->get('productstories') === "true" ? true : false;
+        $multimedia = $request->get('multimedia') === "true" ? true : false;
         $reasonsToBuy = $request->get('reasonstobuy') === "true" ? true : false;
         $relatedProducts = $request->get('relatedproducts') === "true" ? true : false;
 
@@ -276,7 +278,11 @@ class SearchService extends AbstractService
         }
 
         if($reviews) {
-            $sql .= " AND (o.Reviews IS NOT NULL AND TRIM(o.Reviews) != '') ";
+            $sql .= " AND (os.Reviews IS NOT NULL AND TRIM(os.Reviews) != '' AND os.Reviews != 'a:0:{}') ";
+        }
+
+        if($productStories) {
+            $sql .= " AND (os.productStories IS NOT NULL AND TRIM(os.productStories) != '' AND os.productStories != 'a:0:{}') ";
         }
 
         if($reasonsToBuy) {
@@ -285,6 +291,10 @@ class SearchService extends AbstractService
 
         if($relatedProducts) {
             $sql .= " AND (o.productRelated IS NOT NULL AND TRIM(o.productRelated) != '') ";
+        }
+
+        if($multimedia) {
+            $sql .= " AND (o.multiMedia IS NOT NULL AND TRIM(o.multiMedia) != '') ";
         }
 
         return $sql;

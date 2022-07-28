@@ -9,7 +9,7 @@ use Symfony\Component\HttpClient\HttpClient;
 
 class ImportService
 {
-    private $importUrl = 'https://live.icecat.biz/api/';
+    public  $importUrl = 'https://live.icecat.biz/api/';
     private $searchKey;
     private $status = [
         'FETCHING' => 'fetching',

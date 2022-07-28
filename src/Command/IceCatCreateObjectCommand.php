@@ -34,8 +34,10 @@ class IceCatCreateObjectCommand extends AbstractCommand
         $userId = $input->getArgument('userId');
         $jobId = $input->getArgument('jobId');
         $this->importObject->CreateObject($userId, $jobId);
+        die;
         $this->writeInfo('Import Completed');
-
+        // // bin/console icecat:create-object 2 62dd0e4fbaab0
+        // // bin/console icecat:create-object 2 62e185a967dd2
         return 0;
     }
 }

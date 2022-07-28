@@ -234,41 +234,74 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 handler: this.toggleBrandComboValues.bind(this)
                             }]
                         }, {
-                            xtype: 'checkbox',
-                            name: "3dtour",
-                            fieldLabel: t('3D tour'),
-                            tooltip: '3D tour',
-                            width: 150,
-                            labelWidth: 150
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "3dtour",
+                                fieldLabel: t('3D tour'),
+                                tooltip: '3D tour',
+                                width: 150
+                                
+                            }, {
+                                xtype: 'checkbox',
+                                name: "video",
+                                fieldLabel: t('Video'),
+                                tooltip: 'Video',
+                                width: 150
+                                
+                            }]
                         }, {
-                            xtype: 'checkbox',
-                            name: "video",
-                            fieldLabel: t('Video'),
-                            tooltip: 'Video',
-                            width: 150,
-                            labelWidth: 150
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "reviews",
+                                fieldLabel: t('Reviews'),
+                                tooltip: 'Reviews',
+                                width: 150
+                                
+                            }, {
+                                xtype: 'checkbox',
+                                name: "reasonstobuy",
+                                fieldLabel: t('Reasons to buy'),
+                                tooltip: 'Reasons to buy',
+                                width: 150
+                                
+                            }]
                         }, {
-                            xtype: 'checkbox',
-                            name: "reviews",
-                            fieldLabel: t('Reviews'),
-                            tooltip: 'Reviews',
-                            width: 150,
-                            labelWidth: 150
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "relatedproducts",
+                                fieldLabel: t('Related Products'),
+                                tooltip: 'Related Products',
+                                width: 150
+                                
+                            }, {
+                                xtype: 'checkbox',
+                                name: "productstories",
+                                fieldLabel: t('Product Stories'),
+                                tooltip: 'Product Stories',
+                                width: 150,
+                            }]
                         }, {
-                            xtype: 'checkbox',
-                            name: "reasonstobuy",
-                            fieldLabel: t('Reasons to buy'),
-                            tooltip: 'Reasons to buy',
-                            width: 150,
-                            labelWidth: 150
-                        }, {
-                            xtype: 'checkbox',
-                            name: "relatedproducts",
-                            fieldLabel: t('Related products'),
-                            tooltip: 'Related products',
-                            width: 150,
-                            labelWidth: 150
-                        }
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "multimedia",
+                                fieldLabel: t('Multimedia'),
+                                tooltip: 'Multimedia',
+                                width: 150
+                                
+                            }]
+                        } 
                     ]
                 }]
             });

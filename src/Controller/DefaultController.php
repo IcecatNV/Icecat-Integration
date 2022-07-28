@@ -55,6 +55,7 @@ class DefaultController extends FrontendController
                     'data' => [
                         'languages' => $config->getLanguages(),
                         'categorization' => $config->getCategorization(),
+                        'importRelatedProducts' => $config->getImportRelatedProducts(),
                         'showSearchPanel' => $searchService->isSearchEnable(),
                         'searchLanguages' => $searchService->getSearchLanguages(),
                     ]
@@ -115,6 +116,7 @@ class DefaultController extends FrontendController
     {
         $languages = $request->get('languages', null);
         $categorization = $request->get('categorization', null);
+        $importRelatedProducts = $request->get('importRelatedProducts', null);
         try {
             $config = Configuration::load();
             if (!$config) {
@@ -125,6 +127,10 @@ class DefaultController extends FrontendController
             }
             if ($categorization !== null) {
                 $config->setCategorization($categorization === 'true' ? true : false);
+            }
+
+            if ($importRelatedProducts !== null) {
+                $config->setImportRelatedProducts($importRelatedProducts === 'true' ? true : false);
             }
             $config->save();
 

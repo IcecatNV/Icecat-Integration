@@ -25,6 +25,28 @@ class Configuration
     protected $categorization;
 
     /**
+     * @var bool
+     */
+    protected $importRelatedProducts;
+
+    /**
+     * @return bool
+     */
+    public function getImportRelatedProducts()
+    {
+        return $this->importRelatedProducts;
+    }
+
+    /**
+     * @param bool $importRelatedProducts
+     */
+    public function setImportRelatedProducts($importRelatedProducts)
+    {
+        $this->importRelatedProducts = $importRelatedProducts;
+        return $this;
+    }
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -83,7 +105,8 @@ class Configuration
             $data = [
                 'icecat' => [
                     'languages' => ['en'],
-                    'categorization' => false
+                    'categorization' => false,
+                    'importRelatedProducts' => false
                 ]
             ];
         }
@@ -93,6 +116,10 @@ class Configuration
         }
         if ($this->getCategorization() !== null) {
             $data['icecat']['categorization'] = $this->getCategorization();
+        }
+
+        if ($this->getImportRelatedProducts() !== null) {
+            $data['icecat']['importRelatedProducts'] = $this->getImportRelatedProducts();
         }
 
         File::put(self::CONFIG_PATH.'/config.yaml', Yaml::dump($data));
@@ -111,6 +138,7 @@ class Configuration
                 $config = new self();
                 $config->setLanguages($data['icecat']['languages'] ?? []);
                 $config->setCategorization($data['icecat']['categorization'] ?? false);
+                $config->setImportRelatedProducts($data['icecat']['importRelatedProducts'] ?? false);
 
                 return $config;
             } else {
