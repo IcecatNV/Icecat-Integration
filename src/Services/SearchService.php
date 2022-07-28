@@ -269,31 +269,31 @@ class SearchService extends AbstractService
             $sql .= ' ) ';
         }
 
-        if($tour3D) {
+        if ($tour3D) {
             $sql .= " AND (o.Tour__images IS NOT NULL AND TRIM(o.Tour__images) != '') ";
         }
 
-        if($video) {
+        if ($video) {
             $sql .= " AND (o.videos IS NOT NULL AND TRIM(o.videos) != '') ";
         }
 
-        if($reviews) {
+        if ($reviews) {
             $sql .= " AND (os.Reviews IS NOT NULL AND TRIM(os.Reviews) != '' AND os.Reviews != 'a:0:{}') ";
         }
 
-        if($productStories) {
-            $sql .= " AND (os.productStories IS NOT NULL AND TRIM(os.productStories) != '' AND os.productStories != 'a:0:{}') ";
+        if ($productStories) {
+            $sql .= " AND (os.productStory IS NOT NULL AND TRIM(os.productStory) != '' AND os.productStory != 'a:0:{}') ";
         }
 
-        if($reasonsToBuy) {
+        if ($reasonsToBuy) {
             $sql .= " AND (o.Reasons_to_buy IS NOT NULL AND TRIM(o.Reasons_to_buy) != '') ";
         }
 
-        if($relatedProducts) {
+        if ($relatedProducts) {
             $sql .= " AND (o.productRelated IS NOT NULL AND TRIM(o.productRelated) != '') ";
         }
 
-        if($multimedia) {
+        if ($multimedia) {
             $sql .= " AND (o.multiMedia IS NOT NULL AND TRIM(o.multiMedia) != '') ";
         }
 

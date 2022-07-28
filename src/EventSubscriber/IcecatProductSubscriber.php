@@ -42,15 +42,15 @@ class IcecatProductSubscriber implements EventSubscriberInterface
         $requestStack = \Pimcore::getKernel()->getContainer()->get("request_stack");
         $object = $event->getObject();
 
-        if($object instanceof \Pimcore\Model\DataObject\Icecat && $requestStack && $currentRequest = $requestStack->getCurrentRequest()) {
+        if ($object instanceof \Pimcore\Model\DataObject\Icecat && $requestStack && $currentRequest = $requestStack->getCurrentRequest()) {
             $data = \json_decode($currentRequest->get("data"), true);
-            foreach($data["localizedfields"] as $lang => $langData) {
-                foreach($langData as $fields) {
-                    foreach($langData as $name => $value) {
+            foreach ($data["localizedfields"] as $lang => $langData) {
+                foreach ($langData as $fields) {
+                    foreach ($langData as $name => $value) {
                         $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog\Listing();
                         $icecatFieldLog->setCondition("pimcoreId = {$object->getId()} AND lang = '{$lang}' AND name = '{$name}'");
                         $list = $icecatFieldLog->load();
-                        if(count($list) && $record = $list[0]) {
+                        if (count($list) && $record = $list[0]) {
                             $record->save();
                         } else {
                             $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog();
@@ -68,15 +68,15 @@ class IcecatProductSubscriber implements EventSubscriberInterface
                 }
             }
 
-            foreach($data as $name => $value) {
-                if($name == "localizedfields") {
+            foreach ($data as $name => $value) {
+                if ($name == "localizedfields") {
                     continue;
                 }
 
                 $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog\Listing();
                 $icecatFieldLog->setCondition("pimcoreId = {$object->getId()} AND name = '{$name}'");
                 $list = $icecatFieldLog->load();
-                if(count($list) && $record = $list[0]) {
+                if (count($list) && $record = $list[0]) {
                     $record->save();
                 } else {
                     $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog();
@@ -91,6 +91,5 @@ class IcecatProductSubscriber implements EventSubscriberInterface
                 }
             }
         }
-
     }
 }

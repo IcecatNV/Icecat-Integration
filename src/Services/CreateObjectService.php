@@ -95,8 +95,7 @@ class CreateObjectService
         ApplicationLogger $appLogger,
         JobHandlerService $jobHandler,
         ImportService $importService
-    )
-    {
+    ) {
         $this->logger = $logger;
         $this->csvLogger = $csvLogger;
         $this->appLogger = $appLogger;
@@ -420,7 +419,6 @@ class CreateObjectService
                 $iceCatobject->setRelatedCategories([]);
             }
             $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
-
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -436,7 +434,7 @@ class CreateObjectService
         if (empty($reviews)) {
             return;
         }
-        foreach($reviews as $data) {
+        foreach ($reviews as $data) {
             if (empty($data['Language'])) {
                 $data['Language'] = 'en';
             }
@@ -475,7 +473,7 @@ class CreateObjectService
         if (empty($ps)) {
             return;
         }
-        foreach($ps as $data) {
+        foreach ($ps as $data) {
             if (empty($data['Language'])) {
                 $data['Language'] = 'en';
             }
@@ -583,10 +581,8 @@ class CreateObjectService
             }
         }
         if (!empty($products)) {
-            //p_r($products);die;
             $object->setProductRelated(array_unique($products));
         }
-
     }
 
     public function createRelatedProduct($data)
@@ -599,7 +595,6 @@ class CreateObjectService
                     "&ProductCode=" . $data['ProductCode'];
                 $completeData = json_decode($this->importService->fetchIceCatData($url), true);
                 if (array_key_exists('statusCode', $completeData)) {
-
                 } elseif (array_key_exists('COULD_NOT_RESOLVE_HOST', $completeData)) {
                 } elseif (array_key_exists('msg', $completeData) && $completeData['msg'] == 'OK') {
                     $data = $completeData['data'];
@@ -696,8 +691,6 @@ class CreateObjectService
     public function setGalleryIcons($attributeArray, $iceCatobject)
     {
         try {
-            //return true;
-
             $this->logMessage = 'SETTING GALLERY ICONS  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 

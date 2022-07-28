@@ -50,7 +50,8 @@ class DefaultController extends FrontendController
         try {
             $config = Configuration::load();
             if ($config) {
-                return $this->json([
+                return $this->json(
+                    [
                     'success' => true,
                     'data' => [
                         'languages' => $config->getLanguages(),
@@ -59,9 +60,11 @@ class DefaultController extends FrontendController
                         'showSearchPanel' => $searchService->isSearchEnable(),
                         'searchLanguages' => $searchService->getSearchLanguages(),
                     ]
-                ]);
+                    ]
+                );
             } else {
-                return $this->json([
+                return $this->json(
+                    [
                     'success' => true,
                     'data' => [
                         'languages' => ['en'],
@@ -69,13 +72,16 @@ class DefaultController extends FrontendController
                         'showSearchPanel' => $searchService->isSearchEnable(),
                         'searchLanguages' => $searchService->getSearchLanguages(),
                     ]
-                ]);
+                    ]
+                );
             }
         } catch (\Exception $e) {
-            return $this->json([
+            return $this->json(
+                [
                 'success' => false,
                 'message' => $e->getMessage()
-            ]);
+                ]
+            );
         }
     }
 
@@ -92,18 +98,22 @@ class DefaultController extends FrontendController
             $categoryFolder = DataObject\Folder::getByPath(InstallClass::CATEGORY_FOLDER_PATH);
             $categoryFolderId = ($categoryFolder) ? $categoryFolder->getId() : null;
 
-            return $this->json([
+            return $this->json(
+                [
                 'success' => true,
                 'data' => [
                     'productfolderid' => $productFolderId,
                     'categoryfolderid' => $categoryFolderId
                 ]
-            ]);
+                ]
+            );
         } catch (\Exception $e) {
-            return $this->json([
+            return $this->json(
+                [
                 'success' => false,
                 'message' => $e->getMessage()
-            ]);
+                ]
+            );
         }
     }
 
@@ -134,15 +144,19 @@ class DefaultController extends FrontendController
             }
             $config->save();
 
-            return $this->json([
+            return $this->json(
+                [
                 'success' => true,
                 'message' => 'OK'
-            ]);
+                ]
+            );
         } catch (\Exception $e) {
-            return $this->json([
+            return $this->json(
+                [
                 'success' => false,
                 'message' => $e->getMessage()
-            ]);
+                ]
+            );
         }
     }
 
@@ -304,7 +318,7 @@ class DefaultController extends FrontendController
     /**
      * @Route("/icecat/upload-file", methods={"POST"}, name="icecat_upload-file", options={"expose"=true})
      *
-     * @param Request $request
+     * @param Request           $request
      * @param FileUploadService $fileUploadService
      *
      * @return JsonResponse
@@ -340,7 +354,7 @@ class DefaultController extends FrontendController
     /**
      * @Route("/admin/icecat/get-progress-bar-data", methods={"GET"}, name="icecat_get-progress-bar-data", options={"expose"=true})
      *
-     * @param Request $request
+     * @param Request     $request
      * @param DataService $dataService
      *
      * @return JsonResponse
@@ -363,7 +377,7 @@ class DefaultController extends FrontendController
      * @Route("/admin/icecat/grid-get-col-config", name="icecat_grid-get-col-config", options={"expose"=true})
      *
      * @param Request $request
-     * @param bool $isDelete
+     * @param bool    $isDelete
      *
      * @return JsonResponse
      *
@@ -460,7 +474,7 @@ class DefaultController extends FrontendController
                     unset($colConfig['config']);
                     unset($colConfig['isOperator']);
                     unset($colConfig['attributes']);
-                //$className = $column['layout']['classes'][0]['classes'];
+                    //$className = $column['layout']['classes'][0]['classes'];
                     //$classArr = \Pimcore\Model\DataObject\ClassDefinition::getByName($className); //p_r($classArr);
                     //$classId = $classArr->getId();
                     //$this->selectFields[] = "`object_".$classId."`.`o_path` AS `".$column['key']."`";
@@ -495,13 +509,16 @@ class DefaultController extends FrontendController
             }
         }
 
-        usort($availableFields, function ($a, $b) {
-            if ($a['position'] == $b['position']) {
-                return 0;
-            }
+        usort(
+            $availableFields,
+            function ($a, $b) {
+                if ($a['position'] == $b['position']) {
+                    return 0;
+                }
 
-            return ($a['position'] < $b['position']) ? -1 : 1;
-        });
+                return ($a['position'] < $b['position']) ? -1 : 1;
+            }
+        );
 
         if (!empty($gridConfig) && !empty($gridConfig['language'])) {
             $language = $gridConfig['language'];
@@ -666,7 +683,7 @@ class DefaultController extends FrontendController
     /**
      * @Route("/admin/icecat/terminate-proccess", methods={"GET"}, name="icecat_terminate_process", options={"expose"=true})
      *
-     * @param Request $request
+     * @param Request     $request
      * @param DataService $dataService
      *
      * @return JsonResponse

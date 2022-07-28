@@ -35,7 +35,6 @@ final class Version20220717095622 extends AbstractMigration
         $relationDeleteSql = "DELETE FROM object_relations_Icecat  WHERE src_id= :srcId AND dest_id= :destId AND fieldname='videos' AND type='asset'";
         $relationDelStmt = $db->prepare($relationDeleteSql);
         foreach ($records as $index => $row) {
-
             $recId = $row['oo_id'];
             $vData = unserialize($row['Video']);
             $videoId = $vData['data'];
@@ -84,6 +83,6 @@ final class Version20220717095622 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-       $na = 'NA';
+        $na = 'NA';
     }
 }
