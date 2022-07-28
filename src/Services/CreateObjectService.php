@@ -400,6 +400,7 @@ class CreateObjectService
                 $iceCatobject->setBulletPoints($bulletHtml, $this->currentLanguage);
             }
 
+            $this->setProductStoryData($attributeArray['ProductStory'], $iceCatobject);
             $this->createBrandLogo($basicInformation, $iceCatobject);
 
             $this->createReasonsToBuy($attributeArray, $iceCatobject);
@@ -467,6 +468,31 @@ class CreateObjectService
             ];
         }
         $object->setReviews($reviewData);
+    }
+
+    protected function setProductStoryData($ps, $object)
+    {
+        $psData = [];
+        if (empty($ps)) {
+            return;
+        }
+        foreach($ps as $data) {
+            if (empty($data['Language'])) {
+                $data['Language'] = 'en';
+            }
+
+            $data['Language'] = strtolower($data['Language']);
+            $blockData = [
+                $data['Language'] => [
+                    'productStory' => $data['URL']
+                ],
+            ];
+
+            $psData[] = [
+                "localizedfields" => new BlockElement('localizedfields', 'localizedfields', new Localizedfield($blockData))
+            ];
+        }
+        $object->setProductStory($psData);
     }
 
     /**
