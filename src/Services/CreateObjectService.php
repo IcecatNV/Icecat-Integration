@@ -34,6 +34,7 @@ class CreateObjectService
     protected $logMessage;
     private $csvLogFileName;
     protected $appLogger;
+    protected $modifiedFields;
 
     public static $recursiveFlag = true;
 
@@ -283,6 +284,7 @@ class CreateObjectService
 
 
 
+
         $importArray = json_decode(base64_decode($data['data_encoded']), true);
         if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
             /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
@@ -290,12 +292,14 @@ class CreateObjectService
             $iceCatobject->setPublished(true);
             $iceCatobject->setKey($this->currentProductId);
             $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
+            $this->modifiedFields = [];
             $this->createFixFields($importArray['data'], $iceCatobject);
             $this->createGallery($importArray['data'], $iceCatobject);
             $this->createDynamicFields($importArray['data'], $iceCatobject);
         } else {
             /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
             $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
+            $this->modifiedFields = $this->getFieldsModifiedLog($iceCatobject->getId(), $this->currentLanguage);
             $this->createFixFields($importArray['data'], $iceCatobject);
             $this->createGallery($importArray['data'], $iceCatobject);
             $this->createDynamicFields($importArray['data'], $iceCatobject);
@@ -334,61 +338,93 @@ class CreateObjectService
             $this->logMessage = 'STARTING FIX FIELD CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            $basicInformation = $attributeArray['GeneralInfo'];
-            $iceCatobject->setProduct_Name($basicInformation['ProductName'], $this->currentLanguage);
-            $iceCatobject->setProduct_Code($basicInformation['BrandPartCode'], $this->currentLanguage);
-            $iceCatobject->setBrand($basicInformation['Brand'], $this->currentLanguage);
-            $iceCatobject->setCategory($basicInformation['Category']['Name']['Value'], $this->currentLanguage);
-            $iceCatobject->setInfo_Modified_On($basicInformation['ReleaseDate'], $this->currentLanguage);
-            $iceCatobject->setIcecat_Product_Id($basicInformation['IcecatId'], $this->currentLanguage);
-            $iceCatobject->setLong_Summary($basicInformation['SummaryDescription']['LongSummaryDescription'], $this->currentLanguage);
-            $iceCatobject->setShort_Summary($basicInformation['SummaryDescription']['ShortSummaryDescription'], $this->currentLanguage);
-            $iceCatobject->setProductTitle($basicInformation['Title'], $this->currentLanguage);
-            $iceCatobject->setGtin($this->currentGtin, $this->currentLanguage);
-            $iceCatobject->setBrandPartCode($basicInformation['BrandPartCode'], $this->currentLanguage);
-            //$iceCatobject->setReleaseDate($this->getCarbonObjectForDateString($basicInformation['release_date']), $this->currentLanguage);
-            $iceCatobject->setEndOfLifeDate($this->getCarbonObjectForDateString($basicInformation['EndOfLifeDate']), $this->currentLanguage);
 
-            if (isset($basicInformation['Description']['LongDesc'])) {
+
+            $basicInformation = $attributeArray['GeneralInfo'];
+            if (!$this->isFieldUpdatedByUser('Product_Name', $this->currentLanguage)) {
+                $iceCatobject->setProduct_Name($basicInformation['ProductName'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('Product_Code', $this->currentLanguage)) {
+                $iceCatobject->setProduct_Code($basicInformation['BrandPartCode'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('Brand', $this->currentLanguage)) {
+                $iceCatobject->setBrand($basicInformation['Brand'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Category', $this->currentLanguage)) {
+                $iceCatobject->setCategory($basicInformation['Category']['Name']['Value'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('ProductName', $this->currentLanguage)) {
+                $iceCatobject->setInfo_Modified_On($basicInformation['ReleaseDate'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Icecat_Product_Id', $this->currentLanguage)) {
+                $iceCatobject->setIcecat_Product_Id($basicInformation['IcecatId'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Long_Summary', $this->currentLanguage)) {
+                $iceCatobject->setLong_Summary($basicInformation['SummaryDescription']['LongSummaryDescription'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Short_Summary', $this->currentLanguage)) {
+                $iceCatobject->setShort_Summary($basicInformation['SummaryDescription']['ShortSummaryDescription'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('productTitle', $this->currentLanguage)) {
+                $iceCatobject->setProductTitle($basicInformation['Title'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('Gtin', $this->currentLanguage)) {
+                $iceCatobject->setGtin($this->currentGtin, $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('brandPartCode', $this->currentLanguage)) {
+                $iceCatobject->setBrandPartCode($basicInformation['BrandPartCode'], $this->currentLanguage);
+            }
+            //$iceCatobject->setReleaseDate($this->getCarbonObjectForDateString($basicInformation['release_date']), $this->currentLanguage);
+            if (!$this->isFieldUpdatedByUser('endOfLifeDate', $this->currentLanguage)) {
+                $iceCatobject->setEndOfLifeDate($this->getCarbonObjectForDateString($basicInformation['EndOfLifeDate']), $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('longDescription', $this->currentLanguage) && isset($basicInformation['Description']['LongDesc'])) {
                 $iceCatobject->setLongDescription($basicInformation['Description']['LongDesc'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['Description']['MiddleDesc'])) {
+            if (!$this->isFieldUpdatedByUser('middleDescription', $this->currentLanguage) && isset($basicInformation['Description']['MiddleDesc'])) {
                 $iceCatobject->setMiddleDescription($basicInformation['Description']['MiddleDesc'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['Description']['Disclaimer'])) {
+            if (!$this->isFieldUpdatedByUser('Disclaimer', $this->currentLanguage) && isset($basicInformation['Description']['Disclaimer'])) {
                 $iceCatobject->setDisclaimer($basicInformation['Description']['Disclaimer'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['Description']['ManualPDFURL'])) {
+            if (!$this->isFieldUpdatedByUser('manualPDFURL', $this->currentLanguage) && isset($basicInformation['Description']['ManualPDFURL'])) {
                 $iceCatobject->setManualPDFURL($basicInformation['Description']['ManualPDFURL'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['Description']['LeafletPDFURL'])) {
+            if (!$this->isFieldUpdatedByUser('leafletPDFURL', $this->currentLanguage) && isset($basicInformation['Description']['LeafletPDFURL'])) {
                 $iceCatobject->setLeafletPDFURL($basicInformation['Description']['LeafletPDFURL'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['Description']['URL'])) {
+            if (!$this->isFieldUpdatedByUser('url', $this->currentLanguage) && isset($basicInformation['Description']['URL'])) {
                 $iceCatobject->setUrl($basicInformation['Description']['URL'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['Description']['WarrantyInfo'])) {
+            if (!$this->isFieldUpdatedByUser('warrantyInfo', $this->currentLanguage) && isset($basicInformation['Description']['WarrantyInfo'])) {
                 $iceCatobject->setWarrantyInfo($basicInformation['Description']['WarrantyInfo'], $this->currentLanguage);
             }
-            if (isset($basicInformation['Description']['LongProductName'])) {
+            if (!$this->isFieldUpdatedByUser('productLongName', $this->currentLanguage) && isset($basicInformation['Description']['LongProductName'])) {
                 $iceCatobject->setProductLongName($basicInformation['Description']['LongProductName'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['ProductFamily']['Value'])) {
+            if (!$this->isFieldUpdatedByUser('productFamily', $this->currentLanguage) && isset($basicInformation['ProductFamily']['Value'])) {
                 $iceCatobject->setProductFamily($basicInformation['ProductFamily']['Value'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['ProductSeries']['Value'])) {
+            if (!$this->isFieldUpdatedByUser('productSeries', $this->currentLanguage) && isset($basicInformation['ProductSeries']['Value'])) {
                 $iceCatobject->setProductSeries($basicInformation['ProductSeries']['Value'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['BulletPoints']['Values'])) {
+            if (!$this->isFieldUpdatedByUser('productStory', $this->currentLanguage) &&
+                isset($basicInformation['BulletPoints']['Values'])) {
                 $bulletPointsArray = $basicInformation['BulletPoints']['Values'];
                 $bulletHtml = '<ul>';
                 foreach ($bulletPointsArray as $bullet) {
@@ -398,27 +434,52 @@ class CreateObjectService
                 $iceCatobject->setBulletPoints($bulletHtml, $this->currentLanguage);
             }
 
-            $this->setProductStoryData($attributeArray['ProductStory'], $iceCatobject);
-            $this->createBrandLogo($basicInformation, $iceCatobject);
-
-            $this->createReasonsToBuy($attributeArray, $iceCatobject);
-
-            // Insert Images in 3d Tour fields if it is available
-            $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
-
-            // Insert Videos in video fields if it is available
-            $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
-            $this->setStoryField($attributeArray, $iceCatobject);
-            $this->setMultiMedia($attributeArray, $iceCatobject);
-            $this->setGalleryIcons($attributeArray, $iceCatobject);
-            $this->setReviewData($attributeArray['Reviews'], $iceCatobject);
-
-            if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
-                $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
-            } else {
-                $iceCatobject->setRelatedCategories([]);
+            if (!$this->isFieldUpdatedByUser('productStory', $this->currentLanguage)) {
+                $this->setProductStoryData($attributeArray['ProductStory'], $iceCatobject);
             }
-            $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
+
+            if (!$this->isFieldUpdatedByUser('brandLogo')) {
+                $this->createBrandLogo($basicInformation, $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Reasons_to_buy', $this->currentLanguage)) {
+                $this->createReasonsToBuy($attributeArray, $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Tour')) {
+                // Insert Images in 3d Tour fields if it is available
+                $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('videos')) {
+                // Insert Videos in video fields if it is available
+                $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
+            }
+            if (!$this->isFieldUpdatedByUser('storyUrl', $this->currentLanguage)) {
+                $this->setStoryField($attributeArray, $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('multiMedia', $this->currentLanguage)) {
+                $this->setMultiMedia($attributeArray, $iceCatobject);
+            }
+            if (!$this->isFieldUpdatedByUser('galleryIconBlock', $this->currentLanguage)) {
+                $this->setGalleryIcons($attributeArray, $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('reviews', $this->currentLanguage)) {
+                $this->setReviewData($attributeArray['Reviews'], $iceCatobject);
+            }
+            if (!$this->isFieldUpdatedByUser('RelatedCategories')) {
+                if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
+                    $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
+                } else {
+                    $iceCatobject->setRelatedCategories([]);
+                }
+            }
+
+            if (!$this->isFieldUpdatedByUser('productRelated')) {
+                $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
+            }
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -428,68 +489,96 @@ class CreateObjectService
         }
     }
 
+    public function getFieldsModifiedLog($objectId, $lang='en')
+    {
+        $fieldsModifiedLogs = [];
+        $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog\Listing();
+        $icecatFieldLog->setCondition("pimcoreId = {$objectId} AND lang = '{$lang}'");
+        $list = (array) $icecatFieldLog->load();
+        foreach ($list as $item) {
+            $fieldName = $item->getField();
+            $lang = $item->getLang();
+
+            if (!empty($lang)) {
+                $fieldsModifiedLogs[$lang][strtolower($fieldName)] = true;
+            } else {
+                $fieldsModifiedLogs[strtolower($fieldName)] = true;
+            }
+        }
+        return $fieldsModifiedLogs;
+    }
+
+    public function isFieldUpdatedByUser($fieldName, $lang='')
+    {
+        $fieldsModifiedLogs = $this->modifiedFields;
+        $fieldName = strtolower($fieldName);
+        if (!empty($lang) && isset($fieldsModifiedLogs[$lang][$fieldName]) && $fieldsModifiedLogs[$lang][$fieldName]) {
+            return true;
+        } else if (isset($fieldsModifiedLogs[$fieldName]) && $fieldsModifiedLogs[$fieldName]) {
+            return true;
+        }
+        return false;
+    }
+
     protected function setReviewData($reviews, $object)
     {
-        $reviewData = [];
         if (empty($reviews)) {
             return;
         }
+        $blockData = [];
         foreach ($reviews as $data) {
             if (empty($data['Language'])) {
                 $data['Language'] = 'en';
             }
 
             $data['Language'] = strtolower($data['Language']);
-            $blockData = [
-                $data['Language'] => [
-                    //'awardHighPic' => $this->getImageField($data, 'AwardHighPic'),
-                    //'awardLogoPic' => $this->getImageField($data, 'AwardLogoPic'),
-                    'bottomLine' => $data['BottomLine'] ?? null,
-                    'code' => $data['Code'] ?? null,
-                    'dateAdded' => $data['DateAdded'] ?? null,
-                    'group' => $data['Group'] ?? null,
-                    'reviewId' => $data['ID'] ?? null,
-                    //'logoPic' => $this->getImageField($data, 'LogoPic'),
-                    'Score' => $data['ID'],
-                    'reviewValue' => $data['Value'] ?? null,
-                    'valueBad' => $data['ValueBad'] ?? null,
-                    'valueGood' => $data['ValueGood'] ?? null,
-                    //'icecatID' => $data['IcecatID'],
-                    'url' => $data['URL'] ?? null,
-                    //'updated' => $data['Updated'],
-                ],
+            $blockData[$data['Language']] = [];
+            $blockData[$data['Language']][] = [
+                    //'awardHighPic' => new BlockElement('', 'image', $this->getImageField($data, 'AwardHighPic')),
+                    //'awardLogoPic' => new BlockElement('', 'image', $this->getImageField($data, 'AwardLogoPic')),
+                    'bottomLine' => new BlockElement('', 'input', $data['BottomLine'] ?? null),
+                    'code' => new BlockElement('', 'input', $data['Code'] ?? null),
+                    'dateAdded' => new BlockElement('', 'input', $data['DateAdded'] ?? null),
+                    'group' => new BlockElement('', 'input', $data['Group'] ?? null),
+                    'reviewId' => new BlockElement('', 'input', $data['ID'] ?? null),
+                    //'logoPic' => $new BlockElement('', 'image', this->getImageField($data, 'LogoPic')),
+                    'Score' => new BlockElement('', 'input', $data['ID']),
+                    'reviewValue' => new BlockElement('', 'textarea', $data['Value'] ?? null),
+                    'valueBad' => new BlockElement('', 'textarea', $data['ValueBad'] ?? null),
+                    'valueGood' => new BlockElement('', 'textarea', $data['ValueGood'] ?? null),
+//                    'icecatID' => new BlockElement('', 'input', $data['IcecatID']?? null),
+                    'url' => new BlockElement('', 'input', $data['URL'] ?? null),
+//                    'updated' => new BlockElement('', 'input', $data['Updated'] ?? null),
                 ];
-
-            $reviewData[] = [
-                "localizedfields" => new BlockElement('localizedfields', 'localizedfields', new Localizedfield($blockData))
-            ];
         }
-        $object->setReviews($reviewData);
+
+        foreach ($blockData as $language => $data) {
+
+            $object->setReviews($data, $language);
+        }
     }
 
     protected function setProductStoryData($ps, $object)
     {
-        $psData = [];
         if (empty($ps)) {
             return;
         }
+        $blockData = [];
         foreach ($ps as $data) {
             if (empty($data['Language'])) {
                 $data['Language'] = 'en';
             }
 
             $data['Language'] = strtolower($data['Language']);
-            $blockData = [
-                $data['Language'] => [
-                    'productStory' => $data['URL']
-                ],
-            ];
-
-            $psData[] = [
-                "localizedfields" => new BlockElement('localizedfields', 'localizedfields', new Localizedfield($blockData))
+            $blockData[$data['Language']] = [];
+            $blockData[$data['Language']][] = [
+                'productStory' => $data['URL']
             ];
         }
-        $object->setProductStory($psData);
+        foreach ($blockData as $language => $data) {
+
+            $object->setProductStory($data, $language);
+        }
     }
 
     /**
