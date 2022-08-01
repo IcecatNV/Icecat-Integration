@@ -495,7 +495,8 @@ class CreateObjectService
     {
         $fieldsModifiedLogs = [];
         $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog\Listing();
-        $icecatFieldLog->setCondition("pimcoreId = {$objectId} AND lang = '{$lang}'");
+        //$icecatFieldLog->setCondition("pimcoreId = {$objectId} AND lang = '{$lang}'");
+        $icecatFieldLog->setCondition("pimcoreId = {$objectId}");
         $list = (array) $icecatFieldLog->load();
         foreach ($list as $item) {
             $fieldName = $item->getName();
