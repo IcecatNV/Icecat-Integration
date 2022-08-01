@@ -339,7 +339,6 @@ class CreateObjectService
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
 
-
             $basicInformation = $attributeArray['GeneralInfo'];
             if (!$this->isFieldUpdatedByUser('Product_Name', $this->currentLanguage)) {
                 $iceCatobject->setProduct_Name($basicInformation['ProductName'], $this->currentLanguage);
@@ -423,7 +422,7 @@ class CreateObjectService
                 $iceCatobject->setProductSeries($basicInformation['ProductSeries']['Value'], $this->currentLanguage);
             }
 
-            if (!$this->isFieldUpdatedByUser('productStory', $this->currentLanguage) &&
+            if (!$this->isFieldUpdatedByUser('BulletPoints', $this->currentLanguage) &&
                 isset($basicInformation['BulletPoints']['Values'])) {
                 $bulletPointsArray = $basicInformation['BulletPoints']['Values'];
                 $bulletHtml = '<ul>';
@@ -466,9 +465,11 @@ class CreateObjectService
                 $this->setGalleryIcons($attributeArray, $iceCatobject);
             }
 
+
             if (!$this->isFieldUpdatedByUser('reviews', $this->currentLanguage)) {
                 $this->setReviewData($attributeArray['Reviews'], $iceCatobject);
             }
+
             if (!$this->isFieldUpdatedByUser('RelatedCategories')) {
                 if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
                     $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
@@ -476,10 +477,11 @@ class CreateObjectService
                     $iceCatobject->setRelatedCategories([]);
                 }
             }
-
             if (!$this->isFieldUpdatedByUser('productRelated')) {
                 $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
             }
+
+
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -496,7 +498,7 @@ class CreateObjectService
         $icecatFieldLog->setCondition("pimcoreId = {$objectId} AND lang = '{$lang}'");
         $list = (array) $icecatFieldLog->load();
         foreach ($list as $item) {
-            $fieldName = $item->getField();
+            $fieldName = $item->getName();
             $lang = $item->getLang();
 
             if (!empty($lang)) {
@@ -534,21 +536,21 @@ class CreateObjectService
             $data['Language'] = strtolower($data['Language']);
             $blockData[$data['Language']] = [];
             $blockData[$data['Language']][] = [
-                    //'awardHighPic' => new BlockElement('', 'image', $this->getImageField($data, 'AwardHighPic')),
-                    //'awardLogoPic' => new BlockElement('', 'image', $this->getImageField($data, 'AwardLogoPic')),
-                    'bottomLine' => new BlockElement('', 'input', $data['BottomLine'] ?? null),
-                    'code' => new BlockElement('', 'input', $data['Code'] ?? null),
-                    'dateAdded' => new BlockElement('', 'input', $data['DateAdded'] ?? null),
-                    'group' => new BlockElement('', 'input', $data['Group'] ?? null),
-                    'reviewId' => new BlockElement('', 'input', $data['ID'] ?? null),
-                    //'logoPic' => $new BlockElement('', 'image', this->getImageField($data, 'LogoPic')),
+                    //'awardHighPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardHighPic')),
+                    //'awardLogoPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardLogoPic')),
+                    'bottomLine' => new BlockElement('bottomLine', 'input', $data['BottomLine'] ?? null),
+                    'code' => new BlockElement('code', 'input', $data['Code'] ?? null),
+                    'dateAdded' => new BlockElement('dateAdded', 'input', $data['DateAdded'] ?? null),
+                    'group' => new BlockElement('group', 'input', $data['Group'] ?? null),
+                    'reviewId' => new BlockElement('reviewId', 'input', $data['ID'] ?? null),
+                    //'logoPic' => $new BlockElement('logoPic', 'image', this->getImageField($data, 'LogoPic')),
                     'Score' => new BlockElement('', 'input', $data['ID']),
-                    'reviewValue' => new BlockElement('', 'textarea', $data['Value'] ?? null),
-                    'valueBad' => new BlockElement('', 'textarea', $data['ValueBad'] ?? null),
-                    'valueGood' => new BlockElement('', 'textarea', $data['ValueGood'] ?? null),
-//                    'icecatID' => new BlockElement('', 'input', $data['IcecatID']?? null),
-                    'url' => new BlockElement('', 'input', $data['URL'] ?? null),
-//                    'updated' => new BlockElement('', 'input', $data['Updated'] ?? null),
+                    'reviewValue' => new BlockElement('reviewValue', 'textarea', $data['Value'] ?? null),
+                    'valueBad' => new BlockElement('valueBad', 'textarea', $data['ValueBad'] ?? null),
+                    'valueGood' => new BlockElement('valueGood', 'textarea', $data['ValueGood'] ?? null),
+//                    'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID']?? null),
+                    'url' => new BlockElement('url', 'input', $data['URL'] ?? null),
+//                    'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
                 ];
         }
 
@@ -572,7 +574,7 @@ class CreateObjectService
             $data['Language'] = strtolower($data['Language']);
             $blockData[$data['Language']] = [];
             $blockData[$data['Language']][] = [
-                'productStory' => $data['URL']
+                'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null)
             ];
         }
         foreach ($blockData as $language => $data) {

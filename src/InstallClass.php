@@ -313,7 +313,7 @@ class InstallClass extends SettingsStoreAwareInstaller
     public function createClassDefinition()
     {
         $classname = 'Icecat';
-        $filepath = __DIR__ . '/Install/class_Icecat_export_v1.json';
+        $filepath = __DIR__ . '/Install/class_Icecat_export_v3.json';
         $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
         if (!$class) {
             $class = new \Pimcore\Model\DataObject\ClassDefinition();
@@ -330,6 +330,17 @@ class InstallClass extends SettingsStoreAwareInstaller
 
         $classname = 'IcecatCategory';
         $filepath = __DIR__ . '/Install/class_IcecatCategory_export_v1.json';
+        $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
+        if (!$class) {
+            $class = new \Pimcore\Model\DataObject\ClassDefinition();
+            $class->setName($classname);
+            $class->setGroup('Icecat');
+            $json = file_get_contents($filepath);
+            \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
+        }
+
+        $classname = 'IcecatFieldsLog';
+        $filepath = __DIR__ . '/Install/class_IcecatFieldsLog_export_v3.json';
         $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
         if (!$class) {
             $class = new \Pimcore\Model\DataObject\ClassDefinition();
