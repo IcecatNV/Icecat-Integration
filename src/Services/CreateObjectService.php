@@ -1177,6 +1177,10 @@ class CreateObjectService
                             if (empty($keyOb)) {
                                 $this->createStoreKey($features);
                             } else {
+                                $title = $features['Feature']['Name']['Value'];
+                                if ($this->isFieldUpdatedByUser($title, $this->currentLanguage)) {
+                                    continue;
+                                }
                                 $this->updateStoreKey($features);
                             }
                             // new \Pimcore\Model\DataObject\Data\QuantityValue(13, 1);
