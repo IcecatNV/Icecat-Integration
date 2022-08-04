@@ -151,7 +151,7 @@ class CreateObjectService
         }
     }
 
-    public function CreateObject($userId, $jobId)
+    public function createObject($userId, $jobId)
     {
         $this->csvLogFileName = date('Y-m-d H:i:s');
         $this->csvLogMessage = [];
@@ -480,8 +480,6 @@ class CreateObjectService
             if (!$this->isFieldUpdatedByUser('productRelated')) {
                 $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
             }
-
-
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
 
@@ -491,7 +489,7 @@ class CreateObjectService
         }
     }
 
-    public function getFieldsModifiedLog($objectId, $lang='en')
+    public function getFieldsModifiedLog($objectId, $lang = 'en')
     {
         $fieldsModifiedLogs = [];
         $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog\Listing();
@@ -511,13 +509,13 @@ class CreateObjectService
         return $fieldsModifiedLogs;
     }
 
-    public function isFieldUpdatedByUser($fieldName, $lang='')
+    public function isFieldUpdatedByUser($fieldName, $lang = '')
     {
         $fieldsModifiedLogs = $this->modifiedFields;
         $fieldName = strtolower($fieldName);
         if (!empty($lang) && isset($fieldsModifiedLogs[$lang][$fieldName]) && $fieldsModifiedLogs[$lang][$fieldName]) {
             return true;
-        } else if (isset($fieldsModifiedLogs[$fieldName]) && $fieldsModifiedLogs[$fieldName]) {
+        } elseif (isset($fieldsModifiedLogs[$fieldName]) && $fieldsModifiedLogs[$fieldName]) {
             return true;
         }
         return false;
@@ -556,7 +554,6 @@ class CreateObjectService
         }
 
         foreach ($blockData as $language => $data) {
-
             $object->setReviews($data, $language);
         }
     }
@@ -579,7 +576,6 @@ class CreateObjectService
             ];
         }
         foreach ($blockData as $language => $data) {
-
             $object->setProductStory($data, $language);
         }
     }

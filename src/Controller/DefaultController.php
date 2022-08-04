@@ -168,7 +168,7 @@ class DefaultController extends FrontendController
     public function createAction(CreateObjectService $createOb)
     {
         try {
-            $response = $createOb->CreateObject(2, '6136f27516bd3');
+            $response = $createOb->createObject(2, '6136f27516bd3');
         } catch (\Exception $e) {
         }
 

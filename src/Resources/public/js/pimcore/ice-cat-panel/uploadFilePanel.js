@@ -217,7 +217,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     name: 'categorization',
                     value: this.configData.importRelatedProducts ? this.configData.importRelatedProducts : false,
                     handler:function (component, value) {
-                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "start" : "end") +" importing related products in the Pimcore.\n Do you wish to proceed?"),
+                        Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "enable" : "disable") +" importing related products in the Pimcore in case they do not already exist in the Pimcore. Do you wish to enable it?"),
                             function (buttonValue) {
                                 if (buttonValue == "yes") {
                                     Ext.Ajax.request({

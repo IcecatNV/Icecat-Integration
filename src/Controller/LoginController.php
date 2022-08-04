@@ -14,12 +14,12 @@ class LoginController extends FrontendController
     /**
      * @Route("/admin/icecat/login", name="icecat_login", options={"expose"=true})
      */
-    public function LoginAction(Request $request, LoginService $loginObject, DataService $dataService)
+    public function loginAction(Request $request, LoginService $loginObject, DataService $dataService)
     {
         $username = $request->get('userName');
         $password = $request->get('password');
         $dataService->emptyIceCatSession();
-        $response = $loginObject->Authapi($username, $password);
+        $response = $loginObject->authApi($username, $password);
         $response['otherInfo'] = $dataService->getOtherInfo(true);
 
         return new JsonResponse($response);
