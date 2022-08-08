@@ -570,11 +570,23 @@ class CreateObjectService
             }
 
             $data['Language'] = strtolower($data['Language']);
+
+
+            $html = "";
+            if($data['URL'] != "") {
+                $pathinfo = pathinfo($data['URL']);
+                $html = file_get_contents($data['URL']);
+                $html = preg_replace("/src=\"/", 'src="'.$pathinfo['dirname'].'/', $html);
+                $html = preg_replace("/href=\"/", 'href="'.$pathinfo['dirname'].'/', $html);
+            }
+
             $blockData[$data['Language']] = [];
             $blockData[$data['Language']][] = [
-                'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null)
+                'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null),
+                'preview' => new BlockElement('preview', 'wysiwyg', $html ?? null)
             ];
         }
+
         foreach ($blockData as $language => $data) {
             $object->setProductStory($data, $language);
         }
