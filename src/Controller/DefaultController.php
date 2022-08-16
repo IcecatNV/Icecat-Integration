@@ -25,6 +25,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends FrontendController
 {
+    const ICECAT_CLASS_IDS = [
+        'Icecat',
+        'icecat_category',
+        'icecat_fields_log'
+    ];
+
+    const FIELDS_TYPE_ALLOWED_FOR_CRONTAB_CONFIG = [
+        'input',
+        'textarea',
+        'select'
+    ];
     /**
      * @var array
      */
@@ -59,6 +70,11 @@ class DefaultController extends FrontendController
                         'importRelatedProducts' => $config->getImportRelatedProducts(),
                         'showSearchPanel' => $searchService->isSearchEnable(),
                         'searchLanguages' => $searchService->getSearchLanguages(),
+                        'productClass' => $config->getProductClass(),
+                        'gtinField' => $config->getGtinField(),
+                        'brandNameField' => $config->getBrandNameField(),
+                        'productNameField' => $config->getProductNameField(),
+                        'cronExpression' => $config->getCronExpression(),
                     ]
                     ]
                 );
@@ -71,10 +87,17 @@ class DefaultController extends FrontendController
                         'categorization' => false,
                         'showSearchPanel' => $searchService->isSearchEnable(),
                         'searchLanguages' => $searchService->getSearchLanguages(),
+                        'productClass' => -1,
+                        'gtinField' => -1,
+                        'brandNameField' => -1,
+                        'productNameField' => -1,
+                        'cronExpression' => '',
                     ]
                     ]
                 );
             }
+
+
         } catch (\Exception $e) {
             return $this->json(
                 [
@@ -127,6 +150,11 @@ class DefaultController extends FrontendController
         $languages = $request->get('languages', null);
         $categorization = $request->get('categorization', null);
         $importRelatedProducts = $request->get('importRelatedProducts', null);
+        $productClass = $request->get('productClass', null);
+        $gtinField = $request->get('gtinField', null);
+        $brandNameField = $request->get('brandNameField', null);
+        $productNameField = $request->get('productNameField', null);
+        $cronExpression = $request->get('cronExpression', null);
         try {
             $config = Configuration::load();
             if (!$config) {
@@ -142,6 +170,23 @@ class DefaultController extends FrontendController
             if ($importRelatedProducts !== null) {
                 $config->setImportRelatedProducts($importRelatedProducts === 'true' ? true : false);
             }
+            if ($productClass !== null) {
+                $config->setProductClass($productClass === '-1' ? -1 : $productClass);
+            }
+            if ($gtinField !== null) {
+                $config->setGtinField($gtinField === '-1' ? -1 : $gtinField);
+            }
+            if ($brandNameField !== null) {
+                $config->setBrandNameField($brandNameField === '-1' ? -1 : $brandNameField);
+            }
+            if ($productNameField !== null) {
+                $config->setProductNameField($productNameField === '-1' ? -1 : $productNameField);
+            }
+
+            if ($cronExpression !== null) {
+                $config->setCronExpression($cronExpression === '-1' ? '' : $cronExpression);
+            }
+
             $config->save();
 
             return $this->json(
@@ -614,6 +659,76 @@ class DefaultController extends FrontendController
         array_unshift($finalResult, $defaultLanguageSetter);
 
         return new \Symfony\Component\HttpFoundation\JsonResponse(['data' => $finalResult]);
+    }
+
+    /**
+     *
+     * @Route("/admin/icecat/crontab/get_classes", name="icecat_get_classes", options={"expose"=true})
+     *
+     * @return JsonResponse
+     *
+     * @throws \Exception
+     */
+    public function getClasses(Request $request)
+    {
+        $classList = new DataObject\ClassDefinition\Listing();
+        $classesDef = $classList->load();
+        $classesName = [];
+        $i=1;
+        $classesName[0]['display_value'] = '(Empty)';
+        $classesName[0]['key'] = -1;
+        foreach ($classesDef as $index => $class) {
+            if (in_array($class->getId(), self::ICECAT_CLASS_IDS)) {
+                continue;
+            }
+            $classesName[$i]['display_value'] = $class->getName();
+            $classesName[$i++]['key'] = $class->getId();
+        }
+        return new \Symfony\Component\HttpFoundation\JsonResponse(['data' => $classesName]);
+    }
+
+    /**
+     *
+     * @Route("/admin/icecat/crontab/get_class_fields", name="icecat_get_class_fields", options={"expose"=true})
+     *
+     * @return JsonResponse
+     *
+     * @throws \Exception
+     */
+    public function getClassFields(Request $request)
+    {
+       $classId =  $request->get('classId', null);
+
+        $cDef = DataObject\ClassDefinition::getById($classId);
+        $data = [];
+        $data[0]['display_value'] = '(Empty)';
+        $data[0]['key'] = -1;
+        if (empty($cDef)) {
+            $fieldsDef = [];
+        } else {
+            $fieldsDef = $cDef->getFieldDefinitions();
+        }
+        $index = 1;
+        foreach ($fieldsDef as $field) {
+            $key = $displayName = '';
+            if ($field->getFieldtype() == 'localizedfields') {
+                $lFieldsDef =  $field->getChildren();
+                /** @var DataObject\ClassDefinition\Data $lField */
+                foreach ($lFieldsDef as $lField) {
+                    $key = $field->getFieldtype() . '_' . $lField->getFieldtype() . '_' . $lField->getName();
+                    $displayName = $lField->getName();
+                }
+            } else {
+                $key = $field->getFieldtype() . '_' . $field->getName();
+                $displayName = $field->getName();
+            }
+
+            $data[$index]['display_value'] = $displayName;
+            $data[$index++]['key'] = $key;
+
+
+        }
+        return new \Symfony\Component\HttpFoundation\JsonResponse(['data' => $data]);
     }
 
     /**

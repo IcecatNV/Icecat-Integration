@@ -8,6 +8,7 @@ pimcore.plugin.iceCatHelper = Class.create({
         this.unfetchedProductGrid = new pimcore.plugin.unfetchedProductGrid();
         this.applicationLogGridPanel = new pimcore.plugin.iceCatApplicationLogGridPanel();
         this.searchPanel = new pimcore.plugin.iceCatSearchPanel(this.uploadPanel);
+        this.cronPanel = new pimcore.plugin.iceCatCronPanelPanel();
     },
     addFileTabIndex: 1,
     intervalObj: '',
@@ -28,6 +29,10 @@ pimcore.plugin.iceCatHelper = Class.create({
             ufp.add(this.applicationLogGridPanel.getTabPanel());
         }
 
+        if (!ufp.child('#iceCatBundle_cronPanel')) {
+            ufp.add(this.cronPanel.getPanel());
+        }
+
         if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
         && this.uploadPanel.getConfigData().showSearchPanel) {
             if (!ufp.child('#iceCatBundle_searchPanel')) {
@@ -40,7 +45,8 @@ pimcore.plugin.iceCatHelper = Class.create({
         ufp.child('#iceCatBundle_importGridPanel').tab.show();
         ufp.child('#icecatApplicationLoggerPanel').tab.show();
         ufp.child('#iceCatBundle_unfetchedProductGrid').tab.show();
-        
+        ufp.child('#iceCatBundle_cronPanel').tab.show();
+
         if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
         && this.uploadPanel.getConfigData().showSearchPanel) {
             ufp.child('#iceCatBundle_searchPanel').tab.show();
@@ -104,6 +110,9 @@ pimcore.plugin.iceCatHelper = Class.create({
         
         if (ufp.child('#iceCatBundle_searchPanel')) {
             ufp.child('#iceCatBundle_searchPanel').tab.hide();
+        }
+        if (ufp.child('#iceCatBundle_cronPanel')) {
+            ufp.child('#iceCatBundle_cronPanel').tab.hide();
         }
 
     },

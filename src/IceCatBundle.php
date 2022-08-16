@@ -24,6 +24,7 @@ class IceCatBundle extends AbstractPimcoreBundle
             '/bundles/icecat/js/pimcore/ice-cat-screen/tabPanels.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/loginPanel.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/uploadFilePanel.js',
+            '/bundles/icecat/js/pimcore/ice-cat-panel/cronPanel.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/searchPanel.js',
             '/bundles/icecat/js/pimcore/ice-cat-panel/importGridPanel.js',
             // '/bundles/icecat/js/pimcore/ice-cat-panel/logGridPanel.js',
