@@ -242,6 +242,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 name: "3dtour",
                                 fieldLabel: t('3D tour'),
                                 tooltip: '3D tour',
+                                labelWidth: 110,
                                 width: 150
                                 
                             }, {
@@ -249,6 +250,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 name: "video",
                                 fieldLabel: t('Video'),
                                 tooltip: 'Video',
+                                labelWidth: 110,
                                 width: 150
                                 
                             }]
@@ -261,6 +263,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 name: "reviews",
                                 fieldLabel: t('Reviews'),
                                 tooltip: 'Reviews',
+                                labelWidth: 110,
                                 width: 150
                                 
                             }, {
@@ -268,6 +271,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 name: "reasonstobuy",
                                 fieldLabel: t('Reasons to buy'),
                                 tooltip: 'Reasons to buy',
+                                labelWidth: 110,
                                 width: 150
                                 
                             }]
@@ -280,6 +284,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 name: "relatedproducts",
                                 fieldLabel: t('Related Products'),
                                 tooltip: 'Related Products',
+                                labelWidth: 110,
                                 width: 150
                                 
                             }, {
@@ -287,6 +292,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 name: "productstories",
                                 fieldLabel: t('Product Stories'),
                                 tooltip: 'Product Stories',
+                                labelWidth: 110,
                                 width: 150,
                             }]
                         }, {
@@ -298,6 +304,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 name: "multimedia",
                                 fieldLabel: t('Multimedia'),
                                 tooltip: 'Multimedia',
+                                labelWidth: 110,
                                 width: 150
                                 
                             }]

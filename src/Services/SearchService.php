@@ -163,7 +163,7 @@ class SearchService extends AbstractService
             }
         }
 
-        $sql = "SELECT * FROM object_localized_Icecat_{$language} o JOIN object_store_Icecat os ON o.o_id = os.oo_id ";
+        $sql = "SELECT * FROM object_localized_Icecat_{$language} o JOIN object_localized_data_Icecat os ON o.o_id = os.ooo_id AND os.language = '{$language}' ";
         $sql .= $this->getFilterCondition($request);
         $sql .= "LIMIT {$start}, {$limit}";
 
@@ -193,7 +193,7 @@ class SearchService extends AbstractService
     public function getSearchResultCount($request)
     {
         $language = $request->get('language', 'en');
-        $sql = "SELECT COUNT(*) as c FROM object_localized_Icecat_{$language} o JOIN object_store_Icecat os ON o.o_id = os.oo_id ";
+        $sql = "SELECT COUNT(*) as c FROM object_localized_Icecat_{$language} o JOIN object_localized_data_Icecat os ON o.o_id = os.ooo_id AND os.language = '{$language}' ";
         $sql .= $this->getFilterCondition($request);
         $result = \Pimcore\Db::get()->fetchAssoc($sql);
 

@@ -48,18 +48,17 @@ class IcecatProductSubscriber implements EventSubscriberInterface
         if ($object instanceof \Pimcore\Model\DataObject\Icecat && $requestStack && $currentRequest = $requestStack->getCurrentRequest()) {
             $data = \json_decode($currentRequest->get("data"), true);
 
-            if(isset($data["localizedfields"])) {
+            if (isset($data["localizedfields"])) {
                 $layoutChilds = ClassDefinition::getByName("Icecat")->getFieldDefinition("localizedfields")->getChildren();
                 $localizedNameTitlePairs = [];
-                foreach($layoutChilds as $field) {
-                    if($field instanceof Fieldset) {
-                        foreach($field->getChildren() as $c) {
+                foreach ($layoutChilds as $field) {
+                    if ($field instanceof Fieldset) {
+                        foreach ($field->getChildren() as $c) {
                             $localizedNameTitlePairs[$c->getName()] = $c->getTitle();
                         }
                     } else {
                         $localizedNameTitlePairs[$field->getName()] = $field->getTitle();
                     }
-
                 }
 
                 // added hardcoded as it take nested loops to get this data
@@ -74,14 +73,14 @@ class IcecatProductSubscriber implements EventSubscriberInterface
                 }
             }
 
-            if(isset($data["Features"])) {
-                foreach($data["Features"] as $featuresData) {
-                    foreach($featuresData as $lang => $group) {
-                        if(!is_array($group) || count($group) === 0) {
+            if (isset($data["Features"])) {
+                foreach ($data["Features"] as $featuresData) {
+                    foreach ($featuresData as $lang => $group) {
+                        if (!is_array($group) || count($group) === 0) {
                             continue;
                         }
-                        foreach($group as $keys) {
-                            foreach($keys as $k => $v) {
+                        foreach ($group as $keys) {
+                            foreach ($keys as $k => $v) {
                                 $sql = "SELECT title from classificationstore_keys WHERE id = {$k}";
                                 $title = Db::get()->fetchOne($sql);
                                 $this->saveLog($object, $title, $title, $lang);
@@ -105,7 +104,7 @@ class IcecatProductSubscriber implements EventSubscriberInterface
     public function saveLog($object, $name, $title, $lang = null)
     {
         $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog\Listing();
-        if($lang) {
+        if ($lang) {
             $icecatFieldLog->setCondition("pimcoreId = {$object->getId()} AND lang = '{$lang}' AND name = '{$name}'");
         } else {
             $icecatFieldLog->setCondition("pimcoreId = {$object->getId()} AND name = '{$name}'");
@@ -123,11 +122,10 @@ class IcecatProductSubscriber implements EventSubscriberInterface
             $icecatFieldLog->setProductCode($object->getProduct_Code());
             $icecatFieldLog->setName($name);
             $icecatFieldLog->setField($title);
-            $icecatFieldLog->setParent(Service::createFolderByPath('/Icecat Fields Log'));
+            $icecatFieldLog->setParent(Service::createFolderByPath('/Icecat overriden fields log'));
             $icecatFieldLog->setPublished(true);
             $icecatFieldLog->setKey("{$object->getGtin()}-{$name}");
             $icecatFieldLog->save();
         }
     }
-
 }

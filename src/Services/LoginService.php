@@ -19,7 +19,7 @@ class LoginService extends InfoService
         parent::__construct($requestStack);
     }
 
-    public function Authapi($username, $password)
+    public function authApi($username, $password)
     {
         try {
             if (!empty($username) && !empty($password)) {
