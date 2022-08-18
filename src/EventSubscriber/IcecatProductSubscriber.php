@@ -131,7 +131,7 @@ class IcecatProductSubscriber implements EventSubscriberInterface
             $icecatFieldLog->setProductCode($object->getProduct_Code());
             $icecatFieldLog->setName($name);
             $icecatFieldLog->setField($title);
-            $icecatFieldLog->setParent(Service::createFolderByPath('/Icecat overriden fields log'));
+            $icecatFieldLog->setParent(Service::createFolderByPath('/Icecat overwritten fields log'));
             $icecatFieldLog->setPublished(true);
             $icecatFieldLog->setKey($key);
             $icecatFieldLog->save();

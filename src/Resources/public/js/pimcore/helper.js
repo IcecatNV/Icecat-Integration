@@ -8,7 +8,7 @@ pimcore.plugin.iceCatHelper = Class.create({
         this.unfetchedProductGrid = new pimcore.plugin.unfetchedProductGrid();
         this.applicationLogGridPanel = new pimcore.plugin.iceCatApplicationLogGridPanel();
         this.searchPanel = new pimcore.plugin.iceCatSearchPanel(this.uploadPanel);
-        this.cronPanel = new pimcore.plugin.iceCatCronPanelPanel();
+        //this.cronPanel = new pimcore.plugin.iceCatCronPanelPanel();
     },
     addFileTabIndex: 1,
     intervalObj: '',
@@ -29,9 +29,9 @@ pimcore.plugin.iceCatHelper = Class.create({
             ufp.add(this.applicationLogGridPanel.getTabPanel());
         }
 
-        if (!ufp.child('#iceCatBundle_cronPanel')) {
-            ufp.add(this.cronPanel.getPanel());
-        }
+        // if (!ufp.child('#iceCatBundle_cronPanel')) {
+        //     ufp.add(this.cronPanel.getPanel());
+        // }
 
         if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
         && this.uploadPanel.getConfigData().showSearchPanel) {
