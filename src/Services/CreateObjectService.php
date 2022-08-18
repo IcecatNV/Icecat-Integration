@@ -541,24 +541,22 @@ class CreateObjectService
             $blockData[$data['Language']][] = [
                     //'awardHighPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardHighPic')),
                     //'awardLogoPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardLogoPic')),
-                    'awardHighPic' => null,
-                    'awardLogoPic' => null,
+                    'awardHighPic' => new BlockElement('awardHighPic', 'image', null),
+                    'awardLogoPic' => new BlockElement('awardLogoPic', 'image', null),
                     'bottomLine' => new BlockElement('bottomLine', 'input', $data['BottomLine'] ?? null),
                     'code' => new BlockElement('code', 'input', $data['Code'] ?? null),
                     'dateAdded' => new BlockElement('dateAdded', 'input', $data['DateAdded'] ?? null),
                     'group' => new BlockElement('group', 'input', $data['Group'] ?? null),
                     'reviewId' => new BlockElement('reviewId', 'input', $data['ID'] ?? null),
                     //'logoPic' => $new BlockElement('logoPic', 'image', this->getImageField($data, 'LogoPic')),
-                    'logoPic' => null,
-                    'Score' => new BlockElement('', 'input', $data['ID']),
+                    'logoPic' =>new BlockElement('logoPic', 'image', null),
+                    'score' => new BlockElement('', 'input', $data['ID']),
                     'reviewValue' => new BlockElement('reviewValue', 'textarea', $data['Value'] ?? null),
                     'valueBad' => new BlockElement('valueBad', 'textarea', $data['ValueBad'] ?? null),
                     'valueGood' => new BlockElement('valueGood', 'textarea', $data['ValueGood'] ?? null),
-                    //'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID']?? null),
-                    'icecatID' => null,
+                    'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID']?? null),
                     'url' => new BlockElement('url', 'input', $data['URL'] ?? null),
-                    //'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
-                    'updated' => null
+                    'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
                 ];
         }
 
