@@ -294,14 +294,18 @@ class CreateObjectService
             $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
             $this->modifiedFields = [];
             $this->createFixFields($importArray['data'], $iceCatobject);
-            $this->createGallery($importArray['data'], $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('gallery')) {
+                $this->createGallery($importArray['data'], $iceCatobject);
+            }
             $this->createDynamicFields($importArray['data'], $iceCatobject);
         } else {
             /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
             $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
             $this->modifiedFields = $this->getFieldsModifiedLog($iceCatobject->getId(), $this->currentLanguage);
             $this->createFixFields($importArray['data'], $iceCatobject);
-            $this->createGallery($importArray['data'], $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('gallery')) {
+                $this->createGallery($importArray['data'], $iceCatobject);
+            }
             $this->createDynamicFields($importArray['data'], $iceCatobject);
         }
 

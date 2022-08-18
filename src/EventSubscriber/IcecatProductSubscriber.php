@@ -61,8 +61,10 @@ class IcecatProductSubscriber implements EventSubscriberInterface
                     }
                 }
 
-                // added hardcoded as it take nested loops to get this data
+                // added hardcoded as it take nested loops to get this data -- for block fields
                 $localizedNameTitlePairs["galleryIconBlock"] = "Gallery Icons Block";
+                $localizedNameTitlePairs["productStory"] = "Product Stories";
+                $localizedNameTitlePairs["reviews"] = "Reviews";
 
                 foreach ($data["localizedfields"] as $lang => $langData) {
                     foreach ($langData as $fields) {
@@ -114,6 +116,13 @@ class IcecatProductSubscriber implements EventSubscriberInterface
         if (count($list) && $record = $list[0]) {
             $record->save();
         } else {
+
+            if($lang) {
+                $key = "{$object->getGtin()}-{$lang}-{$name}";
+            } else {
+                $key = "{$object->getGtin()}-{$name}";
+            }
+
             $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog();
             $icecatFieldLog->setPimcoreId($object->getId());
             $icecatFieldLog->setEan($object->getGtin());
@@ -124,7 +133,7 @@ class IcecatProductSubscriber implements EventSubscriberInterface
             $icecatFieldLog->setField($title);
             $icecatFieldLog->setParent(Service::createFolderByPath('/Icecat overriden fields log'));
             $icecatFieldLog->setPublished(true);
-            $icecatFieldLog->setKey("{$object->getGtin()}-{$name}");
+            $icecatFieldLog->setKey($key);
             $icecatFieldLog->save();
         }
     }
