@@ -42,7 +42,37 @@ class Configuration
     /**
      * @var
      */
+    protected $gtinFieldType;
+
+    /**
+     * @var
+     */
+    protected $mappingGtinClassField;
+
+    /**
+     * @var
+     */
+    protected $mappingGtinLanguageField;
+
+    /**
+     * @var
+     */
     protected $brandNameField;
+
+    /**
+     * @var
+     */
+    protected $brandNameFieldType;
+
+    /**
+     * @var
+     */
+    protected $mappingBrandClassField;
+
+    /**
+     * @var
+     */
+    protected $mappingBrandLanguageField;
 
     /**
      * @var
@@ -50,9 +80,34 @@ class Configuration
     protected $productNameField;
 
     /**
-     * @var 
+     * @var
+     */
+    protected $productNameFieldType;
+
+    /**
+     * @var
+     */
+    protected $mappingProductCodeClassField;
+
+    /**
+     * @var
+     */
+    protected $mappingProductCodeLanguageField;
+
+    /**
+     * @var
      */
     protected $cronExpression;
+
+    /**
+     * @var
+     */
+    protected $assetFilePath;
+
+    /**
+     * @var
+     */
+    protected $onlyNewObjectProcessed;
 
     /**
      * @return bool
@@ -137,6 +192,15 @@ class Configuration
     }
 
     /**
+     * @param mixed $gtinField
+     */
+    public function setGtinField($gtinField)
+    {
+        $this->gtinField = $gtinField;
+        return $this;
+    }
+
+    /**
      * @return mixed
      */
     public function getGtinField()
@@ -145,12 +209,54 @@ class Configuration
     }
 
     /**
-     * @param mixed $gtinField
+     * @return mixed
      */
-    public function setGtinField($gtinField)
+    public function setGtinFieldType($gtinFieldType)
     {
-        $this->gtinField = $gtinField;
+        $this->gtinFieldType = $gtinFieldType;
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getGtinFieldType()
+    {
+        return $this->gtinFieldType;
+    }
+
+    /**
+     * @param mixed $mappingGtinClassField
+     */
+    public function setMappingGtinClassField($mappingGtinClassField)
+    {
+        $this->mappingGtinClassField = $mappingGtinClassField;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMappingGtinClassField()
+    {
+        return $this->mappingGtinClassField;
+    }
+
+    /**
+     * @param mixed $mappingGtinLanguageField
+     */
+    public function setMappingGtinLanguageField($mappingGtinLanguageField)
+    {
+        $this->mappingGtinLanguageField = $mappingGtinLanguageField;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMappingGtinLanguageField()
+    {
+        return $this->mappingGtinLanguageField;
     }
 
     /**
@@ -168,6 +274,58 @@ class Configuration
     {
         $this->brandNameField = $brandNameField;
         return $this;
+    }
+
+    /**
+     * @param mixed $brandNameFieldType
+     */
+    public function setBrandNameFieldType($brandNameFieldType)
+    {
+        $this->brandNameFieldType = $brandNameFieldType;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getBrandNameFieldType()
+    {
+        return $this->brandNameFieldType;
+    }
+
+
+    /**
+     * @param mixed $mappingBrandClassField
+     */
+    public function setMappingBrandClassField($mappingBrandClassField)
+    {
+        $this->mappingBrandClassField = $mappingBrandClassField;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMappingBrandClassField()
+    {
+        return $this->mappingBrandClassField;
+    }
+
+    /**
+     * @param mixed $mappingBrandLanguageField
+     */
+    public function setMappingBrandLanguageField($mappingBrandLanguageField)
+    {
+        $this->mappingBrandLanguageField = $mappingBrandLanguageField;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMappingBrandLanguageField()
+    {
+        return $this->mappingBrandLanguageField;
     }
 
     /**
@@ -190,9 +348,77 @@ class Configuration
     /**
      * @return mixed
      */
+    public function getProductNameFieldType()
+    {
+        return $this->productNameField;
+    }
+
+    /**
+     * @param mixed $productNameFieldType
+     */
+    public function setProductNameFieldType($productNameFieldType)
+    {
+        $this->productNameFieldType = $productNameFieldType;
+        return $this;
+    }
+
+    /**
+     * @param mixed $mappingProductCodeClassField
+     */
+    public function setMappingProductCodeClassField($mappingProductCodeClassField)
+    {
+        $this->mappingProductCodeClassField = $mappingProductCodeClassField;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMappingProductCodeClassField()
+    {
+        return $this->mappingProductCodeClassField;
+    }
+
+    /**
+     * @param mixed $mappingProductCodeLanguageField
+     */
+    public function setMappingProductCodeLanguageField($mappingProductCodeLanguageField)
+    {
+        $this->mappingProductCodeLanguageField = $mappingProductCodeLanguageField;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMappingProductCodeLanguageField()
+    {
+        return $this->mappingProductCodeLanguageField;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getCronExpression()
     {
         return $this->cronExpression;
+    }
+
+    /**
+     * @param mixed $assetFilePath
+     */
+    public function setAssetFilePath($assetFilePath)
+    {
+        $this->assetFilePath = $assetFilePath;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAssetFilePath()
+    {
+        return $this->assetFilePath;
     }
 
     /**
@@ -201,6 +427,23 @@ class Configuration
     public function setCronExpression($cronExpression)
     {
         $this->cronExpression = $cronExpression;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOnlyNewObjectProcessed()
+    {
+        return $this->onlyNewObjectProcessed;
+    }
+
+    /**
+     * @param mixed $onlyNewObjectProcessed
+     */
+    public function setOnlyNewObjectProcessed($onlyNewObjectProcessed)
+    {
+        $this->onlyNewObjectProcessed = $onlyNewObjectProcessed;
         return $this;
     }
 
@@ -217,11 +460,28 @@ class Configuration
                     'languages' => ['en'],
                     'categorization' => false,
                     'importRelatedProducts' => false,
-                    'productClass' => -1,
-                    'gtinField' => -1,
-                    'brandNameField' => -1,
-                    'productNameField' => -1,
-                    'cronExpression' => '',
+                    'productClass' => null,
+                    'gtinField' => [
+                        'name' => null,
+                        'type' => null,
+                        'referenceFieldName' => null,
+                        'language' => null,
+                    ],
+                    'brandNameField' => [
+                        'name' => null,
+                        'type' => null,
+                        'referenceFieldName' => null,
+                        'language' => null,
+                    ],
+                    'productNameField' => [
+                        'name' => null,
+                        'type' => null,
+                        'referenceFieldName' => null,
+                        'language' => null,
+                    ],
+                    'cronExpression' => null,
+                    'assetFilePath' => null,
+                    'onlyNewObjectProcessed' => true
                 ]
             ];
         }
@@ -242,22 +502,54 @@ class Configuration
         }
 
         if ($this->getGtinField() !== null) {
-            $data['icecat']['gtinField'] = $this->getGtinField();
+            if($this->getMappingGtinClassField() !== null) {
+                $data['icecat']['gtinField']['name'] = $this->getGtinField();
+                $data['icecat']['gtinField']['type'] = "manyToOneRelation";
+                $data['icecat']['gtinField']['referenceFieldName'] = $this->getMappingGtinClassField();
+            } else {
+                $data['icecat']['gtinField']['name'] = $this->getGtinField();
+                $data['icecat']['gtinField']['type'] = "default";
+            }
+            $data['icecat']['gtinField']['language'] = $this->getMappingGtinLanguageField();
         }
 
         if ($this->getBrandNameField() !== null) {
-            $data['icecat']['brandNameField'] = $this->getBrandNameField();
+            if($this->getMappingBrandClassField() !== null) {
+                $data['icecat']['brandNameField']['name'] = $this->getBrandNameField();
+                $data['icecat']['brandNameField']['type'] = "manyToOneRelation";
+                $data['icecat']['brandNameField']['referenceFieldName'] = $this->getMappingBrandClassField();
+            } else {
+                $data['icecat']['brandNameField']['name'] = $this->getBrandNameField();
+                $data['icecat']['brandNameField']['type'] = "default";
+            }
+            $data['icecat']['brandNameField']['language'] = $this->getMappingBrandLanguageField();
         }
 
         if ($this->getProductNameField() !== null) {
-            $data['icecat']['productNameField'] = $this->getProductNameField();
+            if($this->getMappingProductCodeClassField() !== null) {
+                $data['icecat']['productNameField']['name'] = $this->getProductNameField();
+                $data['icecat']['productNameField']['type'] = "manyToOneRelation";
+                $data['icecat']['productNameField']['referenceFieldName'] = $this->getMappingProductCodeClassField();
+            } else {
+                $data['icecat']['productNameField']['name'] = $this->getProductNameField();
+                $data['icecat']['productNameField']['type'] = "default";
+            }
+            $data['icecat']['productNameField']['language'] = $this->getMappingProductCodeLanguageField();
         }
 
         if ($this->getCronExpression() !== null) {
             $data['icecat']['cronExpression'] = $this->getCronExpression();
         }
 
-        File::put(self::CONFIG_PATH.'/config.yaml', Yaml::dump($data));
+        if ($this->getAssetFilePath() !== null) {
+            $data['icecat']['assetFilePath'] = $this->getAssetFilePath();
+        }
+
+        if ($this->getOnlyNewObjectProcessed() !== null) {
+            $data['icecat']['onlyNewObjectProcessed'] = $this->getOnlyNewObjectProcessed();
+        }
+
+        File::put(self::CONFIG_PATH.'/config.yaml', Yaml::dump($data, 4));
     }
 
     /**
@@ -274,11 +566,26 @@ class Configuration
                 $config->setLanguages($data['icecat']['languages'] ?? []);
                 $config->setCategorization($data['icecat']['categorization'] ?? false);
                 $config->setImportRelatedProducts($data['icecat']['importRelatedProducts'] ?? false);
-                $config->setProductClass($data['icecat']['productClass'] ?? -1);
-                $config->setGtinField($data['icecat']['gtinField'] ?? -1);
-                $config->setBrandNameField($data['icecat']['brandNameField'] ?? -1);
-                $config->setProductNameField($data['icecat']['productNameField'] ?? -1);
-                $config->setCronExpression($data['icecat']['cronExpression'] ?? '');
+                $config->setProductClass($data['icecat']['productClass'] ?? null);
+
+                $config->setGtinField($data['icecat']['gtinField']['name'] ?? null);
+                $config->setGtinFieldType($data['icecat']['gtinField']['type'] ?? null);
+                $config->setMappingGtinClassField($data['icecat']['gtinField']['referenceFieldName'] ?? null);
+                $config->setMappingGtinLanguageField($data['icecat']['gtinField']['language'] ?? null);
+
+                $config->setBrandNameField($data['icecat']['brandNameField']['name'] ?? null);
+                $config->setBrandNameFieldType($data['icecat']['brandNameField']['type'] ?? null);
+                $config->setMappingBrandClassField($data['icecat']['brandNameField']['referenceFieldName'] ?? null);
+                $config->setMappingBrandLanguageField($data['icecat']['brandNameField']['language'] ?? null);
+
+                $config->setProductNameField($data['icecat']['productNameField']['name'] ?? null);
+                $config->setProductNameFieldType($data['icecat']['productNameField']['type'] ?? null);
+                $config->setMappingProductCodeClassField($data['icecat']['productNameField']['referenceFieldName'] ?? null);
+                $config->setMappingProductCodeLanguageField($data['icecat']['productNameField']['language'] ?? null);
+
+                $config->setCronExpression($data['icecat']['cronExpression'] ?? null);
+                $config->setAssetFilePath($data['icecat']['assetFilePath'] ?? null);
+                $config->setOnlyNewObjectProcessed($data['icecat']['onlyNewObjectProcessed'] ?? true);
 
                 return $config;
             } else {
@@ -288,8 +595,4 @@ class Configuration
             return null;
         }
     }
-
-
-
-
 }

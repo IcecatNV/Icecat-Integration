@@ -151,6 +151,26 @@ class CreateObjectService
         }
     }
 
+    /**
+     * @param string $userId
+     *
+     * @return void
+     */
+    public function setUserId($userId)
+    {
+        $this->userId = $userId;
+    }
+
+    /**
+     * @param string $jobId
+     *
+     * @return void
+     */
+    public function setJobId($jobId)
+    {
+        $this->jobId = $jobId;
+    }
+
     public function createObject($userId, $jobId)
     {
         $this->csvLogFileName = date('Y-m-d H:i:s');

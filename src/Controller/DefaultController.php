@@ -3,6 +3,7 @@
 namespace IceCatBundle\Controller;
 
 use IceCatBundle\InstallClass;
+use IceCatBundle\Services\TransformationDataTypeService;
 use IceCatBundle\Model\Configuration;
 use IceCatBundle\Services\CreateObjectService;
 use IceCatBundle\Services\DataService;
@@ -16,6 +17,7 @@ use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\User;
 use Pimcore\Tool;
+use Pimcore\Model\DataObject\ClassDefinition;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -63,36 +65,70 @@ class DefaultController extends FrontendController
             if ($config) {
                 return $this->json(
                     [
-                    'success' => true,
-                    'data' => [
-                        'languages' => $config->getLanguages(),
-                        'categorization' => $config->getCategorization(),
-                        'importRelatedProducts' => $config->getImportRelatedProducts(),
-                        'showSearchPanel' => $searchService->isSearchEnable(),
-                        'searchLanguages' => $searchService->getSearchLanguages(),
-                        'productClass' => $config->getProductClass(),
-                        'gtinField' => $config->getGtinField(),
-                        'brandNameField' => $config->getBrandNameField(),
-                        'productNameField' => $config->getProductNameField(),
-                        'cronExpression' => $config->getCronExpression(),
-                    ]
+                        'success' => true,
+                        'data' => [
+                            'languages' => $config->getLanguages(),
+                            'categorization' => $config->getCategorization(),
+                            'importRelatedProducts' => $config->getImportRelatedProducts(),
+                            'showSearchPanel' => $searchService->isSearchEnable(),
+                            'searchLanguages' => $searchService->getSearchLanguages(),
+                            'productClass' => $config->getProductClass(),
+                            'gtinField' => [
+                                'name' => $config->getGtinField(),
+                                'type' => $config->getGtinFieldType(),
+                                'referenceFieldName' => $config->getMappingGtinClassField(),
+                                'language' => $config->getMappingGtinLanguageField(),
+                            ],
+                            'brandNameField' => [
+                                'name' => $config->getBrandNameField(),
+                                'type' => $config->getBrandNameFieldType(),
+                                'referenceFieldName' => $config->getMappingBrandClassField(),
+                                'language' => $config->getMappingBrandLanguageField(),
+                            ],
+                            'productNameField' => [
+                                'name' => $config->getProductNameField(),
+                                'type' => $config->getProductNameFieldType(),
+                                'referenceFieldName' => $config->getMappingProductCodeClassField(),
+                                'language' => $config->getMappingProductCodeLanguageField(),
+                            ],
+                            'cronExpression' => $config->getCronExpression(),
+                            'assetFilePath' => $config->getAssetFilePath(),
+                            'onlyNewObjectProcessed' => $config->getOnlyNewObjectProcessed(),
+                        ]
                     ]
                 );
             } else {
                 return $this->json(
                     [
-                    'success' => true,
-                    'data' => [
-                        'languages' => ['en'],
-                        'categorization' => false,
-                        'showSearchPanel' => $searchService->isSearchEnable(),
-                        'searchLanguages' => $searchService->getSearchLanguages(),
-                        'productClass' => -1,
-                        'gtinField' => -1,
-                        'brandNameField' => -1,
-                        'productNameField' => -1,
-                        'cronExpression' => '',
-                    ]
+                        'success' => true,
+                        'data' => [
+                            'languages' => ['en'],
+                            'categorization' => false,
+                            'showSearchPanel' => $searchService->isSearchEnable(),
+                            'searchLanguages' => $searchService->getSearchLanguages(),
+                            'productClass' => null,
+                            'gtinField' => [
+                                'name' => null,
+                                'type' => null,
+                                'referenceFieldName' => null,
+                                'language' => null,
+                            ],
+                            'brandNameField' => [
+                                'name' => null,
+                                'type' => null,
+                                'referenceFieldName' => null,
+                                'language' => null,
+                            ],
+                            'productNameField' => [
+                                'name' => null,
+                                'type' => null,
+                                'referenceFieldName' => null,
+                                'language' => null,
+                            ],
+                            'cronExpression' => null,
+                            'assetFilePath' => null,
+                            'onlyNewObjectProcessed' => true
+                        ]
                     ]
                 );
             }
@@ -103,6 +139,38 @@ class DefaultController extends FrontendController
                 [
                 'success' => false,
                 'message' => $e->getMessage()
+                ]
+            );
+        }
+    }
+
+    /**
+     * @Route("/admin/icecat/get-selected-languages", name="icecat_getselectedlanguages", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function getSelectedLanguagesAction()
+    {
+        try {
+            $config = Configuration::load();
+
+            foreach($config->getLanguages() as $lang) {
+                $data[] = [
+                    'key' => $lang,
+                    'value' => \Locale::getDisplayLanguage($lang)
+                ];
+            }
+            return $this->json(
+                [
+                    'success' => true,
+                    'data' => $data
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->json(
+                [
+                    'success' => false,
+                    'message' => $e->getMessage()
                 ]
             );
         }
@@ -151,10 +219,26 @@ class DefaultController extends FrontendController
         $categorization = $request->get('categorization', null);
         $importRelatedProducts = $request->get('importRelatedProducts', null);
         $productClass = $request->get('productClass', null);
+
         $gtinField = $request->get('gtinField', null);
+        $gtinFieldType = $request->get('gtinFieldType', 'default');
+        $mappingGtinClassField  = $request->get('mappingGtinClassField', null);
+        $mappingGtinLanguageField  = $request->get('mappingGtinLanguageField', null);
+
         $brandNameField = $request->get('brandNameField', null);
+        $brandNameFieldType = $request->get('brandNameFieldType', 'default');
+        $mappingBrandClassField  = $request->get('mappingBrandClassField', null);
+        $mappingBrandLanguageField  = $request->get('mappingBrandLanguageField', null);
+
         $productNameField = $request->get('productNameField', null);
+        $productNameFieldType = $request->get('productNameFieldType', 'default');
+        $mappingProductCodeClassField = $request->get('mappingProductCodeClassField', null);
+        $mappingProductCodeLanguageField  = $request->get('mappingProductCodeLanguageField', null);
+
+        $assetFilePath = $request->get('assetFilePath', null);
         $cronExpression = $request->get('cronExpression', null);
+        $onlyNewObjectProcessed = $request->get('onlyNewObjectProcessed', true);
+
         try {
             $config = Configuration::load();
             if (!$config) {
@@ -170,21 +254,81 @@ class DefaultController extends FrontendController
             if ($importRelatedProducts !== null) {
                 $config->setImportRelatedProducts($importRelatedProducts === 'true' ? true : false);
             }
+
+            //$productClass = trim($productClass) == "" ? false : $productClass;
             if ($productClass !== null) {
-                $config->setProductClass($productClass === '-1' ? -1 : $productClass);
-            }
-            if ($gtinField !== null) {
-                $config->setGtinField($gtinField === '-1' ? -1 : $gtinField);
-            }
-            if ($brandNameField !== null) {
-                $config->setBrandNameField($brandNameField === '-1' ? -1 : $brandNameField);
-            }
-            if ($productNameField !== null) {
-                $config->setProductNameField($productNameField === '-1' ? -1 : $productNameField);
+                $config->setProductClass($productClass);
             }
 
+            //$gtinField = trim($gtinField) == "" ? false : $gtinField;
+            if ($gtinField !== null) {
+                $config->setGtinField($gtinField);
+            }
+
+            if ($gtinFieldType !== null) {
+                $config->setGtinFieldType($gtinFieldType);
+            }
+
+            //$mappingGtinClassField = trim($mappingGtinClassField) == "" ? false : $mappingGtinClassField;
+            if ($mappingGtinClassField !== null) {
+                $config->setMappingGtinClassField($mappingGtinClassField);
+            }
+
+            //$mappingGtinLanguageField = trim($mappingGtinLanguageField) == "" ? false : $mappingGtinLanguageField;
+            if ($mappingGtinLanguageField !== null) {
+                $config->setMappingGtinLanguageField($mappingGtinLanguageField);
+            }
+
+            //$brandNameField = trim($brandNameField) == "" ? false : $brandNameField;
+            if ($brandNameField !== null) {
+                $config->setBrandNameField($brandNameField);
+            }
+
+            if($brandNameFieldType !== null) {
+                $config->setBrandNameFieldType($brandNameFieldType);
+            }
+
+            //$mappingBrandClassField = trim($mappingBrandClassField) == "" ? false : $mappingBrandClassField;
+            if ($mappingBrandClassField !== null) {
+                $config->setMappingBrandClassField($mappingBrandClassField);
+            }
+
+            //$mappingBrandLanguageField = trim($mappingBrandLanguageField) == "" ? false : $mappingBrandLanguageField;
+            if ($mappingBrandLanguageField !== null) {
+                $config->setMappingBrandLanguageField($mappingBrandLanguageField);
+            }
+
+            //$productNameField = trim($productNameField) == "" ? false : $productNameField;
+            if ($productNameField !== null) {
+                $config->setProductNameField($productNameField);
+            }
+
+            if($productNameFieldType !== null) {
+                $config->setProductNameFieldType($productNameFieldType);
+            }
+
+            //$mappingProductCodeClassField = trim($mappingProductCodeClassField) == "" ? false : $mappingProductCodeClassField;
+            if ($mappingProductCodeClassField !== null) {
+                $config->setMappingProductCodeClassField($mappingProductCodeClassField);
+            }
+
+            //$mappingProductCodeLanguageField = trim($mappingProductCodeLanguageField) == "" ? false : $mappingProductCodeLanguageField;
+            if ($mappingProductCodeLanguageField !== null) {
+                $config->setMappingProductCodeLanguageField($mappingProductCodeLanguageField);
+            }
+
+            if ($assetFilePath !== null) {
+                $config->setAssetFilePath($assetFilePath);
+            }
+
+            //$cronExpression = trim($cronExpression) == "" ? false : $cronExpression;
             if ($cronExpression !== null) {
-                $config->setCronExpression($cronExpression === '-1' ? '' : $cronExpression);
+                $config->setCronExpression($cronExpression);
+            }
+
+            //$onlyNewObjectProcessed = trim($onlyNewObjectProcessed) == "" ? false : $onlyNewObjectProcessed;
+            if ($onlyNewObjectProcessed !== null) {
+                $config->setOnlyNewObjectProcessed($onlyNewObjectProcessed);
             }
 
             $config->save();
@@ -676,7 +820,7 @@ class DefaultController extends FrontendController
         $classesName = [];
         $i=1;
         $classesName[0]['display_value'] = '(Empty)';
-        $classesName[0]['key'] = -1;
+        $classesName[0]['key'] = null;
         foreach ($classesDef as $index => $class) {
             if (in_array($class->getId(), self::ICECAT_CLASS_IDS)) {
                 continue;
@@ -695,40 +839,69 @@ class DefaultController extends FrontendController
      *
      * @throws \Exception
      */
-    public function getClassFields(Request $request)
+    public function getClassFields(Request $request, TransformationDataTypeService $transformationDataTypeService)
     {
-       $classId =  $request->get('classId', null);
-
-        $cDef = DataObject\ClassDefinition::getById($classId);
-        $data = [];
-        $data[0]['display_value'] = '(Empty)';
-        $data[0]['key'] = -1;
-        if (empty($cDef)) {
-            $fieldsDef = [];
-        } else {
-            $fieldsDef = $cDef->getFieldDefinitions();
+        $classId =  $request->get('classId', null);
+        if($classId == "" || $classId == -1) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
         }
-        $index = 1;
-        foreach ($fieldsDef as $field) {
-            $key = $displayName = '';
-            if ($field->getFieldtype() == 'localizedfields') {
-                $lFieldsDef =  $field->getChildren();
-                /** @var DataObject\ClassDefinition\Data $lField */
-                foreach ($lFieldsDef as $lField) {
-                    $key = $field->getFieldtype() . '_' . $lField->getFieldtype() . '_' . $lField->getName();
-                    $displayName = $lField->getName();
-                }
-            } else {
-                $key = $field->getFieldtype() . '_' . $field->getName();
-                $displayName = $field->getName();
-            }
 
-            $data[$index]['display_value'] = $displayName;
-            $data[$index++]['key'] = $key;
+        $transformationTargetType = $request->get('transformation_result_type', [TransformationDataTypeService::DEFAULT_TYPE, TransformationDataTypeService::NUMERIC, TransformationDataTypeService::DATA_OBJECT]);
 
+        return new JsonResponse([
+            'attributes' => $transformationDataTypeService->getPimcoreDataTypes($classId, $transformationTargetType, false, false, false)
+        ]);
+    }
 
+    /**
+     *
+     * @Route("/admin/icecat/crontab/get-reference-fields", name="icecat_getreferencefields", options={"expose"=true})
+     *
+     * @return JsonResponse
+     *
+     * @throws \Exception
+     */
+    public function getReferenceClassFields(Request $request, TransformationDataTypeService $transformationDataTypeService)
+    {
+        $classId =  $request->get('class', null);
+        if($classId == "" || $classId == -1) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
         }
-        return new \Symfony\Component\HttpFoundation\JsonResponse(['data' => $data]);
+
+        $class = ClassDefinition::getById($classId);
+        /** @var \Pimcore\Model\DataObject\ClassDefinition\Data\ManyToOneRelation $field */
+        $field = $class->getFieldDefinition($request->get("field"));
+
+        if(!$field) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
+        }
+
+        if(!method_exists($field, "getClasses")) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
+        }
+
+        $referenceClass = is_array($field->getClasses()) && isset($field->getClasses()[0]) ? $field->getClasses()[0] : null;
+
+        if($referenceClass === null) {
+            throw new \Exception("No class attached on field - {$field->getTitle()}");
+        }
+
+        $class = ClassDefinition::getByName($referenceClass["classes"]);
+        $classId = $class->getId();
+
+        $transformationTargetType = $request->get('transformation_result_type', [TransformationDataTypeService::DEFAULT_TYPE, TransformationDataTypeService::NUMERIC]);
+
+        return new JsonResponse([
+            'attributes' => $transformationDataTypeService->getPimcoreDataTypes($classId, $transformationTargetType, false, false, false)
+        ]);
     }
 
     /**
