@@ -364,6 +364,7 @@ class CreateObjectService
 
 
             $basicInformation = $attributeArray['GeneralInfo'];
+
             if (!$this->isFieldUpdatedByUser('Product_Name', $this->currentLanguage)) {
                 $iceCatobject->setProduct_Name($basicInformation['ProductName'], $this->currentLanguage);
             }

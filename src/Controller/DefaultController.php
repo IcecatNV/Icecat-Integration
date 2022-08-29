@@ -2,8 +2,11 @@
 
 namespace IceCatBundle\Controller;
 
+use IceCatBundle\Command\IceCatMaintenanceCommand;
 use IceCatBundle\Command\RecurringImportCommand;
 use IceCatBundle\InstallClass;
+use IceCatBundle\Lib\IceCateHelper;
+use IceCatBundle\Services\IceCatMaintenanceService;
 use IceCatBundle\Services\TransformationDataTypeService;
 use IceCatBundle\Model\Configuration;
 use IceCatBundle\Services\CreateObjectService;
@@ -27,6 +30,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends FrontendController
 {
+    use IceCateHelper;
     const ICECAT_CLASS_IDS = [
         'Icecat',
         'icecat_category',
@@ -356,6 +360,31 @@ class DefaultController extends FrontendController
     }
 
     /**
+     * @Route("/admin/icecat/refresh-product", name="icecat_refresh_product", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function refreshIceCatProduct(Request $request, IceCatMaintenanceService $iceCatMaintenanceService, RecurringImportCommand $rc)
+    {
+        $languages = $request->get('language', ['en']);
+        $objId = $request->get('objectId');
+
+        $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:refresh ' . $objId . ' ' . implode(',', $languages);
+        try {
+            exec($command . ' > /dev/null');
+            sleep(2);
+        } catch (\Exception $ex) {
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200']);
+        }
+        return $this->json(
+        [
+            'success' => true,
+            'message' => 'Refreshed!'
+        ]
+    );
+    }
+
+    /**
      * @Route("/admin/icecat/save-config", name="icecat_saveconfig", options={"expose"=true})
      *
      * @param Request $request
@@ -459,6 +488,7 @@ class DefaultController extends FrontendController
             }
 
             if ($cronExpression !== null) {
+                $this->checkIfCronExpressionValid($cronExpression);
                 $config->setCronExpression($cronExpression);
             }
 

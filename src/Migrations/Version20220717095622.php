@@ -56,7 +56,7 @@ final class Version20220717095622 extends AbstractMigration
 
                 $relationDelStmt->bindValue(':srcId', $recId);
                 $relationDelStmt->bindValue(':destId', $videoId);
-                $relationDelStmt->execute();
+                $relationDelStmt->executeQuery();
 
                 $relationSql .= " ({$recId}, {$db->quote($videoId)}, 'asset', 'videos', 1, 'object', '', 0), ";
                 $depSql .= " ( 'object', {$recId}, 'asset', {$videoId}), ";
