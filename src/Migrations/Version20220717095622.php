@@ -23,7 +23,7 @@ final class Version20220717095622 extends AbstractMigration
     {
         $db = Db::get();
         $query = "SELECT oo_id, Video, videos from object_query_Icecat where Video is not null";
-        $records = $db->fetchAll($query);
+        $records = $db->fetchAllAssociative($query);
         $rowCounter = 1;
         $batchSize = 1000;
         $totalRecords = count($records);
@@ -52,7 +52,7 @@ final class Version20220717095622 extends AbstractMigration
             if ($recId && $videoId) {
                 $stmtQuery->bindValue(':videos', $video);
                 $stmtQuery->bindValue(':recId', $recId);
-                $stmtQuery->execute();
+                $stmtQuery->executeQuery();
 
                 $relationDelStmt->bindValue(':srcId', $recId);
                 $relationDelStmt->bindValue(':destId', $videoId);

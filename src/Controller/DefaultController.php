@@ -2,6 +2,7 @@
 
 namespace IceCatBundle\Controller;
 
+use IceCatBundle\Command\RecurringImportCommand;
 use IceCatBundle\InstallClass;
 use IceCatBundle\Services\TransformationDataTypeService;
 use IceCatBundle\Model\Configuration;
@@ -22,7 +23,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends FrontendController
@@ -62,6 +62,7 @@ class DefaultController extends FrontendController
     {
         try {
             $config = Configuration::load();
+
             if ($config) {
                 return $this->json(
                     [
@@ -94,6 +95,7 @@ class DefaultController extends FrontendController
                             'cronExpression' => $config->getCronExpression(),
                             'assetFilePath' => $config->getAssetFilePath(),
                             'onlyNewObjectProcessed' => $config->getOnlyNewObjectProcessed(),
+                            'lastImportSummary' => $this->getLastRunImportSummary()
                         ]
                     ]
                 );
@@ -127,7 +129,8 @@ class DefaultController extends FrontendController
                             ],
                             'cronExpression' => null,
                             'assetFilePath' => null,
-                            'onlyNewObjectProcessed' => true
+                            'onlyNewObjectProcessed' => true,
+                            'lastImportSummary' => $this->getLastRunImportSummary()
                         ]
                     ]
                 );
@@ -142,6 +145,150 @@ class DefaultController extends FrontendController
                 ]
             );
         }
+    }
+
+    /**
+     * @Route("/admin/icecat/check-recurring-import-progress", name="icecat_check_recurring_import_progress", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function checkRecurringImportProcessAction()
+    {
+        $sql = "SELECT * FROM icecat_recurring_import WHERE status = 'running'";
+        $result = \Pimcore\Db::get()->fetchAssociative($sql);
+        if(!$result) {
+            return new JsonResponse([
+                'isRunning' => false,
+                'totalItems' => 0,
+                'processedItems' => 0,
+                'progress' => 0
+            ]);
+        }
+
+        $progress = $result['total_records'] > 0 ? round($result['processed_records'] / $result['total_records'], 2) : 1;
+
+        return new JsonResponse([
+            'isRunning' => true,
+            'totalItems' => $result['total_records'],
+            'processedItems' => $result['processed_records'],
+            'progress' => $progress
+        ]);
+    }
+
+
+    /**
+     * @Route("/admin/icecat/get-last-run-import-summary", name="icecat_get_last_run_import_summary", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function getLastRunImportSummaryAction()
+    {
+        return new JsonResponse([
+            'html' => $this->getLastRunImportSummary()
+        ]);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getLastRunImportSummary()
+    {
+        $sql = "SELECT * FROM icecat_recurring_import WHERE status = 'finished'";
+        $result = \Pimcore\Db::get()->fetchAssociative($sql);
+        if(!$result) {
+            $html = "<b>No summary found</b>";
+            return $html;
+        }
+
+        $startDatetime = date("Y-m-d H:i A", $result['start_datetime']);
+        $endDatetime = date("Y-m-d H:i A", $result['end_datetime']);
+        $totalRecords = $result['total_records'];
+        $successRecords = $result['success_records'];
+        $errorRecords = $result['error_records'];
+        $executionType = $result['execution_type'];
+
+        $html = "
+                <style>
+                    table.summary {
+                        border-collapse: collapse;
+                        border-spacing: 0;
+                        width: 100%;
+                        border: 1px solid #ddd;
+                    }
+
+                    .summary th, .summary td {
+                        text-align: left;
+                        padding: 3px;
+                    }
+
+                    .summary tr:nth-child(even) {
+                        background-color: #E0E1E2;
+                    }
+                </style>
+                <table class=\"summary\">
+                    <tr>
+                        <th>Start Date & Time</th>
+                        <td>{$startDatetime}</td>
+                    </tr>
+                    <tr>
+                        <th>End Date & Time</th>
+                        <td>{$endDatetime}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Records</th>
+                        <td>{$totalRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Success Records</th>
+                        <td>{$successRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Error Records</th>
+                        <td>{$errorRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Execution Type</th>
+                        <td>{$executionType}</td>
+                    </tr>
+                    <tr>
+                        <th>Detailed Log File</th>
+                        <td><a href=\"/admin/icecat/download-last-import-log\">Download</a></td>
+                    </tr>
+
+                </table>";
+
+        return $html;
+    }
+
+    /**
+     * @Route("/admin/icecat/start-manual-import", name="icecat_start_manual_import", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function startManualImportAction()
+    {
+        $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:recurring-import --execution-type=manual';
+        exec($command . ' > /dev/null &');
+        sleep(2);
+        return $this->json(
+            [
+                'success' => true,
+            ]
+        );
+    }
+
+    /**
+     * @Route("/admin/icecat/download-last-import-log", name="icecat_download_last_import_log", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function downloadLastImportLogAction()
+    {
+        $filename = RecurringImportCommand::LAST_IMPORT_LOG_FILENAME. '.log';
+        $response = new BinaryFileResponse(PIMCORE_LOG_DIRECTORY . "/" . $filename);
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+        return $response;
     }
 
     /**
@@ -221,23 +368,23 @@ class DefaultController extends FrontendController
         $productClass = $request->get('productClass', null);
 
         $gtinField = $request->get('gtinField', null);
-        $gtinFieldType = $request->get('gtinFieldType', 'default');
+        $gtinFieldType = $request->get('gtinFieldType', null);
         $mappingGtinClassField  = $request->get('mappingGtinClassField', null);
         $mappingGtinLanguageField  = $request->get('mappingGtinLanguageField', null);
 
         $brandNameField = $request->get('brandNameField', null);
-        $brandNameFieldType = $request->get('brandNameFieldType', 'default');
+        $brandNameFieldType = $request->get('brandNameFieldType', null);
         $mappingBrandClassField  = $request->get('mappingBrandClassField', null);
         $mappingBrandLanguageField  = $request->get('mappingBrandLanguageField', null);
 
         $productNameField = $request->get('productNameField', null);
-        $productNameFieldType = $request->get('productNameFieldType', 'default');
+        $productNameFieldType = $request->get('productNameFieldType', null);
         $mappingProductCodeClassField = $request->get('mappingProductCodeClassField', null);
         $mappingProductCodeLanguageField  = $request->get('mappingProductCodeLanguageField', null);
 
         $assetFilePath = $request->get('assetFilePath', null);
         $cronExpression = $request->get('cronExpression', null);
-        $onlyNewObjectProcessed = $request->get('onlyNewObjectProcessed', true);
+        $onlyNewObjectProcessed = (bool)$request->get('onlyNewObjectProcessed', true);
 
         try {
             $config = Configuration::load();
@@ -255,12 +402,10 @@ class DefaultController extends FrontendController
                 $config->setImportRelatedProducts($importRelatedProducts === 'true' ? true : false);
             }
 
-            //$productClass = trim($productClass) == "" ? false : $productClass;
             if ($productClass !== null) {
                 $config->setProductClass($productClass);
             }
 
-            //$gtinField = trim($gtinField) == "" ? false : $gtinField;
             if ($gtinField !== null) {
                 $config->setGtinField($gtinField);
             }
@@ -269,17 +414,14 @@ class DefaultController extends FrontendController
                 $config->setGtinFieldType($gtinFieldType);
             }
 
-            //$mappingGtinClassField = trim($mappingGtinClassField) == "" ? false : $mappingGtinClassField;
             if ($mappingGtinClassField !== null) {
                 $config->setMappingGtinClassField($mappingGtinClassField);
             }
 
-            //$mappingGtinLanguageField = trim($mappingGtinLanguageField) == "" ? false : $mappingGtinLanguageField;
             if ($mappingGtinLanguageField !== null) {
                 $config->setMappingGtinLanguageField($mappingGtinLanguageField);
             }
 
-            //$brandNameField = trim($brandNameField) == "" ? false : $brandNameField;
             if ($brandNameField !== null) {
                 $config->setBrandNameField($brandNameField);
             }
@@ -288,17 +430,14 @@ class DefaultController extends FrontendController
                 $config->setBrandNameFieldType($brandNameFieldType);
             }
 
-            //$mappingBrandClassField = trim($mappingBrandClassField) == "" ? false : $mappingBrandClassField;
             if ($mappingBrandClassField !== null) {
                 $config->setMappingBrandClassField($mappingBrandClassField);
             }
 
-            //$mappingBrandLanguageField = trim($mappingBrandLanguageField) == "" ? false : $mappingBrandLanguageField;
             if ($mappingBrandLanguageField !== null) {
                 $config->setMappingBrandLanguageField($mappingBrandLanguageField);
             }
 
-            //$productNameField = trim($productNameField) == "" ? false : $productNameField;
             if ($productNameField !== null) {
                 $config->setProductNameField($productNameField);
             }
@@ -307,12 +446,10 @@ class DefaultController extends FrontendController
                 $config->setProductNameFieldType($productNameFieldType);
             }
 
-            //$mappingProductCodeClassField = trim($mappingProductCodeClassField) == "" ? false : $mappingProductCodeClassField;
             if ($mappingProductCodeClassField !== null) {
                 $config->setMappingProductCodeClassField($mappingProductCodeClassField);
             }
 
-            //$mappingProductCodeLanguageField = trim($mappingProductCodeLanguageField) == "" ? false : $mappingProductCodeLanguageField;
             if ($mappingProductCodeLanguageField !== null) {
                 $config->setMappingProductCodeLanguageField($mappingProductCodeLanguageField);
             }
@@ -321,12 +458,10 @@ class DefaultController extends FrontendController
                 $config->setAssetFilePath($assetFilePath);
             }
 
-            //$cronExpression = trim($cronExpression) == "" ? false : $cronExpression;
             if ($cronExpression !== null) {
                 $config->setCronExpression($cronExpression);
             }
 
-            //$onlyNewObjectProcessed = trim($onlyNewObjectProcessed) == "" ? false : $onlyNewObjectProcessed;
             if ($onlyNewObjectProcessed !== null) {
                 $config->setOnlyNewObjectProcessed($onlyNewObjectProcessed);
             }
@@ -391,9 +526,6 @@ class DefaultController extends FrontendController
             $response = new BinaryFileResponse($path . '/' . $fileName . '.csv');
             $response->headers->set('Content-Type', 'text/csv');
             $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName . '.csv');
-
-            return $response;
-
             return $response;
         } catch (\Exception $e) {
             return $this->redirect($request->server->get('HTTP_REFERER'));
@@ -980,7 +1112,7 @@ class DefaultController extends FrontendController
     {
         $db = \Pimcore\Db::get();
         $updateQuery = 'UPDATE ice_cat_processes SET COMPLETED = 1';
-        $db->exec($updateQuery);
+        $db->executeQuery($updateQuery);
         $response = $this->json(['status' => 'true']);
 
         return $response;

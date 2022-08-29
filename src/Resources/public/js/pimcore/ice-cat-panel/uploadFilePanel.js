@@ -58,16 +58,20 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     if(response.data !== undefined && response.data.cronExpression !== undefined) {
                         this.configData.cronExpression = response.data.cronExpression;
                     }
-
+                    if(response.data !== undefined && response.data.onlyNewObjectProcessed !== undefined) {
+                        this.configData.onlyNewObjectProcessed = response.data.onlyNewObjectProcessed;
+                    }
                     if(response.data !== undefined && response.data.assetFilePath !== undefined) {
                         this.configData.assetFilePath = response.data.assetFilePath;
+                    }
+                    if(response.data !== undefined && response.data.lastImportSummary !== undefined) {
+                        this.configData.lastImportSummary = response.data.lastImportSummary;
                     }
                 } else {
                     Ext.Msg.alert('Error', response.message);
                 }
             }.bind(this)
         });
-        console.log(this.configData);
     },
 
     getData: function () {
@@ -234,9 +238,34 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         item.id = 1;
         let __self = this;
 
+        this.manualStartButtonContainer = Ext.create('Ext.form.FieldContainer', {
+            fieldLabel: 'Manual execution',
+            labelWidth: 130,
+            items:[
+                {
+                    xtype: 'button',
+                    width: 80,
+                    text: t('Start'),
+                    handler: function(button) {
+                        if(this.dirty) {
+                            Ext.Msg.alert('Error', 'Looks like you have made changes in configuration. Please save your changes before proceeding.');
+                            return false;
+                        }
+                        this.manualStartButtonContainer.setDisabled(true);
+                        Ext.Ajax.request({
+                            url: Routing.generate('icecat_start_manual_import'),
+                            method: 'GET',
+                            success: function (response) {
+                                this.updateProgress();
+                            }.bind(this)
+                        });
+                    }.bind(this)
+                }
+            ]
+        });
+        
         this.crontabExecution = Ext.create('Ext.form.FieldContainer', {
             fieldLabel: t(''),
-            //layout: 'hbox',
             items: [
                 {
                     xtype: 'radiogroup',
@@ -246,16 +275,21 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     items: [
                         {
                             boxLabel: t('Only new products'),
-                            name: 'scheduleType',
-                            checked: !this.data || this.data.scheduleType !== 'job',
-                            inputValue: 'recurring'
+                            name: 'onlyNewObjectProcessed',
+                            checked: this.configData.onlyNewObjectProcessed == true ? true : false,
+                            inputValue: '1',
                         }, {
                             boxLabel: t('All products'),
-                            name: 'scheduleType',
-                            checked: this.data?.scheduleType === 'job',
-                            inputValue: 'job'
+                            name: 'onlyNewObjectProcessed',
+                            checked: this.configData.onlyNewObjectProcessed == true ? false : true,
+                            inputValue: '0'
                         }
-                    ]
+                    ],
+                    listeners: {
+                        'change': function (e, val) {
+                            this.dirty = true;
+                        }.bind(this)
+                    }
                 },
                 {
                     xtype: "fieldcontainer",
@@ -273,26 +307,26 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             typeAhead: false,
                             anyMatch: true,
                             width: 300,
-                            name: 'cronExpression',
-                            listeners: {
-                                'change': function (e, val) {
-                                    Ext.Ajax.request({
-                                        url: Routing.generate('icecat_saveconfig'),
-                                        params: {languages: val.join('|')},
-                                        method: 'GET',
-                                        success: function (res) {
-                                            response = Ext.decode(res.responseText);
-                                            if(response.success === false) {
-                                                Ext.Msg.alert('Error', response.message);
-                                                return false;
-                                            }
-                                            this.configData.selectedLanguages = val;
-                                        }.bind(this),
-                                        failure: function (err) {
-                                        }.bind(this)
-                                    });
-                                }.bind(this)
-                            }
+                            name: 'cronExpression'
+                            // listeners: {
+                            //     'change': function (e, val) {
+                            //         Ext.Ajax.request({
+                            //             url: Routing.generate('icecat_saveconfig'),
+                            //             params: {languages: val.join('|')},
+                            //             method: 'GET',
+                            //             success: function (res) {
+                            //                 response = Ext.decode(res.responseText);
+                            //                 if(response.success === false) {
+                            //                     Ext.Msg.alert('Error', response.message);
+                            //                     return false;
+                            //                 }
+                            //                 this.configData.selectedLanguages = val;
+                            //             }.bind(this),
+                            //             failure: function (err) {
+                            //             }.bind(this)
+                            //         });
+                            //     }.bind(this)
+                            // }
                         },
                         {
                             xtype: 'displayfield',
@@ -301,24 +335,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                         }
                     ]
                 },
-                {
-                    xtype: "fieldcontainer",
-                    fieldLabel: 'Manual execution',
-                    labelWidth: 130,
-                    items:[
-                        {
-                            xtype: 'button',
-                            width: 80,
-                            text: t('Start')
-                        }
-                    ]
-                }
+                this.manualStartButtonContainer
             ]
         });
 
         this.lastRunSummary = Ext.create('Ext.form.Label', {
             style: 'margin-bottom: 5px; display: block',
-            html: '<b>Total Records:</b><div style="height:10px;"></div><b>Successfully Processed:</b><div style="height:10px;"></div><b>Errored Records:</b>'
+            bodyPadding: 0,
+            html: this.configData.lastImportSummary
         });
 
         this.progressLabel = Ext.create('Ext.form.Label', {
@@ -327,6 +351,8 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         this.progressBar = Ext.create('Ext.ProgressBar', {
             hidden: false
         });
+
+        this.updateProgress();
 
         this.cronPanel = new Ext.form.FormPanel({
             items: [
@@ -358,6 +384,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     name: 'productClass',
                                     listeners: {
                                         'change': function (e, val) {
+                                            this.dirty = true;
                                             this.classFieldsStore.getProxy().setExtraParam("classId", val);
                                             this.classFieldsStore.reload();
                                         }.bind(this)
@@ -383,7 +410,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             name: 'brandNameField',
                                             listeners: {
                                                 'change': function (e, newValue, oldValue) {
+                                                    this.dirty = true;
                                                     Ext.getCmp("mapping_brand_class_field").hide();
+                                                    Ext.getCmp("mapping_brand_class_field").setValue('');
                                                     Ext.getCmp("mapping_brand_language_field").hide();
                                                     const record = this.classFieldsStore.findRecord('key', newValue);
                                                     if(record && record.data.type == "manyToOneRelation") {
@@ -412,7 +441,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             multiselect: false,
                                             typeAhead: false,
                                             anyMatch: true,
-                                            hidden: this.configData.mappingBrandClassField != "" ? false : true,
+                                            hidden: this.configData.mappingBrandClassField !== null && this.configData.mappingBrandClassField != "" ? false : true,
                                             value: this.configData.mappingBrandClassField ? this.configData.mappingBrandClassField : null,
                                             name: 'mappingBrandClassField',
                                             listeners: {
@@ -440,7 +469,12 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             //hidden: this.configData.mappingBrandLanguageField != "" ? false : true,
                                             hidden: true,
                                             value: this.configData.mappingBrandLanguageField ? this.configData.mappingBrandLanguageField : null,
-                                            name: 'mappingBrandLanguageField'
+                                            name: 'mappingBrandLanguageField',
+                                            listeners: {
+                                                'change': function (e, newValue, oldValue) {
+                                                    this.dirty = true;
+                                                }.bind(this)
+                                            }
                                         },
                                     ]
                                 },
@@ -465,7 +499,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             name: 'productNameField',
                                             listeners: {
                                                 'change': function (e, newValue, oldValue) {
+                                                    this.dirty = true;
                                                     Ext.getCmp("mapping_productcode_class_field").hide();
+                                                    Ext.getCmp("mapping_productcode_class_field").setValue('');
                                                     Ext.getCmp("mapping_productcode_language_field").hide();
                                                     const record = this.classFieldsStore.findRecord('key', newValue);
                                                     if(record && record.data.type == "manyToOneRelation") {
@@ -493,17 +529,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             multiselect: false,
                                             typeAhead: false,
                                             anyMatch: true,
-                                            hidden: this.configData.mappingProductNameClassField != "" ? false : true,
+                                            hidden: this.configData.mappingProductNameClassField !== null && this.configData.mappingProductNameClassField != "" ? false : true,
                                             value: this.configData.mappingProductNameClassField ? this.configData.mappingProductNameClassField : null,
                                             name: 'mappingProductCodeClassField',
-                                            // listeners: {
-                                            //     'change': function (e, newValue, oldValue) {
-                                            //         const record = this.productCodeReferenceFieldsStore.findRecord('key', newValue);
-                                            //         if(record.data.localized) {
-                                            //             //Ext.getCmp("mapping_productcode_language_field").show();
-                                            //         }
-                                            //     }.bind(this)
-                                            // }
+                                            listeners: {
+                                                'change': function (e, newValue, oldValue) {
+                                                    this.dirty = true;
+                                                }.bind(this)
+                                            }
                                         },
                                         {
                                             xtype: "combobox",
@@ -544,7 +577,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             name: 'gtinField',
                                             listeners: {
                                                 'change': function (e, newValue, oldValue) {
+                                                    this.dirty = true;
                                                     Ext.getCmp("mapping_gtin_class_field").hide();
+                                                    Ext.getCmp("mapping_gtin_class_field").setValue('');
                                                     Ext.getCmp("mapping_gtin_language_field").hide();
                                                     const record = this.classFieldsStore.findRecord('key', newValue);
                                                     if(record && record.data.type == "manyToOneRelation") {
@@ -572,17 +607,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             multiselect: false,
                                             typeAhead: false,
                                             anyMatch: true,
-                                            hidden: this.configData.mappingGtinClassField != "" ? false : true,
+                                            hidden: this.configData.mappingGtinClassField !== null && this.configData.mappingGtinClassField != "" ? false : true,
                                             value: this.configData.mappingGtinClassField ? this.configData.mappingGtinClassField : null,
                                             name: 'mappingGtinClassField',
-                                            // listeners: {
-                                            //     'change': function (e, newValue, oldValue) {
-                                            //         const record = this.gtinReferenceFieldsStore.findRecord('key', newValue);
-                                            //         if(record.data.localized) {
-                                            //             //Ext.getCmp("mapping_gtin_language_field").show();
-                                            //         }
-                                            //     }.bind(this)
-                                            // }
+                                            listeners: {
+                                                'change': function (e, newValue, oldValue) {
+                                                    this.dirty = true;
+                                                }.bind(this)
+                                            }
                                         },
                                         {
                                             xtype: "combobox",
@@ -680,12 +712,13 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                 method: 'POST',
                                 url: Routing.generate('icecat_saveconfig'),
                                 params: {
-                                    gtinFieldType: Ext.getCmp('mapping_gtin_class_field').getValue() != "" ? Ext.getCmp('mapping_gtin_class_field').getValue() : "default",
-                                    brandNameFieldType: Ext.getCmp('mapping_brand_class_field').getValue() != "" ? Ext.getCmp('mapping_brand_class_field').getValue() : "default",
-                                    productNameFieldType: Ext.getCmp('mapping_productcode_class_field').getValue() != "" ? Ext.getCmp('mapping_productcode_class_field').getValue() : "default"
+                                    gtinFieldType: Ext.getCmp('mapping_gtin_class_field').getValue() != "" && Ext.getCmp('mapping_gtin_class_field').getValue() !== null ? "manyToOneRelation" : "default",
+                                    brandNameFieldType: Ext.getCmp('mapping_brand_class_field').getValue() != "" && Ext.getCmp('mapping_brand_class_field').getValue() !== null ? "manyToOneRelation" : "default",
+                                    productNameFieldType: Ext.getCmp('mapping_productcode_class_field').getValue() != "" && Ext.getCmp('mapping_productcode_class_field').getValue() !== null ? "manyToOneRelation" : "default",
                                 },
                                 success: function (form, action) {
                                     if (action.response.status != "undefined" && action.response.status == 200) {
+                                        this.dirty = false;
                                         var resp = JSON.parse(action.response.responseText);
                                         if (resp.success === true) {
                                             pimcore.helpers.showNotification('Success', 'Config saved successfully!', 'success');
@@ -695,9 +728,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             pimcore.helpers.showNotification('Failure', 'Something went wrong!', 'error');
                                         }
                                     }
-                                },
-                                failure: function (form, action) {
-                                }
+                                }.bind(this)
                             });
                         }
                     }.bind(this)
@@ -854,6 +885,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                 {
                     xtype: 'fieldset',
                     border: true,
+                    width:1400,
                     bodyPadding: 10,
                     collapsible: true,
                     title: "One time import - Manual",
@@ -1143,6 +1175,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                 {
                     xtype: "fieldset",
                     collapsible: true,
+                    width:1400,
                     bodyPadding: 10,
                     title: 'Recurring import - Automated',
                     border: true,
@@ -1150,7 +1183,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                         {
                             xtype: "label",
                             style: "font-size:15px;",
-                            html: "<div class=\"objectlayout_element_text\"><div class=\"alert alert-primary\">Select class and fields mapping <b>OR</b> drag n drop excel file from assets section</div></div>",
+                            html: "<div class=\"objectlayout_element_text\"><div class=\"alert alert-primary\">Select class and fields mapping <b>OR</b> drag n drop excel file from assets section. Asset will have priority over class mapping.</div></div>",
                         },
                         {
                             xtype: 'tbspacer',
@@ -1182,6 +1215,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
             enableKeyEvents: true,
             msgTarget: 'under',
             listeners: {
+                change: function() {
+                    this.dirty = true;
+                }.bind(this),
                 render: function (el) {
                     // add drop zone
                     new Ext.dd.DropZone(el.getEl(), {
@@ -1271,7 +1307,8 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
 
     dndAllowed: function (data) {
         if (data.elementType === 'asset') {
-            return data.type === 'document' || data.type === 'text' || data.type === 'unknown';
+            const ext = data.key.substr(data.key.lastIndexOf('.') + 1);
+            return ext === 'xlsx' || ext === 'xls';
         }
         return false;
     },
@@ -1279,26 +1316,31 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
     updateProgress: function() {
         clearTimeout(this.updateHandle);
         Ext.Ajax.request({
-            url: Routing.generate('pimcore_dataimporter_configdataobject_checkimportprogress'),
+            url: Routing.generate('icecat_check_recurring_import_progress'),
             method: 'GET',
-            params: {
-                config_name: this.configName,
-            },
             success: function (response) {
                 let data = Ext.decode(response.responseText);
 
                 if(data.isRunning) {
                     this.progressBar.show();
-                    this.cancelButtonContainer.show();
                     this.progressBar.updateProgress(data.progress, data.processedItems + '/' + data.totalItems + ' ' + t('plugin_pimcore_datahub_data_importer_configpanel_execution_processed'));
-                    this.progressLabel.setHtml(t('plugin_pimcore_datahub_data_importer_configpanel_execution_current_progress'));
+                    this.progressLabel.setHtml(t('Total records = no. of records to process X no. of languages configured'));
+                    this.manualStartButtonContainer.setDisabled(true);
                 } else {
                     this.progressBar.hide();
-                    this.cancelButtonContainer.hide();
-                    this.progressLabel.setHtml('<b>' + t('plugin_pimcore_datahub_data_importer_configpanel_execution_not_running') + '</b>');
+                    this.progressLabel.setHtml('<b>' + t('No import running') + '</b>');
+                    this.manualStartButtonContainer.setDisabled(false);
+                    Ext.Ajax.request({
+                        url: Routing.generate('icecat_get_last_run_import_summary'),
+                        method: 'GET',
+                        success: function (response) {
+                            let data = Ext.decode(response.responseText);
+                            this.lastRunSummary.setHtml(data.html);
+                        }.bind(this)
+                    });
                 }
 
-                this.updateHandle = setTimeout(this.updateProgress.bind(this), 5000);
+                this.updateHandle = setTimeout(this.updateProgress.bind(this), 4000);
 
             }.bind(this)
         });

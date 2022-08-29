@@ -125,6 +125,7 @@ class IcecatProductSubscriber implements EventSubscriberInterface
 
             $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog();
             $icecatFieldLog->setPimcoreId($object->getId());
+            $icecatFieldLog->setIcecatId($object->getIcecat_Product_Id());
             $icecatFieldLog->setEan($object->getGtin());
             $icecatFieldLog->setLang($lang);
             $icecatFieldLog->setBrand($object->getBrand());

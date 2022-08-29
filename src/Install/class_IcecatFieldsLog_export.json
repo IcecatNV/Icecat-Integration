@@ -1,7 +1,7 @@
 {
     "id": "icecat_fields_log",
     "description": "",
-    "modificationDate": 1659248735,
+    "modificationDate": 1661794399,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -65,8 +65,35 @@
                         "datatype": "data",
                         "relationType": false,
                         "invisible": false,
-                        "visibleGridView": false,
-                        "visibleSearch": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
+                        "defaultValueGenerator": ""
+                    },
+                    {
+                        "fieldtype": "numeric",
+                        "width": 300,
+                        "defaultValue": null,
+                        "integer": false,
+                        "unsigned": false,
+                        "minValue": null,
+                        "maxValue": null,
+                        "unique": false,
+                        "decimalSize": null,
+                        "decimalPrecision": null,
+                        "name": "icecatId",
+                        "title": "Icecat Id",
+                        "tooltip": "",
+                        "mandatory": false,
+                        "noteditable": false,
+                        "index": true,
+                        "locked": false,
+                        "style": "",
+                        "permissions": null,
+                        "datatype": "data",
+                        "relationType": false,
+                        "invisible": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
                         "defaultValueGenerator": ""
                     },
                     {
@@ -89,8 +116,8 @@
                         "datatype": "data",
                         "relationType": false,
                         "invisible": false,
-                        "visibleGridView": false,
-                        "visibleSearch": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
                         "defaultValueGenerator": ""
                     },
                     {
@@ -113,8 +140,8 @@
                         "datatype": "data",
                         "relationType": false,
                         "invisible": false,
-                        "visibleGridView": false,
-                        "visibleSearch": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
                         "defaultValueGenerator": ""
                     },
                     {
@@ -137,8 +164,8 @@
                         "datatype": "data",
                         "relationType": false,
                         "invisible": false,
-                        "visibleGridView": false,
-                        "visibleSearch": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
                         "defaultValueGenerator": ""
                     },
                     {
@@ -163,8 +190,8 @@
                         "datatype": "data",
                         "relationType": false,
                         "invisible": false,
-                        "visibleGridView": false,
-                        "visibleSearch": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
                         "defaultValueGenerator": ""
                     },
                     {
@@ -211,8 +238,8 @@
                         "datatype": "data",
                         "relationType": false,
                         "invisible": false,
-                        "visibleGridView": false,
-                        "visibleSearch": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
                         "defaultValueGenerator": ""
                     }
                 ],

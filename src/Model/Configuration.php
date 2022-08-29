@@ -350,7 +350,7 @@ class Configuration
      */
     public function getProductNameFieldType()
     {
-        return $this->productNameField;
+        return $this->productNameFieldType;
     }
 
     /**
@@ -504,7 +504,7 @@ class Configuration
         if ($this->getGtinField() !== null) {
             if($this->getMappingGtinClassField() !== null) {
                 $data['icecat']['gtinField']['name'] = $this->getGtinField();
-                $data['icecat']['gtinField']['type'] = "manyToOneRelation";
+                $data['icecat']['gtinField']['type'] = $this->getGtinFieldType();
                 $data['icecat']['gtinField']['referenceFieldName'] = $this->getMappingGtinClassField();
             } else {
                 $data['icecat']['gtinField']['name'] = $this->getGtinField();
@@ -516,7 +516,7 @@ class Configuration
         if ($this->getBrandNameField() !== null) {
             if($this->getMappingBrandClassField() !== null) {
                 $data['icecat']['brandNameField']['name'] = $this->getBrandNameField();
-                $data['icecat']['brandNameField']['type'] = "manyToOneRelation";
+                $data['icecat']['brandNameField']['type'] = $this->getBrandNameFieldType();
                 $data['icecat']['brandNameField']['referenceFieldName'] = $this->getMappingBrandClassField();
             } else {
                 $data['icecat']['brandNameField']['name'] = $this->getBrandNameField();
@@ -528,7 +528,7 @@ class Configuration
         if ($this->getProductNameField() !== null) {
             if($this->getMappingProductCodeClassField() !== null) {
                 $data['icecat']['productNameField']['name'] = $this->getProductNameField();
-                $data['icecat']['productNameField']['type'] = "manyToOneRelation";
+                $data['icecat']['productNameField']['type'] = $this->getProductNameFieldType();
                 $data['icecat']['productNameField']['referenceFieldName'] = $this->getMappingProductCodeClassField();
             } else {
                 $data['icecat']['productNameField']['name'] = $this->getProductNameField();
