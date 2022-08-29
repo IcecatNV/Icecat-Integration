@@ -18,6 +18,7 @@ class IceCatBundle extends AbstractPimcoreBundle
             '/bundles/icecat/js/pimcore/startup.js',
             '/bundles/icecat/js/pimcore/toolbar.js',
             '/bundles/icecat/js/pimcore/helper.js',
+            '/bundles/icecat/js/pimcore/refreshIcecatProduct.js',
             '/bundles/icecat/js/pimcore/grid/grid.js',
             '/bundles/icecat/js/pimcore/grid/icgridfilters.js',
             '/bundles/icecat/js/pimcore/ice-cat-screen/screen.js',

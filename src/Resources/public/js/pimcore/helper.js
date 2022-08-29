@@ -45,7 +45,7 @@ pimcore.plugin.iceCatHelper = Class.create({
         ufp.child('#iceCatBundle_importGridPanel').tab.show();
         ufp.child('#icecatApplicationLoggerPanel').tab.show();
         ufp.child('#iceCatBundle_unfetchedProductGrid').tab.show();
-        ufp.child('#iceCatBundle_cronPanel').tab.show();
+        // ufp.child('#iceCatBundle_cronPanel').tab.show();
 
         if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
         && this.uploadPanel.getConfigData().showSearchPanel) {

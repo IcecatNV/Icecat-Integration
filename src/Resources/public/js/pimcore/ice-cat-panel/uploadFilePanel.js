@@ -691,6 +691,8 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             pimcore.helpers.showNotification('Success', 'Config saved successfully!', 'success');
                                         } else if (resp.success === false && action.response.status == 303) {
                                             pimcore.helpers.showNotification('Failure', 'error', 'error');
+                                        } else if (resp.success == false) {
+                                            pimcore.helpers.showNotification('Failure', resp.message, 'error');
                                         } else {
                                             pimcore.helpers.showNotification('Failure', 'Something went wrong!', 'error');
                                         }

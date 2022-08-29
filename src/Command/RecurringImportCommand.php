@@ -2,11 +2,14 @@
 
 namespace IceCatBundle\Command;
 
+use IceCatBundle\Lib\IceCateHelper;
 use IceCatBundle\Services\CreateObjectService;
 use IceCatBundle\Services\ImportService;
 use IceCatBundle\Model\Configuration;
 use Pimcore\Console\AbstractCommand;
 use Pimcore\Model\Asset;
+use Pimcore\Model\DataObject\Icecat\Listing;
+use Pimcore\Tool;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Pimcore\Log\Simple;
@@ -16,6 +19,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class RecurringImportCommand extends AbstractCommand
 {
+
+    use IceCateHelper;
 
     /**
      * @var ConnectionInterface
@@ -89,6 +94,7 @@ class RecurringImportCommand extends AbstractCommand
     {
         $this->importService = $importService;
         $this->createObjectService = $createObjectService;
+        $this->configuration = Configuration::load();
         parent::__construct();
     }
 
@@ -135,10 +141,17 @@ class RecurringImportCommand extends AbstractCommand
             return 1;
         }
 
+        $nextRun = $this->getNextCronJobExecutionTimestamp();
+        if ($this->executionType = 'automatic' && ($nextRun - time()) > 0) {
+            Simple::log(self::LOG_FILENAME, 'no time to run!');
+            return 0;
+        }
         $assetFilePath = $this->configuration->getAssetFilePath();
         $asset = Asset::getByPath($assetFilePath);
         if($asset) {
            $this->processAssetFile($asset);
+        } else {
+            $this->processUserProducts();
         }
 
         $this->createOrUpdateEntryInTable([
@@ -263,6 +276,192 @@ class RecurringImportCommand extends AbstractCommand
                 "processedRecords" => $this->processedRecords,
             ]);
         }
+    }
+
+    public function processUserProducts()
+    {
+        $validConfigToProceed = false;
+        $productClass = $this->configuration->getProductClass();
+        if (empty($productClass)) {
+            p_r('Product class not set!!');
+            $validConfigToProceed = false;
+        }
+        $gtinField = $this->configuration->getGtinField();
+        $brandNameField = $this->configuration->getBrandNameField();
+        $productCodeField = $this->configuration->getProductNameField();
+
+        if (empty($gtinField) && (empty($brandNameField) || empty($productNameField))) {
+            p_r('Either GTIN or (brandName and productName) field(s) must be set!!');
+            $validConfigToProceed = false;
+        }
+
+        if (!$validConfigToProceed) {
+                $this->createOrUpdateEntryInTable([
+                "endDatetime" => time(),
+                "status" => "finished",
+                "totalRecords" => 0,
+                "processedRecords" => 0,
+                "successRecords" => 0,
+                "errorRecords" => 0,
+                "executionType" => $this->executionType
+            ]);
+            Simple::log(self::LOG_FILENAME, 'Product class not set!! | Either GTIN or (brandName and productName) field(s) must be set!!');
+            return 1;
+        }
+
+        $onlyNewObjectProcessed = $this->configuration->getOnlyNewObjectProcessed();
+        if ($onlyNewObjectProcessed) {
+            $lastCronJobExecutionEndTime = $this->getLastCronJobExecutionEndTime();
+        }
+
+        $listingClass = "\\Pimcore\\Model\\DataObject\\" . $productClass . '\\Listing';
+        /** @var Listing $listing */
+        $listing = new $listingClass();
+        if ($onlyNewObjectProcessed) {
+            $listing->setCondition('o_modificationDate >=?' . [$lastCronJobExecutionEndTime]);
+        }
+
+        $batchSize = 500;
+        $this->totalRecords = $listing->count();
+
+        if ($this->totalRecords) {
+            if (!$validConfigToProceed) {
+                $this->createOrUpdateEntryInTable([
+                    "endDatetime" => time(),
+                    "status" => "finished",
+                    "totalRecords" => 0,
+                    "processedRecords" => 0,
+                    "successRecords" => 0,
+                    "errorRecords" => 0,
+                    "executionType" => $this->executionType
+                ]);
+                Simple::log(self::LOG_FILENAME, 'No User products found to process');
+                return 1;
+            }
+        }
+        $totalIteration = ceil($this->totalRecords  / $batchSize);
+
+            // @todo: need to add listing condition
+
+        for($counter = 0; $counter < $totalIteration; $counter++) {
+            $listing->setLimit($batchSize);
+            $listing->setOffset($counter * $batchSize);
+            $productsList = $listing->load();
+            foreach ($productsList as $product) {
+                foreach ($this->configuration->getLanguages() as $language) {
+                    try {
+                        $res = $this->getIceCatData($product, $gtinField, $brandNameField, $productCodeField, $language);
+                        if ($res['failure']) {
+                            ++$this->errorRecords;
+                            Simple::log(self::LOG_FILENAME, "ERROR: in fetch data for product {$product} with 
+                        values({$gtinField}, {$brandNameField}, {$productCodeField}) LANG {$language} - product not found");
+                            continue;
+                        }
+                        $this->createOrUpdateObject($res['iceCatData'], $language);
+                    } catch (\Exception $e) {
+                        ++$this->errorRecords;
+                        Simple::log(self::LOG_FILENAME, "ERROR: in fetch data for product {$product} with 
+                        values({$gtinField}, {$brandNameField}, {$productCodeField}) LANG {$language} - " . $e->getMessage());;
+                    }
+                }
+            }
+        }
+
+
+            ++$this->processedRecords;
+
+            $this->createOrUpdateEntryInTable([
+                "processedRecords" => $this->processedRecords,
+            ]);
+
+    }
+
+    public function getIceCatData($product, $gtinField, $brandNameField, $productCodeField, $language)
+    {
+        if (!empty($gtinField)) {
+            $gtin = $product->{'get' . ucfirst($gtinField)}();
+            if (is_object($gtinField)) {
+                $referenceField = $this->configuration->getMappingGtinClassField();
+                if (!empty($referenceField)) {
+                    $gtin = $gtin->{'get' . ucfirst($referenceField)}();
+                } else {
+                    $gtin = '';
+                }
+            }
+        }
+
+        if (!empty($brandNameField)) {
+            $brandName = $product->{'get' . ucfirst($brandNameField)}();
+            if (is_object($brandName)) {
+                $referenceField = $this->configuration->getMappingGtinClassField();
+                if (!empty($referenceField)) {
+                    $brandName = $brandName->{'get' . ucfirst($referenceField)}();
+                } else {
+                    $brandName = '';
+                }
+            }
+        }
+
+        if (!empty($productCodeField)) {
+            $productCode = $product->{'get' . ucfirst($productCodeField)}();
+            if (is_object($gtinField)) {
+                $referenceField = $this->configuration->getMappingGtinClassField();
+                if (!empty($referenceField)) {
+                    $productCode = $productCode->{'get' . ucfirst($referenceField)}();
+                } else {
+                    $productCode = '';
+                }
+            }
+        }
+        $dataToFetchIceProduct['gtin'] = $gtin;
+        $dataToFetchIceProduct['productCode'] = $productCode;
+        $dataToFetchIceProduct['brandName'] = $brandName;
+
+        $result = [];
+        $url = $this->getIceCatUrlToGetRecord($dataToFetchIceProduct, $this->icecatLoginUser, $language);
+        if ($url == -1) {
+            $reason = ImportService::REASON['INVALID_KEY'];
+            $result =  [ 'failure' => true, 'msg' => $reason];
+        }
+
+        try {
+            p_r('url to fetch =>' . $url);
+            $response = $this->fetchIceCatData($url);
+            $responseArray = json_decode($response, true);
+        } catch (\Exception $e) {
+            // IN CASE OF INTERNET ACCESSIBLITY IS NOT AVAILABEL OR ICE CAT'S SERVER IS DOWN
+            $response = '';
+            $responseArray['COULD_NOT_RESOLVE_HOST'] = true;
+        }
+
+        $productName = '';
+        if (array_key_exists('statusCode', $responseArray)) {
+            if ($responseArray['statusCode'] == 4) {
+                $reason = ImportService::REASON['PRODUCT_NOT_FOUND'];
+                $result =  [ 'failure' => true, 'msg' => $reason];
+            } elseif ($responseArray['statusCode'] == 2) {
+                $reason = ImportService::REASON['INVALID_LANGUAGE'];
+                $result =  [ 'failure' => true, 'msg' => $reason];
+            }
+        } elseif (array_key_exists('COULD_NOT_RESOLVE_HOST', $responseArray)) {
+            $reason = ImportService::REASON['COULD_NOT_RESOLVE_HOST'];
+            $result =  [ 'failure' => true, 'msg' => $reason];
+        } elseif (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
+            //Product Found
+            $gtin = $responseArray['data']['GeneralInfo']['GTIN'][0];
+            $currentProductIceCatId = $responseArray['data']['GeneralInfo']['IcecatId'];
+            $productName = $productName = str_replace("'", "''", $responseArray['data']['GeneralInfo']['ProductName']);
+
+            $data = [
+                'gtin' => $gtin,
+                'original_gtin' => $currentProductIceCatId,
+                'language' => $this->language,
+                'data_encoded' => base64_encode($response),
+                'product_name' => $productName
+            ];
+            $result =  [ 'failure' => false, 'iceCatData' => $data];
+        }
+        return $result;
     }
 
     /**
