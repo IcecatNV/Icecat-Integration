@@ -395,7 +395,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             value: this.configData.productClass,
                                             multiselect: false,
                                             forceSelection: true,
-                                            allowBlank: false,
+                                            allowBlank: true,
                                             typeAhead: false,
                                             anyMatch: true,
                                             name: 'productClass',
