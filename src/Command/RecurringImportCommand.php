@@ -429,7 +429,7 @@ class RecurringImportCommand extends AbstractCommand
             $result = $this->db->fetchRow($sql);
             if($result) {
                 $startDatetime = $result['start_datetime'];
-                $listing->setCondition("o_creationDate > {$startDatetime}");
+                $listing->setCondition("o_modificationDate > {$startDatetime}");
             }
         }
 
@@ -496,7 +496,7 @@ class RecurringImportCommand extends AbstractCommand
                     }
                 }
 
-                if($isBrandAvailable && $isProductCodeAvailable) {
+                if(!$gtin && $isBrandAvailable && $isProductCodeAvailable) {
 
                     // Brand
                     $getter = "get".ucfirst($this->configuration->getBrandNameField());

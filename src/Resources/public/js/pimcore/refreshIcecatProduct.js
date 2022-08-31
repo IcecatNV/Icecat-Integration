@@ -133,7 +133,7 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
                                 if (action.response.status != "undefined" && action.response.status == 200) {
                                     var resp = JSON.parse(action.response.responseText);
                                     if (resp.success === true) {
-                                        pimcore.helpers.showNotification('Success', `Pimcore ID ${this.object.id} updated successfully`, 'success');
+                                        pimcore.helpers.showNotification('Success', `Pimcore ID ${this.data.general.o_key} updated successfully`, 'success');
                                     } else if (resp.success === false && action.response.status == 303) {
                                         pimcore.helpers.showNotification('Failure', 'error', 'error');
                                     } else {

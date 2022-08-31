@@ -163,6 +163,9 @@ trait IceCateHelper
      */
     public function checkIfCronExpressionValid($cronExpression)
     {
+        if($cronExpression == "") {
+            return;
+        }
         try {
             $cron = new \Cron\CronExpression($cronExpression);
         } catch (\Exception $ex) {

@@ -269,32 +269,6 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
             labelWidth: 580,
             items: [
                 {
-                    xtype: 'radiogroup',
-                    vertical: 'false',
-                    labelWidth: 2500,
-                    columns: 2,
-                    width: 500,
-                    items: [
-                        {
-                            boxLabel: t('Update new products since last run'),
-                            labelWidth: 2500,
-                            name: 'onlyNewObjectProcessed',
-                            checked: this.configData.onlyNewObjectProcessed == true ? true : false,
-                            inputValue: '1',
-                        }, {
-                            boxLabel: t('Update all products'),
-                            name: 'onlyNewObjectProcessed',
-                            checked: this.configData.onlyNewObjectProcessed == true ? false : true,
-                            inputValue: '0'
-                        }
-                    ],
-                    listeners: {
-                        'change': function (e, val) {
-                            this.dirty = true;
-                        }.bind(this)
-                    }
-                },
-                {
                     xtype: "fieldcontainer",
                     layout: "hbox",
                     items: [
@@ -368,7 +342,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             items: [
                                 {
                                     xtype: 'fieldset',
-                                    width: 950,
+                                    width: 700,
                                     title: t('Asset'),
                                     defaults: {
                                         labelWidth: 130
@@ -379,7 +353,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                 },
                                 {
                                     xtype: 'fieldset',
-                                    width: 950,
+                                    width: 700,
                                     title: t('Class fields mapping'),
                                     items: [
                                         {
@@ -652,6 +626,33 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                     name: 'mappingProductCodeLanguageField'
                                                 }
                                             ]
+                                        },
+                                        {
+                                            xtype: 'radiogroup',
+                                            vertical: 'false',
+                                            style: 'margin-left:-3px;',
+                                            labelWidth: 3500,
+                                            columns: 2,
+                                            width: 570,
+                                            items: [
+                                                {
+                                                    boxLabel: t('Update modified products since last run'),
+                                                    labelWidth: 3000,
+                                                    name: 'onlyNewObjectProcessed',
+                                                    checked: this.configData.onlyNewObjectProcessed == true ? true : false,
+                                                    inputValue: '1',
+                                                }, {
+                                                    boxLabel: t('Update all products'),
+                                                    name: 'onlyNewObjectProcessed',
+                                                    checked: this.configData.onlyNewObjectProcessed == true ? false : true,
+                                                    inputValue: '0'
+                                                }
+                                            ],
+                                            listeners: {
+                                                'change': function (e, val) {
+                                                    this.dirty = true;
+                                                }.bind(this)
+                                            }
                                         }
                                     ]
                                 },
@@ -660,7 +661,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                         {
                             xtype: 'fieldset',
                             width: 300,
-                            height: 335,
+                            height: 376,
                             style: "margin-left:50px;",
                             title: t('Last import summary'),
                             defaults: {
@@ -682,7 +683,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     items: [
                         {
                             xtype: 'fieldset',
-                            width: 950,
+                            width: 700,
                             title: t('Scheduler'),
                             defaults: {
                                 labelWidth: 130
@@ -696,7 +697,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             style: "margin-left:50px;",
                             title: t('Execution status'),
                             width: 300,
-                            height: 202,
+                            height: 160,
                             items: [
                                 this.progressLabel,
                                 this.progressBar
