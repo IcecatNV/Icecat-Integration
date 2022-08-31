@@ -384,7 +384,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     items: [
                                         {
                                             xtype: "combobox",
-                                            required: true,
+                                            required: false,
                                             id: "system_class_loader_Icecat",
                                             fieldLabel: 'Class',
                                             triggerAction: 'all',
