@@ -266,20 +266,23 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         
         this.crontabExecution = Ext.create('Ext.form.FieldContainer', {
             fieldLabel: t(''),
+            labelWidth: 580,
             items: [
                 {
                     xtype: 'radiogroup',
                     vertical: 'false',
+                    labelWidth: 2500,
                     columns: 2,
-                    width: 400,
+                    width: 500,
                     items: [
                         {
-                            boxLabel: t('Only new products'),
+                            boxLabel: t('Update new products since last run'),
+                            labelWidth: 2500,
                             name: 'onlyNewObjectProcessed',
                             checked: this.configData.onlyNewObjectProcessed == true ? true : false,
                             inputValue: '1',
                         }, {
-                            boxLabel: t('All products'),
+                            boxLabel: t('Update all products'),
                             name: 'onlyNewObjectProcessed',
                             checked: this.configData.onlyNewObjectProcessed == true ? false : true,
                             inputValue: '0'
@@ -297,13 +300,13 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     items: [
                         {
                             xtype: "textfield",
-                            required: true,
+                            required: false,
                             id: "cron_expression_Icecat",
                             fieldLabel: 'Cron definition',
                             labelWidth: 130,
                             triggerAction: 'all',
                             value: this.configData.cronExpression ? this.configData.cronExpression : '',
-                            allowBlank: false,
+                            allowBlank: true,
                             typeAhead: false,
                             anyMatch: true,
                             width: 300,
@@ -361,287 +364,303 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     layout: "hbox",
                     items:[
                         {
-                            xtype: 'fieldset',
-                            width: 950,
-                            title: t('Class fields mapping'),
+                            xtype: "fieldcontainer",
                             items: [
                                 {
-                                    xtype: "combobox",
-                                    required: true,
-                                    id: "system_class_loader_Icecat",
-                                    fieldLabel: 'Class',
-                                    triggerAction: 'all',
-                                    queryMode: 'local',
-                                    store: this.classStore,
-                                    displayField: 'display_value',
-                                    valueField: 'key',
-                                    value: this.configData.productClass,
-                                    multiselect: false,
-                                    forceSelection: true,
-                                    allowBlank: false,
-                                    typeAhead: false,
-                                    anyMatch: true,
-                                    name: 'productClass',
-                                    listeners: {
-                                        'change': function (e, val) {
-                                            this.dirty = true;
-                                            this.classFieldsStore.getProxy().setExtraParam("classId", val);
-                                            this.classFieldsStore.reload();
-                                        }.bind(this)
-                                    }
-                                },
-                                {
-                                    xtype: "fieldcontainer",
-                                    layout: "hbox",
+                                    xtype: 'fieldset',
+                                    width: 950,
+                                    title: t('Asset'),
+                                    defaults: {
+                                        labelWidth: 130
+                                    },
                                     items: [
-                                        {
-                                            xtype: "combobox",
-                                            id: "brand_name_cron_Icecat",
-                                            fieldLabel: 'Brand',
-                                            triggerAction: 'all',
-                                            store: this.classFieldsStore,
-                                            displayField: 'title',
-                                            forceSelection: true,
-                                            valueField: 'key',
-                                            value: this.configData.brandNameField ? this.configData.brandNameField : null,
-                                            multiselect: false,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            name: 'brandNameField',
-                                            listeners: {
-                                                'change': function (e, newValue, oldValue) {
-                                                    this.dirty = true;
-                                                    Ext.getCmp("mapping_brand_class_field").hide();
-                                                    Ext.getCmp("mapping_brand_class_field").setValue('');
-                                                    Ext.getCmp("mapping_brand_language_field").hide();
-                                                    const record = this.classFieldsStore.findRecord('key', newValue);
-                                                    if(record && record.data.type == "manyToOneRelation") {
-                                                        this.brandReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
-                                                        this.brandReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
-                                                        this.brandReferenceFieldsStore.reload();
-                                                        Ext.getCmp("mapping_brand_class_field").show();
-                                                    } else if(record && record.data.localized == true) {
-                                                        //Ext.getCmp("mapping_brand_language_field").show();
-                                                    }
-                                                }.bind(this)
-                                            }
-                                        },
-                                        {
-                                            xtype: "combobox",
-                                            required: false,
-                                            id: "mapping_brand_class_field",
-                                            fieldLabel: 'Reference Class Field',
-                                            labelWidth: 160,
-                                            triggerAction: 'all',
-                                            style: "margin-left:10px;",
-                                            forceSelection: true,
-                                            store: this.brandReferenceFieldsStore,
-                                            displayField: 'title',
-                                            valueField: 'key',
-                                            multiselect: false,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            hidden: this.configData.mappingBrandClassField !== null && this.configData.mappingBrandClassField != "" ? false : true,
-                                            value: this.configData.mappingBrandClassField ? this.configData.mappingBrandClassField : null,
-                                            name: 'mappingBrandClassField',
-                                            listeners: {
-                                                // 'change': function (e, newValue, oldValue) {
-                                                //     const record = this.brandReferenceFieldsStore.findRecord('key', newValue);
-                                                //     if(record.data.localized) {
-                                                //         //Ext.getCmp("mapping_brand_language_field").show();
-                                                //     }
-                                                // }.bind(this)
-                                            }
-                                        },
-                                        {
-                                            xtype: "combobox",
-                                            id: "mapping_brand_language_field",
-                                            fieldLabel: 'Language',
-                                            forceSelection: true,
-                                            triggerAction: 'all',
-                                            style: "margin-left:10px;",
-                                            store: this.selectedLanguagesStore,
-                                            displayField: 'value',
-                                            valueField: 'key',
-                                            multiselect: false,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            //hidden: this.configData.mappingBrandLanguageField != "" ? false : true,
-                                            hidden: true,
-                                            value: this.configData.mappingBrandLanguageField ? this.configData.mappingBrandLanguageField : null,
-                                            name: 'mappingBrandLanguageField',
-                                            listeners: {
-                                                'change': function (e, newValue, oldValue) {
-                                                    this.dirty = true;
-                                                }.bind(this)
-                                            }
-                                        },
+                                        this.getAssetComponent()
                                     ]
                                 },
                                 {
-                                    xtype: "fieldcontainer",
-                                    layout: "hbox",
+                                    xtype: 'fieldset',
+                                    width: 950,
+                                    title: t('Class fields mapping'),
                                     items: [
                                         {
                                             xtype: "combobox",
-                                            id: "product_code_cron_Icecat",
-                                            fieldLabel: 'Product Code',
-                                            forceSelection: true,
+                                            required: true,
+                                            id: "system_class_loader_Icecat",
+                                            fieldLabel: 'Class',
                                             triggerAction: 'all',
                                             queryMode: 'local',
-                                            store: this.classFieldsStore,
-                                            displayField: 'title',
+                                            store: this.classStore,
+                                            displayField: 'display_value',
                                             valueField: 'key',
-                                            value: this.configData.productNameField ? this.configData.productNameField : null,
+                                            value: this.configData.productClass,
                                             multiselect: false,
+                                            forceSelection: true,
+                                            allowBlank: false,
                                             typeAhead: false,
                                             anyMatch: true,
-                                            name: 'productNameField',
+                                            name: 'productClass',
                                             listeners: {
-                                                'change': function (e, newValue, oldValue) {
+                                                'change': function (e, val) {
                                                     this.dirty = true;
-                                                    Ext.getCmp("mapping_productcode_class_field").hide();
-                                                    Ext.getCmp("mapping_productcode_class_field").setValue('');
-                                                    Ext.getCmp("mapping_productcode_language_field").hide();
-                                                    const record = this.classFieldsStore.findRecord('key', newValue);
-                                                    if(record && record.data.type == "manyToOneRelation") {
-                                                        this.productCodeReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
-                                                        this.productCodeReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
-                                                        this.productCodeReferenceFieldsStore.reload();
-                                                        Ext.getCmp("mapping_productcode_class_field").show();
-                                                    } else if(record && record.data.localized == true) {
-                                                        //Ext.getCmp("mapping_productcode_language_field").show();
+                                                    this.classFieldsStore.getProxy().setExtraParam("classId", val);
+                                                    this.classFieldsStore.reload();
+                                                }.bind(this)
+                                            }
+                                        },
+                                        {
+                                            xtype: "fieldcontainer",
+                                            layout: "hbox",
+                                            items: [
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "gtin_cron_Icecat",
+                                                    fieldLabel: 'GTIN',
+                                                    triggerAction: 'all',
+                                                    forceSelection: true,
+                                                    queryMode: 'local',
+                                                    store: this.classFieldsStore,
+                                                    displayField: 'title',
+                                                    valueField: 'key',
+                                                    value: this.configData.gtinField ? this.configData.gtinField : null,
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    name: 'gtinField',
+                                                    listeners: {
+                                                        'change': function (e, newValue, oldValue) {
+                                                            this.dirty = true;
+                                                            Ext.getCmp("mapping_gtin_class_field").hide();
+                                                            Ext.getCmp("mapping_gtin_class_field").setValue('');
+                                                            Ext.getCmp("mapping_gtin_language_field").hide();
+                                                            const record = this.classFieldsStore.findRecord('key', newValue);
+                                                            if(record && record.data.type == "manyToOneRelation") {
+                                                                this.gtinReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
+                                                                this.gtinReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
+                                                                this.gtinReferenceFieldsStore.reload();
+                                                                Ext.getCmp("mapping_gtin_class_field").show();
+                                                            } else if(record && record.data.localized == true) {
+                                                                //Ext.getCmp("mapping_gtin_language_field").show();
+                                                            }
+                                                        }.bind(this)
                                                     }
-                                                }.bind(this)
-                                            }
+                                                },
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "mapping_gtin_class_field",
+                                                    fieldLabel: 'Reference Class Field',
+                                                    labelWidth: 160,
+                                                    forceSelection: true,
+                                                    triggerAction: 'all',
+                                                    style: "margin-left:10px;",
+                                                    store: this.gtinReferenceFieldsStore,
+                                                    displayField: 'title',
+                                                    valueField: 'key',
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    hidden: this.configData.mappingGtinClassField !== null && this.configData.mappingGtinClassField != "" ? false : true,
+                                                    value: this.configData.mappingGtinClassField ? this.configData.mappingGtinClassField : null,
+                                                    name: 'mappingGtinClassField',
+                                                    listeners: {
+                                                        'change': function (e, newValue, oldValue) {
+                                                            this.dirty = true;
+                                                        }.bind(this)
+                                                    }
+                                                },
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "mapping_gtin_language_field",
+                                                    fieldLabel: 'Language',
+                                                    forceSelection: true,
+                                                    triggerAction: 'all',
+                                                    style: "margin-left:10px;",
+                                                    store: this.selectedLanguagesStore,
+                                                    displayField: 'value',
+                                                    valueField: 'key',
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    //hidden: this.configData.mappingGtinLanguageField != "" ? false : true,
+                                                    hidden: true,
+                                                    value: this.configData.mappingGtinLanguageField ? this.configData.mappingGtinLanguageField : null,
+                                                    name: 'mappingGtinLanguageField'
+                                                },
+                                            ]
                                         },
                                         {
-                                            xtype: "combobox",
-                                            id: "mapping_productcode_class_field",
-                                            fieldLabel: 'Reference Class Field',
-                                            labelWidth: 160,
-                                            triggerAction: 'all',
-                                            forceSelection: true,
-                                            style: "margin-left:10px;",
-                                            store: this.productCodeReferenceFieldsStore,
-                                            displayField: 'title',
-                                            valueField: 'key',
-                                            multiselect: false,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            hidden: this.configData.mappingProductNameClassField !== null && this.configData.mappingProductNameClassField != "" ? false : true,
-                                            value: this.configData.mappingProductNameClassField ? this.configData.mappingProductNameClassField : null,
-                                            name: 'mappingProductCodeClassField',
-                                            listeners: {
-                                                'change': function (e, newValue, oldValue) {
-                                                    this.dirty = true;
-                                                }.bind(this)
-                                            }
+                                            xtype: "fieldcontainer",
+                                            layout: "hbox",
+                                            items: [
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "brand_name_cron_Icecat",
+                                                    fieldLabel: 'Brand',
+                                                    triggerAction: 'all',
+                                                    store: this.classFieldsStore,
+                                                    displayField: 'title',
+                                                    forceSelection: true,
+                                                    valueField: 'key',
+                                                    value: this.configData.brandNameField ? this.configData.brandNameField : null,
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    name: 'brandNameField',
+                                                    listeners: {
+                                                        'change': function (e, newValue, oldValue) {
+                                                            this.dirty = true;
+                                                            Ext.getCmp("mapping_brand_class_field").hide();
+                                                            Ext.getCmp("mapping_brand_class_field").setValue('');
+                                                            Ext.getCmp("mapping_brand_language_field").hide();
+                                                            const record = this.classFieldsStore.findRecord('key', newValue);
+                                                            if(record && record.data.type == "manyToOneRelation") {
+                                                                this.brandReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
+                                                                this.brandReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
+                                                                this.brandReferenceFieldsStore.reload();
+                                                                Ext.getCmp("mapping_brand_class_field").show();
+                                                            } else if(record && record.data.localized == true) {
+                                                                //Ext.getCmp("mapping_brand_language_field").show();
+                                                            }
+                                                        }.bind(this)
+                                                    }
+                                                },
+                                                {
+                                                    xtype: "combobox",
+                                                    required: false,
+                                                    id: "mapping_brand_class_field",
+                                                    fieldLabel: 'Reference Class Field',
+                                                    labelWidth: 160,
+                                                    triggerAction: 'all',
+                                                    style: "margin-left:10px;",
+                                                    forceSelection: true,
+                                                    store: this.brandReferenceFieldsStore,
+                                                    displayField: 'title',
+                                                    valueField: 'key',
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    hidden: this.configData.mappingBrandClassField !== null && this.configData.mappingBrandClassField != "" ? false : true,
+                                                    value: this.configData.mappingBrandClassField ? this.configData.mappingBrandClassField : null,
+                                                    name: 'mappingBrandClassField',
+                                                    listeners: {
+                                                        // 'change': function (e, newValue, oldValue) {
+                                                        //     const record = this.brandReferenceFieldsStore.findRecord('key', newValue);
+                                                        //     if(record.data.localized) {
+                                                        //         //Ext.getCmp("mapping_brand_language_field").show();
+                                                        //     }
+                                                        // }.bind(this)
+                                                    }
+                                                },
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "mapping_brand_language_field",
+                                                    fieldLabel: 'Language',
+                                                    forceSelection: true,
+                                                    triggerAction: 'all',
+                                                    style: "margin-left:10px;",
+                                                    store: this.selectedLanguagesStore,
+                                                    displayField: 'value',
+                                                    valueField: 'key',
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    //hidden: this.configData.mappingBrandLanguageField != "" ? false : true,
+                                                    hidden: true,
+                                                    value: this.configData.mappingBrandLanguageField ? this.configData.mappingBrandLanguageField : null,
+                                                    name: 'mappingBrandLanguageField',
+                                                    listeners: {
+                                                        'change': function (e, newValue, oldValue) {
+                                                            this.dirty = true;
+                                                        }.bind(this)
+                                                    }
+                                                },
+                                            ]
                                         },
                                         {
-                                            xtype: "combobox",
-                                            id: "mapping_productcode_language_field",
-                                            fieldLabel: 'Language',
-                                            triggerAction: 'all',
-                                            style: "margin-left:10px;",
-                                            store: this.selectedLanguagesStore,
-                                            displayField: 'value',
-                                            valueField: 'key',
-                                            multiselect: false,
-                                            forceSelection: true,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            hidden: true,
-                                            name: 'mappingProductCodeLanguageField'
+                                            xtype: "fieldcontainer",
+                                            layout: "hbox",
+                                            items: [
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "product_code_cron_Icecat",
+                                                    fieldLabel: 'Product Code',
+                                                    forceSelection: true,
+                                                    triggerAction: 'all',
+                                                    queryMode: 'local',
+                                                    store: this.classFieldsStore,
+                                                    displayField: 'title',
+                                                    valueField: 'key',
+                                                    value: this.configData.productNameField ? this.configData.productNameField : null,
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    name: 'productNameField',
+                                                    listeners: {
+                                                        'change': function (e, newValue, oldValue) {
+                                                            this.dirty = true;
+                                                            Ext.getCmp("mapping_productcode_class_field").hide();
+                                                            Ext.getCmp("mapping_productcode_class_field").setValue('');
+                                                            Ext.getCmp("mapping_productcode_language_field").hide();
+                                                            const record = this.classFieldsStore.findRecord('key', newValue);
+                                                            if(record && record.data.type == "manyToOneRelation") {
+                                                                this.productCodeReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
+                                                                this.productCodeReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
+                                                                this.productCodeReferenceFieldsStore.reload();
+                                                                Ext.getCmp("mapping_productcode_class_field").show();
+                                                            } else if(record && record.data.localized == true) {
+                                                                //Ext.getCmp("mapping_productcode_language_field").show();
+                                                            }
+                                                        }.bind(this)
+                                                    }
+                                                },
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "mapping_productcode_class_field",
+                                                    fieldLabel: 'Reference Class Field',
+                                                    labelWidth: 160,
+                                                    triggerAction: 'all',
+                                                    forceSelection: true,
+                                                    style: "margin-left:10px;",
+                                                    store: this.productCodeReferenceFieldsStore,
+                                                    displayField: 'title',
+                                                    valueField: 'key',
+                                                    multiselect: false,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    hidden: this.configData.mappingProductNameClassField !== null && this.configData.mappingProductNameClassField != "" ? false : true,
+                                                    value: this.configData.mappingProductNameClassField ? this.configData.mappingProductNameClassField : null,
+                                                    name: 'mappingProductCodeClassField',
+                                                    listeners: {
+                                                        'change': function (e, newValue, oldValue) {
+                                                            this.dirty = true;
+                                                        }.bind(this)
+                                                    }
+                                                },
+                                                {
+                                                    xtype: "combobox",
+                                                    id: "mapping_productcode_language_field",
+                                                    fieldLabel: 'Language',
+                                                    triggerAction: 'all',
+                                                    style: "margin-left:10px;",
+                                                    store: this.selectedLanguagesStore,
+                                                    displayField: 'value',
+                                                    valueField: 'key',
+                                                    multiselect: false,
+                                                    forceSelection: true,
+                                                    typeAhead: false,
+                                                    anyMatch: true,
+                                                    hidden: true,
+                                                    name: 'mappingProductCodeLanguageField'
+                                                }
+                                            ]
                                         }
                                     ]
                                 },
-                                {
-                                    xtype: "fieldcontainer",
-                                    layout: "hbox",
-                                    items: [
-                                        {
-                                            xtype: "combobox",
-                                            id: "gtin_cron_Icecat",
-                                            fieldLabel: 'GTIN',
-                                            triggerAction: 'all',
-                                            forceSelection: true,
-                                            queryMode: 'local',
-                                            store: this.classFieldsStore,
-                                            displayField: 'title',
-                                            valueField: 'key',
-                                            value: this.configData.gtinField ? this.configData.gtinField : null,
-                                            multiselect: false,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            name: 'gtinField',
-                                            listeners: {
-                                                'change': function (e, newValue, oldValue) {
-                                                    this.dirty = true;
-                                                    Ext.getCmp("mapping_gtin_class_field").hide();
-                                                    Ext.getCmp("mapping_gtin_class_field").setValue('');
-                                                    Ext.getCmp("mapping_gtin_language_field").hide();
-                                                    const record = this.classFieldsStore.findRecord('key', newValue);
-                                                    if(record && record.data.type == "manyToOneRelation") {
-                                                        this.gtinReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
-                                                        this.gtinReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
-                                                        this.gtinReferenceFieldsStore.reload();
-                                                        Ext.getCmp("mapping_gtin_class_field").show();
-                                                    } else if(record && record.data.localized == true) {
-                                                        //Ext.getCmp("mapping_gtin_language_field").show();
-                                                    }
-                                                }.bind(this)
-                                            }
-                                        },
-                                        {
-                                            xtype: "combobox",
-                                            id: "mapping_gtin_class_field",
-                                            fieldLabel: 'Reference Class Field',
-                                            labelWidth: 160,
-                                            forceSelection: true,
-                                            triggerAction: 'all',
-                                            style: "margin-left:10px;",
-                                            store: this.gtinReferenceFieldsStore,
-                                            displayField: 'title',
-                                            valueField: 'key',
-                                            multiselect: false,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            hidden: this.configData.mappingGtinClassField !== null && this.configData.mappingGtinClassField != "" ? false : true,
-                                            value: this.configData.mappingGtinClassField ? this.configData.mappingGtinClassField : null,
-                                            name: 'mappingGtinClassField',
-                                            listeners: {
-                                                'change': function (e, newValue, oldValue) {
-                                                    this.dirty = true;
-                                                }.bind(this)
-                                            }
-                                        },
-                                        {
-                                            xtype: "combobox",
-                                            id: "mapping_gtin_language_field",
-                                            fieldLabel: 'Language',
-                                            forceSelection: true,
-                                            triggerAction: 'all',
-                                            style: "margin-left:10px;",
-                                            store: this.selectedLanguagesStore,
-                                            displayField: 'value',
-                                            valueField: 'key',
-                                            multiselect: false,
-                                            typeAhead: false,
-                                            anyMatch: true,
-                                            //hidden: this.configData.mappingGtinLanguageField != "" ? false : true,
-                                            hidden: true,
-                                            value: this.configData.mappingGtinLanguageField ? this.configData.mappingGtinLanguageField : null,
-                                            name: 'mappingGtinLanguageField'
-                                        },
-                                    ]
-                                }
                             ]
                         },
                         {
                             xtype: 'fieldset',
                             width: 300,
-                            height: 226,
+                            height: 335,
                             style: "margin-left:50px;",
                             title: t('Last import summary'),
                             defaults: {
@@ -651,17 +670,6 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                 this.lastRunSummary
                             ]
                         }
-                    ]
-                },
-                {
-                    xtype: 'fieldset',
-                    width: 950,
-                    title: t('Asset'),
-                    defaults: {
-                        labelWidth: 130
-                    },
-                    items: [
-                        this.getAssetComponent()
                     ]
                 },
                 {
@@ -1326,7 +1334,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                 if(data.isRunning) {
                     this.progressBar.show();
                     this.progressBar.updateProgress(data.progress, data.processedItems + '/' + data.totalItems + ' ' + t('plugin_pimcore_datahub_data_importer_configpanel_execution_processed'));
-                    this.progressLabel.setHtml(t('Total records = no. of records to process X no. of languages configured'));
+                    this.progressLabel.setHtml(t('Total items = no. of records to process X no. of languages configured'));
                     this.manualStartButtonContainer.setDisabled(true);
                 } else {
                     this.progressBar.hide();
@@ -1342,7 +1350,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     });
                 }
 
-                this.updateHandle = setTimeout(this.updateProgress.bind(this), 4000);
+                this.updateHandle = setTimeout(this.updateProgress.bind(this), 2000);
 
             }.bind(this)
         });

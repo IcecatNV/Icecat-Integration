@@ -302,9 +302,6 @@ class CreateObjectService
         $this->currentGtin = $data['original_gtin'];
         $this->currentLanguage = $data['language'];
 
-
-
-
         $importArray = json_decode(base64_decode($data['data_encoded']), true);
         if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
             /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
@@ -314,19 +311,19 @@ class CreateObjectService
             $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
             $this->modifiedFields = [];
             $this->createFixFields($importArray['data'], $iceCatobject);
-            // if (!$this->isFieldUpdatedByUser('gallery')) {
-            //     $this->createGallery($importArray['data'], $iceCatobject);
-            // }
-            // $this->createDynamicFields($importArray['data'], $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('gallery')) {
+                $this->createGallery($importArray['data'], $iceCatobject);
+            }
+            $this->createDynamicFields($importArray['data'], $iceCatobject);
         } else {
             /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
             $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
             $this->modifiedFields = $this->getFieldsModifiedLog($iceCatobject->getId(), $this->currentLanguage);
             $this->createFixFields($importArray['data'], $iceCatobject);
-            // if (!$this->isFieldUpdatedByUser('gallery')) {
-            //     $this->createGallery($importArray['data'], $iceCatobject);
-            // }
-            // $this->createDynamicFields($importArray['data'], $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('gallery')) {
+                $this->createGallery($importArray['data'], $iceCatobject);
+            }
+            $this->createDynamicFields($importArray['data'], $iceCatobject);
         }
 
         if (!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
@@ -347,7 +344,7 @@ class CreateObjectService
     {
         $db = \Pimcore\Db::get();
         $query = 'select * from ' . self::IMPORTED_DATA_CONTAINER_TABLE . " where job_id = '$id'  and is_product_found = 1 and to_be_created = 1";
-        $data = $db->fetchAll($query);
+        $data = $db->fetchAllAssociative($query);
 
         return $data;
     }
@@ -458,38 +455,37 @@ class CreateObjectService
                 $iceCatobject->setBulletPoints($bulletHtml, $this->currentLanguage);
             }
 
-            // if (!$this->isFieldUpdatedByUser('productStory', $this->currentLanguage)) {
-            //     $this->setProductStoryData($attributeArray['ProductStory'], $iceCatobject);
-            // }
+            if (!$this->isFieldUpdatedByUser('productStory', $this->currentLanguage)) {
+                $this->setProductStoryData($attributeArray['ProductStory'], $iceCatobject);
+            }
 
-            // if (!$this->isFieldUpdatedByUser('brandLogo')) {
-            //     $this->createBrandLogo($basicInformation, $iceCatobject);
-            // }
+            if (!$this->isFieldUpdatedByUser('brandLogo')) {
+                $this->createBrandLogo($basicInformation, $iceCatobject);
+            }
 
-            // if (!$this->isFieldUpdatedByUser('Reasons_to_buy', $this->currentLanguage)) {
-            //     $this->createReasonsToBuy($attributeArray, $iceCatobject);
-            // }
+            if (!$this->isFieldUpdatedByUser('Reasons_to_buy', $this->currentLanguage)) {
+                $this->createReasonsToBuy($attributeArray, $iceCatobject);
+            }
 
-            // if (!$this->isFieldUpdatedByUser('Tour')) {
-            //     // Insert Images in 3d Tour fields if it is available
-            //     $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
-            // }
+            if (!$this->isFieldUpdatedByUser('Tour')) {
+                // Insert Images in 3d Tour fields if it is available
+                $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
+            }
 
-            // if (!$this->isFieldUpdatedByUser('videos')) {
-            //     // Insert Videos in video fields if it is available
-            //     $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
-            // }
-            // if (!$this->isFieldUpdatedByUser('storyUrl', $this->currentLanguage)) {
-            //     $this->setStoryField($attributeArray, $iceCatobject);
-            // }
+            if (!$this->isFieldUpdatedByUser('videos')) {
+                // Insert Videos in video fields if it is available
+                $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
+            }
+            if (!$this->isFieldUpdatedByUser('storyUrl', $this->currentLanguage)) {
+                $this->setStoryField($attributeArray, $iceCatobject);
+            }
 
-            // if (!$this->isFieldUpdatedByUser('multiMedia', $this->currentLanguage)) {
-            //     $this->setMultiMedia($attributeArray, $iceCatobject);
-            // }
-            // if (!$this->isFieldUpdatedByUser('galleryIconBlock', $this->currentLanguage)) {
-            //     $this->setGalleryIcons($attributeArray, $iceCatobject);
-            // }
-
+            if (!$this->isFieldUpdatedByUser('multiMedia', $this->currentLanguage)) {
+                $this->setMultiMedia($attributeArray, $iceCatobject);
+            }
+            if (!$this->isFieldUpdatedByUser('galleryIconBlock', $this->currentLanguage)) {
+                $this->setGalleryIcons($attributeArray, $iceCatobject);
+            }
 
             if (!$this->isFieldUpdatedByUser('reviews', $this->currentLanguage)) {
                 $this->setReviewData($attributeArray['Reviews'], $iceCatobject);

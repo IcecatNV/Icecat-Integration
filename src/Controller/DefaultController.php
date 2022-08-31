@@ -209,6 +209,7 @@ class DefaultController extends FrontendController
         $totalRecords = $result['total_records'];
         $successRecords = $result['success_records'];
         $errorRecords = $result['error_records'];
+        $notFoundRecords = $result['not_found_records'];
         $executionType = $result['execution_type'];
 
         $html = "
@@ -222,7 +223,7 @@ class DefaultController extends FrontendController
 
                     .summary th, .summary td {
                         text-align: left;
-                        padding: 3px;
+                        padding: 5px;
                     }
 
                     .summary tr:nth-child(even) {
@@ -231,31 +232,35 @@ class DefaultController extends FrontendController
                 </style>
                 <table class=\"summary\">
                     <tr>
-                        <th>Start Date & Time</th>
+                        <th>Start datetime</th>
                         <td>{$startDatetime}</td>
                     </tr>
                     <tr>
-                        <th>End Date & Time</th>
+                        <th>End datetime</th>
                         <td>{$endDatetime}</td>
                     </tr>
                     <tr>
-                        <th>Total Records</th>
+                        <th>Total records found in excel or Pimcore</th>
                         <td>{$totalRecords}</td>
                     </tr>
                     <tr>
-                        <th>Success Records</th>
+                        <th>Successfully processed</th>
                         <td>{$successRecords}</td>
                     </tr>
                     <tr>
-                        <th>Error Records</th>
+                        <th>Not found in Icecat</th>
+                        <td>{$notFoundRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Error records</th>
                         <td>{$errorRecords}</td>
                     </tr>
                     <tr>
-                        <th>Execution Type</th>
+                        <th>Execution type</th>
                         <td>{$executionType}</td>
                     </tr>
                     <tr>
-                        <th>Detailed Log File</th>
+                        <th>Detail log file</th>
                         <td><a href=\"/admin/icecat/download-last-import-log\">Download</a></td>
                     </tr>
 
@@ -370,6 +375,7 @@ class DefaultController extends FrontendController
         $objId = $request->get('objectId');
 
         $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:refresh ' . $objId . ' ' . implode(',', $languages);
+
         try {
             exec($command . ' > /dev/null');
             sleep(2);

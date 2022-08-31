@@ -1,31 +1,25 @@
 <?php
+
 namespace IceCatBundle\Lib;
 
 use Carbon\Carbon;
 use IceCatBundle\Model\Configuration;
-use Monolog\Logger;
 use Pimcore\Db;
 use Symfony\Component\HttpClient\HttpClient;
 
 trait IceCateHelper
 {
-    public $importUrl = 'https://live.icecat.biz/api/';
-    /**
-     * @param $dateString
-     * @return Carbon|null
-     */
-    public function getCarbonObjectForDateString($dateString)
-    {
-        if (empty($dateString)) {
-            return null;
-        }
-        try {
-            return Carbon::create($dateString);
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
 
+    public $importUrl = 'https://live.icecat.biz/api/';
+
+    /**
+     * Generate Icecat url to fetch data
+     * @param array $data
+     * @param string $icecatUserName
+     * @param string $language
+     *
+     * @return string
+     */
     public function getIceCatUrlToGetRecord($data, $icecatUserName, $language)
     {
         try {
@@ -59,6 +53,12 @@ trait IceCateHelper
         }
     }
 
+    /**
+     * Fetch data from Icecat
+     * @param string $url
+     *
+     * @return string
+     */
     public function fetchIceCatData($url)
     {
         $httpClient = HttpClient::create();
@@ -85,6 +85,25 @@ trait IceCateHelper
         }
     }
 
+    /**
+     * @param $dateString
+     * @return Carbon|null
+     */
+    public function getCarbonObjectForDateString($dateString)
+    {
+        if (empty($dateString)) {
+            return null;
+        }
+        try {
+            return Carbon::create($dateString);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Check for next run of recurring import
+     */
     public function getNextCronJobExecutionTimestamp()
     {
         $conf = Configuration::load();
@@ -96,9 +115,6 @@ trait IceCateHelper
                     return strtotime("02-01-3000");
                 }
                 $lastExecution = $this->getLastCronJobExecution();
-                if (!$lastExecution) {
-                    $lastExecution = $this->getModificationDate();
-                }
                 $lastRunDate = new \DateTime(date('Y-m-d H:i', $lastExecution));
                 $nextRun = $cron->getNextRunDate($lastRunDate);
                 $nextRunTs = $nextRun->getTimestamp();
@@ -108,6 +124,9 @@ trait IceCateHelper
         }
     }
 
+    /**
+     * Get recurring last import record
+     */
     public function getLastCronJobExecution()
     {
         $db = Db::get();
@@ -118,6 +137,9 @@ trait IceCateHelper
         return strtotime("02-01-1970");
     }
 
+    /**
+     * Get last recurring import timestamp
+     */
     public function getLastCronJobExecutionEndTime()
     {
         $db = Db::get();
@@ -128,19 +150,23 @@ trait IceCateHelper
         return strtotime("02-01-1970");
     }
 
+    /**
+     * Get cron schedule for recurring import
+     */
     public function getCronJob()
     {
         return $this->configuration->getCronExpression();
     }
 
+    /**
+     * Check if cron is valid
+     */
     public function checkIfCronExpressionValid($cronExpression)
     {
         try {
             $cron = new \Cron\CronExpression($cronExpression);
         } catch (\Exception $ex) {
             throw $ex;
-            Logger::error($ex->getMessage());
-            return strtotime("02-01-3000");
         }
     }
 }

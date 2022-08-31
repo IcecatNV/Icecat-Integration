@@ -31,7 +31,7 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
     },
 
     attachRefreshButton: function () {
-        let refreshIcecatProductButton = {
+        this.refreshIcecatProductButton = {
             text: t("Refresh from Icecat"),
             iconCls: "pimcore_icon_refresh",
             cls: "x-btn-button-default-toolbar-medium",
@@ -42,7 +42,7 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
             }.bind(this, this.object),
         };
         if(this.object.toolbar.query('[text=icecat]')) {
-            this.object.toolbar.insert(this.object.toolbar.items.indexOf(this.object.toolbar.query('[text=Actions]')[0]), refreshIcecatProductButton);
+            this.object.toolbar.insert(this.object.toolbar.items.indexOf(this.object.toolbar.query('[text=Actions]')[0]), this.refreshIcecatProductButton);
         }
     },
 
@@ -73,7 +73,7 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
             {
                 xtype: "tagfield",
                 required: true,
-                id: "ice_cat_refresh_product_language_selection_"+this.object.id,
+                //id: "ice_cat_refresh_product_language_selection_"+this.object.id,
                 fieldLabel: 'Select Language',
                 labelWidth: 160,
                 triggerAction: 'all',
@@ -99,7 +99,7 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
             },
             {
                 xtype: 'button',
-                id: 'ice_cat_refresh_product_button'+this.object.id,
+                //id: 'ice_cat_refresh_product_button'+this.object.id,
                 text: 'Proceed',
                 width: '200',
                 handler: function () {
@@ -120,7 +120,6 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
                             items: [this.downloadProgressBar],
                             listeners: pimcore.helpers.getProgressWindowListeners()
                         });
-            
                         this.downloadProgressWin.show();
 
                         form.submit({
@@ -149,7 +148,9 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
                                 }
                             }.bind(this),
                             failure: function (form, action) {
-                            }
+                            },
+                            complete: function(){ 
+                            }.bind(this)
                         });
                     }
                 }.bind(this)
