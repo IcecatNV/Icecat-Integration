@@ -108,7 +108,7 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
                     if (form.isValid()) {
 
                         this.downloadProgressBar = new Ext.ProgressBar({
-                            text: t(`Pimcore ID ${this.object.id} is getting updated ...`)
+                            text: t(`Icecat ID ${this.object.data.general.o_key} is getting updated ...`)
                         });
             
                         this.downloadProgressWin = new Ext.Window({
@@ -133,7 +133,7 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
                                 if (action.response.status != "undefined" && action.response.status == 200) {
                                     var resp = JSON.parse(action.response.responseText);
                                     if (resp.success === true) {
-                                        pimcore.helpers.showNotification('Success', `Icecat ID ${this.data.general.o_key} updated successfully`, 'success');
+                                        pimcore.helpers.showNotification('Success', `Icecat ID ${this.object.data.general.o_key} updated successfully`, 'success');
                                     } else if (resp.success === false && action.response.status == 303) {
                                         pimcore.helpers.showNotification('Failure', 'error', 'error');
                                     } else {
