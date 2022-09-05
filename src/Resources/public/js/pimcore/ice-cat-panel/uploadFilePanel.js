@@ -749,6 +749,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         
         this.uploadFilePanel = new Ext.form.FormPanel({
             region: "center",
+            width:1150,
             listeners: {
                 'afterrender': function () {
                     let ap = new pimcore.plugin.IceCatActiveProcesses('', 'fetching');
@@ -896,14 +897,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                 {
                     xtype: 'fieldset',
                     border: true,
-                    width:1400,
+                    width:1150,
                     bodyPadding: 10,
                     collapsible: true,
                     title: "One time import - Manual",
                     items: [
                         {
                             xtype: 'fieldset',
-                            width: 1300,
+                            width: 1000,
                             title: 'Upload CSV / Excel file',
                             items: [
                                 {
@@ -1016,7 +1017,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                         },
                         {
                             xtype: 'fieldset',
-                            width: 1300,
+                            width: 1000,
                             title: 'Upload via URL',
                             items: [
                                 {
@@ -1126,7 +1127,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                         },
                         {
                             xtype: 'fieldset',
-                            width: 1300,
+                            width: 1000,
                             title: 'Data Import Progress',
                             id: 'fetchProgressBarFieldset',
                             hidden: !pimcore.globalmanager.get('iceCatData').fetchingProcessExist,
@@ -1186,7 +1187,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                 {
                     xtype: "fieldset",
                     collapsible: true,
-                    width:1400,
+                    width:1150,
                     bodyPadding: 10,
                     title: 'Recurring import - Automated',
                     border: true,
