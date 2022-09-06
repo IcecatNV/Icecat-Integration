@@ -328,6 +328,35 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         this.progressBar = Ext.create('Ext.ProgressBar', {
             hidden: false
         });
+        this.cancelButtonContainer = Ext.create('Ext.Panel', {
+            //layout: 'hbox',
+            hidden: true,
+            bodyStyle: 'padding-top: 10px',
+            border: false,
+            items: [
+                
+                {
+                    xtype: 'button',
+                    //iconCls: 'pimcore_icon_cancel',
+                    text: t('Cancel execution'),
+                    handler: function() {
+                        Ext.Ajax.request({
+                            url: Routing.generate('icecat_cancel_recurring_import'),
+                            method: 'PUT',
+                            params: {
+                                config_name: this.configName,
+                            },
+                            success: function (response) {
+
+                                pimcore.helpers.showNotification(t('success'), t('Import cancelled successfully'), 'success');
+                                this.updateProgress();
+
+                            }.bind(this)
+                        });
+                    }.bind(this)
+                }
+            ]
+        });
 
         this.updateProgress();
 
@@ -697,10 +726,11 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             style: "margin-left:50px;",
                             title: t('Execution status'),
                             width: 300,
-                            height: 160,
+                            height: 190,
                             items: [
                                 this.progressLabel,
-                                this.progressBar
+                                this.progressBar,
+                                this.cancelButtonContainer
                             ]
                         }
                     ]
@@ -1336,10 +1366,12 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                 if(data.isRunning) {
                     this.progressBar.show();
                     this.progressBar.updateProgress(data.progress, data.processedItems + '/' + data.totalItems + ' ' + t('plugin_pimcore_datahub_data_importer_configpanel_execution_processed'));
+                    this.cancelButtonContainer.show();
                     this.progressLabel.setHtml(t('Total items = no. of records to process X no. of languages configured'));
                     this.manualStartButtonContainer.setDisabled(true);
                 } else {
                     this.progressBar.hide();
+                    this.cancelButtonContainer.hide();
                     this.progressLabel.setHtml('<b>' + t('No import running') + '</b>');
                     this.manualStartButtonContainer.setDisabled(false);
                     Ext.Ajax.request({

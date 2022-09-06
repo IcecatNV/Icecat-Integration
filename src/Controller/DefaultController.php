@@ -277,8 +277,28 @@ class DefaultController extends FrontendController
     public function startManualImportAction()
     {
         $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:recurring-import --execution-type=manual';
-        exec($command . ' > /dev/null &');
+        exec($command . ' > /dev/null 2>&1 & echo $!; ');
+        //file_put_contents(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid', $pid);
         sleep(2);
+        return $this->json(
+            [
+                'success' => true,
+            ]
+        );
+    }
+
+    /**
+     * @Route("/admin/icecat/cancel-recurring-import", name="icecat_cancel_recurring_import", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function cancelRecurringImportAction()
+    {
+        $pid = file_get_contents(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid');
+        exec("kill -9 {$pid}");
+        $sql = "DELETE FROM icecat_recurring_import WHERE status = 'running'";
+        \Pimcore\Db::get()->executeQuery($sql);
+        @unlink(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid');
         return $this->json(
             [
                 'success' => true,

@@ -131,6 +131,7 @@ class RecurringImportCommand extends AbstractCommand
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        $pid = getmypid();
         $nextRun = $this->getNextCronJobExecutionTimestamp();
         if ($this->executionType === 'automatic' && ($nextRun - time()) > 0) {
             return 0;
@@ -147,6 +148,9 @@ class RecurringImportCommand extends AbstractCommand
         if($count["c"] >= 1) {
             return 0;
         }
+
+        @unlink(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid');
+        file_put_contents(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid', $pid);
 
         @unlink(PIMCORE_LOG_DIRECTORY . "/" .self::LOG_FILENAME . ".log");
 
@@ -230,6 +234,7 @@ class RecurringImportCommand extends AbstractCommand
     {
         $this->db->executeQuery("DELETE FROM icecat_recurring_import WHERE id != {$this->tableRowId} AND status = 'finished'");
 
+        @unlink(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid');
         @unlink(PIMCORE_LOG_DIRECTORY . "/" .self::LAST_IMPORT_LOG_FILENAME . ".log");
         @rename(PIMCORE_LOG_DIRECTORY . "/" .self::LOG_FILENAME . ".log", PIMCORE_LOG_DIRECTORY . "/" .self::LAST_IMPORT_LOG_FILENAME . ".log");
     }
@@ -429,7 +434,7 @@ class RecurringImportCommand extends AbstractCommand
             $result = $this->db->fetchRow($sql);
             if($result) {
                 $startDatetime = $result['start_datetime'];
-                $listing->setCondition("o_modificationDate > {$startDatetime}");
+                $listing->setCondition("o_modificationDate > {$startDatetime} AND o_userModification > 0");
             }
         }
 
