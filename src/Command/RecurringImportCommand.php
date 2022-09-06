@@ -131,12 +131,12 @@ class RecurringImportCommand extends AbstractCommand
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->executionType = $input->getOption('execution-type');
         $nextRun = $this->getNextCronJobExecutionTimestamp();
         if ($this->executionType === 'automatic' && ($nextRun - time()) > 0) {
             return 0;
         }
 
-        $this->executionType = $input->getOption('execution-type');
         $this->configuration = Configuration::load();
         $this->db = Db::get();
         $sql = "SELECT count(*) as c FROM icecat_recurring_import WHERE status = 'running'";
@@ -187,8 +187,10 @@ class RecurringImportCommand extends AbstractCommand
         $assetFilePath = $this->configuration->getAssetFilePath();
         $asset = Asset::getByPath($assetFilePath);
         if($asset) {
+            $this->executionType = $this->executionType . ', Excel';
            $this->processAssetFile($asset);
         } elseif($this->configuration->getProductClass() != "") {
+            $this->executionType = $this->executionType . ', Pimcore';
             $this->processClassData();
         } else {
             $this->createOrUpdateEntryInTable([
