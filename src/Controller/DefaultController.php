@@ -334,19 +334,28 @@ class DefaultController extends FrontendController
     {
         try {
             $config = Configuration::load();
-
-            foreach($config->getLanguages() as $lang) {
-                $data[] = [
-                    'key' => $lang,
-                    'value' => \Locale::getDisplayLanguage($lang)
-                ];
+            if($config) {
+                foreach($config->getLanguages() as $lang) {
+                    $data[] = [
+                        'key' => $lang,
+                        'value' => \Locale::getDisplayLanguage($lang)
+                    ];
+                }
+                return $this->json(
+                    [
+                        'success' => true,
+                        'data' => $data
+                    ]
+                );
+            } else {
+                return $this->json(
+                    [
+                        'success' => true,
+                        'data' => []
+                    ]
+                );
             }
-            return $this->json(
-                [
-                    'success' => true,
-                    'data' => $data
-                ]
-            );
+
         } catch (\Exception $e) {
             return $this->json(
                 [
