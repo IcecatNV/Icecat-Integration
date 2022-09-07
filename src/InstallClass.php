@@ -231,18 +231,20 @@ class InstallClass extends SettingsStoreAwareInstaller
 
         $db->query(
             'DROP TABLE IF EXISTS `icecat_recurring_import`;
-              CREATE TABLE `icecat_recurring_import` (
+                CREATE TABLE `icecat_recurring_import` (
                 `id` int NOT NULL AUTO_INCREMENT,
                 `start_datetime` int NOT NULL,
                 `end_datetime` int NOT NULL,
-                `status` varchar(15) NOT NULL,
+                `status` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
                 `total_records` int NOT NULL,
                 `processed_records` int NOT NULL,
                 `success_records` int NOT NULL,
                 `error_records` int NOT NULL,
-                `execution_type` varchar(15) NOT NULL,
+                `not_found_records` int NOT NULL,
+                `forbidden_records` int NOT NULL,
+                `execution_type` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
                 PRIMARY KEY (`id`)
-              ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+              ) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin'
         );
     }
 
@@ -399,6 +401,6 @@ class InstallClass extends SettingsStoreAwareInstaller
      */
     public function getLastMigrationVersionClassName(): ?string
     {
-        return Version20220423095622::class;
+        return Version20220907152904::class;
     }
 }

@@ -12,11 +12,11 @@ use Pimcore\Model\DataObject\Icecat\Listing;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20220717095622 extends AbstractMigration
+final class Version20220907152210 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Move video from video type field to many to many field';
     }
 
     public function up(Schema $schema): void
@@ -64,8 +64,8 @@ final class Version20220717095622 extends AbstractMigration
             if ($rowCounter == $batchSize  || ($index == ($totalRecords-1))) {
                 try {
                     $rowCounter = 1;
-                    $db->exec(rtrim($relationSql, ', '));
-                    $db->exec(rtrim($depSql, ', '));
+                    $db->executeStatement(rtrim($relationSql, ', '));
+                    $db->executeStatement(rtrim($depSql, ', '));
                     $db->commit();
 
                     $querySql = "UPDATE object_query_Icecat set videos=:videos  WHERE oo_id=:recId";
@@ -83,6 +83,6 @@ final class Version20220717095622 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $na = 'NA';
+
     }
 }

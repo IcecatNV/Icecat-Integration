@@ -1,7 +1,7 @@
 {
     "id": "Icecat",
     "description": "",
-    "modificationDate": 1659804671,
+    "modificationDate": 1662540423,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -1328,11 +1328,7 @@
                                 "relationType": true,
                                 "objectsAllowed": false,
                                 "assetsAllowed": true,
-                                "assetTypes": [
-                                    {
-                                        "assetTypes": "video"
-                                    }
-                                ],
+                                "assetTypes": [],
                                 "documentsAllowed": false,
                                 "documentTypes": [],
                                 "enableTextSelection": false,

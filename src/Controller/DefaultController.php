@@ -210,7 +210,9 @@ class DefaultController extends FrontendController
         $successRecords = $result['success_records'];
         $errorRecords = $result['error_records'];
         $notFoundRecords = $result['not_found_records'];
+        $forbiddenRecords = $result['forbidden_records'];
         $executionType = $result['execution_type'];
+        $totalRecordsTitle = strpos($executionType, 'Excel') !== false ? 'Total records found in excel' : 'Total records found in Pimcore';
 
         $html = "
                 <style>
@@ -240,7 +242,7 @@ class DefaultController extends FrontendController
                         <td>{$endDatetime}</td>
                     </tr>
                     <tr>
-                        <th>Total records found in excel or Pimcore</th>
+                        <th>{$totalRecordsTitle}</th>
                         <td>{$totalRecords}</td>
                     </tr>
                     <tr>
@@ -250,6 +252,10 @@ class DefaultController extends FrontendController
                     <tr>
                         <th>Not found in Icecat</th>
                         <td>{$notFoundRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Forbidden products in Icecat</th>
+                        <td>{$forbiddenRecords}</td>
                     </tr>
                     <tr>
                         <th>Error records</th>
@@ -278,8 +284,7 @@ class DefaultController extends FrontendController
     {
         $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:recurring-import --execution-type=manual';
         exec($command . ' > /dev/null 2>&1 & echo $!; ');
-        //file_put_contents(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid', $pid);
-        sleep(2);
+        sleep(1);
         return $this->json(
             [
                 'success' => true,
