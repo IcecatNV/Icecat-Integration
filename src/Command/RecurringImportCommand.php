@@ -766,7 +766,7 @@ class RecurringImportCommand extends AbstractCommand
             $set .= " not_found_records = ".$data['notFoundRecords']. ", ";
         }
         if (isset($data['forbiddenRecords'])) {
-            $set .= " forbidden_Records = ".$data['forbiddenRecords']. ", ";
+            $set .= " forbidden_records = ".$data['forbiddenRecords']. ", ";
         }
         if (isset($data['executionType'])) {
             $set .= " execution_type = '".$data['executionType']."', ";
