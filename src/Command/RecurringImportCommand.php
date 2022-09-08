@@ -233,7 +233,7 @@ class RecurringImportCommand extends AbstractCommand
             "successRecords" => $this->successRecords,
             "errorRecords" => $this->errorRecords,
             "notFoundRecords" => $this->notFoundRecords,
-            "forbiddenRecords" => 0,
+            "forbiddenRecords" => $this->forbiddenRecords,
             "executionType" => $this->executionType
         ]);
         Simple::log(self::LOG_FILENAME, 'INFO: import end');
@@ -361,7 +361,7 @@ class RecurringImportCommand extends AbstractCommand
                         $error = $responseArray['Error'] ?? null;
                         $errorMessage = $responseArray['Message'] ?? null;
                         Simple::log(self::LOG_FILENAME, "ERROR: ROW {$this->rowNumber} LANG {$language} GTIN: {$gtin} Brand: {$brandName} ProductCode: {$productCode} - {$error}: {$errorMessage} URL {$url}");
-                        if ($statusCode === 403) {
+                        if ($statusCode == 403) {
                             ++$this->forbiddenRecords;
                         } else {
                             ++$this->notFoundRecords;
@@ -621,7 +621,7 @@ class RecurringImportCommand extends AbstractCommand
                         $error = $responseArray['Error'] ?? null;
                         $errorMessage = $responseArray['Message'] ?? null;
                         Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode} - {$error}: {$errorMessage} URL {$url}");
-                        if ($statusCode === 403) {
+                        if ($statusCode == 403) {
                             ++$this->forbiddenRecords;
                         } else {
                             ++$this->notFoundRecords;
