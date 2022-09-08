@@ -50,7 +50,6 @@ final class Version20220907151230 extends AbstractMigration
         }
         $json = file_get_contents($filepath);
         \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
-
     }
 
     public function down(Schema $schema): void

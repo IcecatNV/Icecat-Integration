@@ -33,7 +33,6 @@ final class Version20220907152904 extends AbstractMigration
             `execution_type` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
             PRIMARY KEY (`id`)
           ) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;');
-
     }
 
     public function down(Schema $schema): void

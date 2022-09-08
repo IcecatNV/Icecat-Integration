@@ -139,8 +139,6 @@ class DefaultController extends FrontendController
                     ]
                 );
             }
-
-
         } catch (\Exception $e) {
             return $this->json(
                 [
@@ -160,7 +158,7 @@ class DefaultController extends FrontendController
     {
         $sql = "SELECT * FROM icecat_recurring_import WHERE status = 'running'";
         $result = \Pimcore\Db::get()->fetchAssociative($sql);
-        if(!$result) {
+        if (!$result) {
             return new JsonResponse([
                 'isRunning' => false,
                 'totalItems' => 0,
@@ -199,7 +197,7 @@ class DefaultController extends FrontendController
     {
         $sql = "SELECT * FROM icecat_recurring_import WHERE status = 'finished'";
         $result = \Pimcore\Db::get()->fetchAssociative($sql);
-        if(!$result) {
+        if (!$result) {
             $html = "<b>No summary found</b>";
             return $html;
         }
@@ -334,8 +332,8 @@ class DefaultController extends FrontendController
     {
         try {
             $config = Configuration::load();
-            if($config) {
-                foreach($config->getLanguages() as $lang) {
+            if ($config) {
+                foreach ($config->getLanguages() as $lang) {
                     $data[] = [
                         'key' => $lang,
                         'value' => \Locale::getDisplayLanguage($lang)
@@ -355,7 +353,6 @@ class DefaultController extends FrontendController
                     ]
                 );
             }
-
         } catch (\Exception $e) {
             return $this->json(
                 [
@@ -417,11 +414,11 @@ class DefaultController extends FrontendController
             return $this->json(['success' => 'false', 'error' => true, 'status' => '200']);
         }
         return $this->json(
-        [
+            [
             'success' => true,
             'message' => 'Refreshed!'
-        ]
-    );
+            ]
+        );
     }
 
     /**
@@ -495,7 +492,7 @@ class DefaultController extends FrontendController
                 $config->setBrandNameField($brandNameField);
             }
 
-            if($brandNameFieldType !== null) {
+            if ($brandNameFieldType !== null) {
                 $config->setBrandNameFieldType($brandNameFieldType);
             }
 
@@ -511,7 +508,7 @@ class DefaultController extends FrontendController
                 $config->setProductNameField($productNameField);
             }
 
-            if($productNameFieldType !== null) {
+            if ($productNameFieldType !== null) {
                 $config->setProductNameFieldType($productNameFieldType);
             }
 
@@ -1044,7 +1041,7 @@ class DefaultController extends FrontendController
     public function getClassFields(Request $request, TransformationDataTypeService $transformationDataTypeService)
     {
         $classId =  $request->get('classId', null);
-        if($classId == "" || $classId == -1) {
+        if ($classId == "" || $classId == -1) {
             return new JsonResponse([
                 'attributes' => []
             ]);
@@ -1068,7 +1065,7 @@ class DefaultController extends FrontendController
     public function getReferenceClassFields(Request $request, TransformationDataTypeService $transformationDataTypeService)
     {
         $classId =  $request->get('class', null);
-        if($classId == "" || $classId == -1) {
+        if ($classId == "" || $classId == -1) {
             return new JsonResponse([
                 'attributes' => []
             ]);
@@ -1078,13 +1075,13 @@ class DefaultController extends FrontendController
         /** @var \Pimcore\Model\DataObject\ClassDefinition\Data\ManyToOneRelation $field */
         $field = $class->getFieldDefinition($request->get("field"));
 
-        if(!$field) {
+        if (!$field) {
             return new JsonResponse([
                 'attributes' => []
             ]);
         }
 
-        if(!method_exists($field, "getClasses")) {
+        if (!method_exists($field, "getClasses")) {
             return new JsonResponse([
                 'attributes' => []
             ]);
@@ -1092,7 +1089,7 @@ class DefaultController extends FrontendController
 
         $referenceClass = is_array($field->getClasses()) && isset($field->getClasses()[0]) ? $field->getClasses()[0] : null;
 
-        if($referenceClass === null) {
+        if ($referenceClass === null) {
             throw new \Exception("No class attached on field - {$field->getTitle()}");
         }
 

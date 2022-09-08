@@ -3,7 +3,6 @@
 
 namespace IceCatBundle\Services;
 
-
 use IceCatBundle\Lib\IceCateHelper;
 use IceCatBundle\Model\Configuration;
 use Monolog\Logger;
@@ -30,10 +29,9 @@ class IceCatMaintenanceService
 
     public function importIceCatData()
     {
-
     }
 
-    function  processRecords()
+    public function processRecords()
     {
         $configs = Configuration::load();
         $productClass = $configs->getProductClass();
@@ -59,14 +57,12 @@ class IceCatMaintenanceService
         foreach ($productsList as $product) {
             $this->importIceCatProduct($product, $gtinField, $brandNameField, $productNameField);
         }
-
-
     }
 
     public function refreshProduct($iObjId, $languages)
     {
         $this->iceCatUser = $this->getIcecatLoginUser();
-        $languages = explode(',',$languages);
+        $languages = explode(',', $languages);
         $iObj = DataObject::getById($iObjId);
 
         foreach ($languages as $lang) {
@@ -146,8 +142,6 @@ class IceCatMaintenanceService
 //            p_r($data);
 
             $result =  [ 'failure' => false, 'iceCatData' => $data];
-
-
         }
         return $result;
     }

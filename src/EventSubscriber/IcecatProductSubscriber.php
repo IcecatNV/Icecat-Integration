@@ -116,8 +116,7 @@ class IcecatProductSubscriber implements EventSubscriberInterface
         if (count($list) && $record = $list[0]) {
             $record->save();
         } else {
-
-            if($lang) {
+            if ($lang) {
                 $key = "{$object->getGtin()}-{$lang}-{$name}";
             } else {
                 $key = "{$object->getGtin()}-{$name}";

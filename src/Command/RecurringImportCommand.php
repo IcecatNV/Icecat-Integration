@@ -42,12 +42,12 @@ class RecurringImportCommand extends AbstractCommand
     /**
      * @const string
      */
-    public CONST LOG_FILENAME = "icecat_recurring_current_import";
+    public const LOG_FILENAME = "icecat_recurring_current_import";
 
     /**
      * @const string
      */
-    public CONST LAST_IMPORT_LOG_FILENAME = "icecat_last_import";
+    public const LAST_IMPORT_LOG_FILENAME = "icecat_last_import";
 
     /**
      * @var Configuration
@@ -143,14 +143,14 @@ class RecurringImportCommand extends AbstractCommand
         $this->db = Db::get();
         $sql = "SELECT count(*) as c FROM icecat_recurring_import WHERE status = 'running'";
         $count = $this->db->fetchRow($sql);
-        if(!is_array($count)) {
+        if (!is_array($count)) {
             return 0;
         }
-        if($count["c"] >= 1) {
+        if ($count["c"] >= 1) {
             return 0;
         }
 
-        if($this->executionType === 'automatic' && $this->configuration->getCronExpression() == "") {
+        if ($this->executionType === 'automatic' && $this->configuration->getCronExpression() == "") {
             return 0;
         }
 
@@ -166,7 +166,7 @@ class RecurringImportCommand extends AbstractCommand
 
         $this->createOrUpdateEntryInTable();
         $this->setIcecatLoginUser();
-        if($this->icecatLoginUser === null) {
+        if ($this->icecatLoginUser === null) {
             $this->createOrUpdateEntryInTable([
                 "endDatetime" => time(),
                 "status" => "finished",
@@ -183,7 +183,7 @@ class RecurringImportCommand extends AbstractCommand
             return 0;
         }
 
-        if(!is_array($this->configuration->getLanguages()) || count($this->configuration->getLanguages()) == 0) {
+        if (!is_array($this->configuration->getLanguages()) || count($this->configuration->getLanguages()) == 0) {
             $this->createOrUpdateEntryInTable([
                 "endDatetime" => time(),
                 "status" => "finished",
@@ -202,10 +202,10 @@ class RecurringImportCommand extends AbstractCommand
 
         $assetFilePath = $this->configuration->getAssetFilePath();
         $asset = Asset::getByPath($assetFilePath);
-        if($asset) {
+        if ($asset) {
             $this->executionType = ucfirst($this->executionType) . ', Excel';
-           $this->processAssetFile($asset);
-        } elseif($this->configuration->getProductClass() != "") {
+            $this->processAssetFile($asset);
+        } elseif ($this->configuration->getProductClass() != "") {
             $this->executionType = ucfirst($this->executionType) . ', Pimcore';
             $this->processClassData();
         } else {
@@ -279,11 +279,11 @@ class RecurringImportCommand extends AbstractCommand
             $validFile = true;
         }
 
-        if($validFile === false && array_key_exists('PRODUCT CODE', $readerArray) && array_key_exists('BRAND NAME', $readerArray)) {
+        if ($validFile === false && array_key_exists('PRODUCT CODE', $readerArray) && array_key_exists('BRAND NAME', $readerArray)) {
             $validFile = true;
         }
 
-        if($validFile === false) {
+        if ($validFile === false) {
             $this->createOrUpdateEntryInTable([
                 "endDatetime" => time(),
                 "status" => "finished",
@@ -311,7 +311,6 @@ class RecurringImportCommand extends AbstractCommand
         Simple::log(self::LOG_FILENAME, "INFO: starting import with total records {$this->totalRecords}");
 
         foreach ($excelDataArray as $data) {
-
             $gtin = $productCode = $brandName = null;
             if (array_key_exists('GTIN', $readerArray)) {
                 $gtin = isset($data[$readerArray['GTIN']]) ? $data[$readerArray['GTIN']] : null;
@@ -337,7 +336,7 @@ class RecurringImportCommand extends AbstractCommand
                     $url = $this->importService . "?UserName=$this->icecatLoginUser&Language=$language&Brand=$brandName&ProductCode=$productCode";
                 }
 
-                if($url === null) {
+                if ($url === null) {
                     ++$this->errorRecords;
                     Simple::log(self::LOG_FILENAME, "ERROR: ROW {$this->rowNumber} LANG {$language} -  missing data");
                     continue;
@@ -346,7 +345,7 @@ class RecurringImportCommand extends AbstractCommand
                 try {
                     $response = $this->importService->fetchIceCatData($url);
                     $responseArray = json_decode($response, true);
-                    if(array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
+                    if (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
                         $data = [];
                         $data['gtin'] = $responseArray['data']['GeneralInfo']['IcecatId'];
                         $data['original_gtin'] = $responseArray['data']['GeneralInfo']['GTIN'][0];
@@ -362,7 +361,7 @@ class RecurringImportCommand extends AbstractCommand
                         $error = $responseArray['Error'] ?? null;
                         $errorMessage = $responseArray['Message'] ?? null;
                         Simple::log(self::LOG_FILENAME, "ERROR: ROW {$this->rowNumber} LANG {$language} GTIN: {$gtin} Brand: {$brandName} ProductCode: {$productCode} - {$error}: {$errorMessage} URL {$url}");
-                        if($statusCode === 403) {
+                        if ($statusCode === 403) {
                             ++$this->forbiddenRecords;
                         } else {
                             ++$this->notFoundRecords;
@@ -381,7 +380,6 @@ class RecurringImportCommand extends AbstractCommand
                         ++$this->notFoundRecords;
                         Simple::log(self::LOG_FILENAME, "ERROR: ROW {$this->rowNumber} LANG {$language} GTIN: {$gtin} Brand: {$brandName} ProductCode: {$productCode}  - product not found" . " URL {$url}");
                     }
-
                 } catch (\Throwable $e) {
                     ++$this->errorRecords;
                     Simple::log(self::LOG_FILENAME, "ERROR: ROW {$this->rowNumber} LANG {$language} GTIN: {$gtin} Brand: {$brandName} ProductCode: {$productCode}  - {$e->getMessage()} {$e->getTraceAsString()}");
@@ -391,7 +389,7 @@ class RecurringImportCommand extends AbstractCommand
             ++$this->processedRecords;
             ++$this->rowNumber;
 
-            if($this->rowNumber % 100 == 0) {
+            if ($this->rowNumber % 100 == 0) {
                 \Pimcore::collectGarbage();
             }
 
@@ -414,14 +412,14 @@ class RecurringImportCommand extends AbstractCommand
         $class = ClassDefinition::getById($classId);
         $onlyNewObjectProcessed = (bool)$this->configuration->getOnlyNewObjectProcessed();
         $isGtinAvailable = $isBrandAvailable = $isProductCodeAvailable = false;
-        if(trim($this->configuration->getGtinField())) {
+        if (trim($this->configuration->getGtinField())) {
             $isGtinAvailable = true;
         }
-        if(trim($this->configuration->getBrandNameField()) && trim($this->configuration->getProductNameField())) {
+        if (trim($this->configuration->getBrandNameField()) && trim($this->configuration->getProductNameField())) {
             $isBrandAvailable = $isProductCodeAvailable = true;
         }
 
-        if(!$class || (!$isGtinAvailable && (!$isBrandAvailable || !$isProductCodeAvailable))) {
+        if (!$class || (!$isGtinAvailable && (!$isBrandAvailable || !$isProductCodeAvailable))) {
             $this->createOrUpdateEntryInTable([
                 "endDatetime" => time(),
                 "status" => "finished",
@@ -441,7 +439,7 @@ class RecurringImportCommand extends AbstractCommand
             $listingClass = "\\Pimcore\\Model\\DataObject\\{$class->getName()}\\Listing";
             /** @var \Pimcore\Model\DataObject\Listing\Concrete $listing */
             $listing = new $listingClass();
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->createOrUpdateEntryInTable([
                 "endDatetime" => time(),
                 "status" => "finished",
@@ -457,16 +455,16 @@ class RecurringImportCommand extends AbstractCommand
             return 1;
         }
 
-        if($onlyNewObjectProcessed) {
+        if ($onlyNewObjectProcessed) {
             $sql = "SELECT * FROM icecat_recurring_import WHERE id != {$this->tableRowId} AND status = 'finished'";
             $result = $this->db->fetchRow($sql);
-            if($result) {
+            if ($result) {
                 $startDatetime = $result['start_datetime'];
                 $listing->setCondition("o_modificationDate > {$startDatetime} AND o_userModification > 0");
             }
         }
 
-        if($listing->count() === 0) {
+        if ($listing->count() === 0) {
             $this->createOrUpdateEntryInTable([
                 "endDatetime" => time(),
                 "status" => "finished",
@@ -497,21 +495,21 @@ class RecurringImportCommand extends AbstractCommand
                 $url = $gtin = $brand = $productCode = null;
                 if ($isGtinAvailable) {
                     $getter = "get".ucfirst($this->configuration->getGtinField());
-                    if($this->configuration->getGtinFieldType() == "manyToOneRelation") {
-                        if(trim($this->configuration->getMappingGtinClassField()) == "") {
+                    if ($this->configuration->getGtinFieldType() == "manyToOneRelation") {
+                        if (trim($this->configuration->getMappingGtinClassField()) == "") {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - gtin reference field mapping missing");
                             continue;
                         }
                         $referenceGetter = "get".ucfirst($this->configuration->getMappingGtinClassField());
                         try {
-                            if(!$object->$getter()) {
+                            if (!$object->$getter()) {
                                 ++$this->errorRecords;
                                 Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - invalid gtin");
                                 continue;
                             }
                             $gtin = $object->$getter()->$referenceGetter($language);
-                        } catch(\Throwable $e) {
+                        } catch (\Throwable $e) {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - {$e->getMessage()} {$e->getTraceAsString()}");
                             continue;
@@ -519,36 +517,35 @@ class RecurringImportCommand extends AbstractCommand
                     } else {
                         try {
                             $gtin = $object->$getter($language);
-                        } catch(\Throwable $e) {
+                        } catch (\Throwable $e) {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - {$e->getMessage()} {$e->getTraceAsString()}");
                             continue;
                         }
                     }
-                    if($gtin) {
+                    if ($gtin) {
                         $url = $this->importService->importUrl . "?UserName=$this->icecatLoginUser&Language=$language&GTIN=$gtin";
                     }
                 }
 
-                if(!$gtin && $isBrandAvailable && $isProductCodeAvailable) {
-
+                if (!$gtin && $isBrandAvailable && $isProductCodeAvailable) {
                     // Brand
                     $getter = "get".ucfirst($this->configuration->getBrandNameField());
-                    if($this->configuration->getBrandNameFieldType() == "manyToOneRelation") {
-                        if(trim($this->configuration->getMappingBrandClassField()) == "") {
+                    if ($this->configuration->getBrandNameFieldType() == "manyToOneRelation") {
+                        if (trim($this->configuration->getMappingBrandClassField()) == "") {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - brand reference field mapping missing");
                             continue;
                         }
                         $referenceGetter = "get".ucfirst($this->configuration->getMappingBrandClassField());
                         try {
-                            if(!$object->$getter()) {
+                            if (!$object->$getter()) {
                                 ++$this->errorRecords;
                                 Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - invalid brand");
                                 continue;
                             }
                             $brand = $object->$getter()->$referenceGetter($language);
-                        } catch(\Throwable $e) {
+                        } catch (\Throwable $e) {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - {$e->getMessage()} {$e->getTraceAsString()}");
                             continue;
@@ -556,7 +553,7 @@ class RecurringImportCommand extends AbstractCommand
                     } else {
                         try {
                             $brand = $object->$getter($language);
-                        } catch(\Throwable $e) {
+                        } catch (\Throwable $e) {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - {$e->getMessage()} {$e->getTraceAsString()}");
                             continue;
@@ -565,21 +562,21 @@ class RecurringImportCommand extends AbstractCommand
 
                     // ProductCode
                     $getter = "get".ucfirst($this->configuration->getProductNameField());
-                    if($this->configuration->getProductNameFieldType() == "manyToOneRelation") {
-                        if(trim($this->configuration->getMappingProductCodeClassField()) == "") {
+                    if ($this->configuration->getProductNameFieldType() == "manyToOneRelation") {
+                        if (trim($this->configuration->getMappingProductCodeClassField()) == "") {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - product code reference field mapping missing");
                             continue;
                         }
                         $referenceGetter = "get".ucfirst($this->configuration->getMappingProductCodeClassField());
                         try {
-                            if(!$object->$getter()) {
+                            if (!$object->$getter()) {
                                 ++$this->errorRecords;
                                 Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - invalid product code");
                                 continue;
                             }
                             $productCode = $object->$getter()->$referenceGetter($language);
-                        } catch(\Throwable $e) {
+                        } catch (\Throwable $e) {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - {$e->getMessage()} {$e->getTraceAsString()}");
                             continue;
@@ -587,19 +584,19 @@ class RecurringImportCommand extends AbstractCommand
                     } else {
                         try {
                             $productCode = $object->$getter($language);
-                        } catch(\Throwable $e) {
+                        } catch (\Throwable $e) {
                             ++$this->errorRecords;
                             Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - {$e->getMessage()} {$e->getTraceAsString()}");
                             continue;
                         }
                     }
 
-                    if(!$gtin && $brand && $productCode) {
+                    if (!$gtin && $brand && $productCode) {
                         $url = $this->importService->importUrl . "?UserName=$this->icecatLoginUser&Language=$language&Brand=$brand&ProductCode=$productCode";
                     }
                 }
 
-                if($url === null) {
+                if ($url === null) {
                     ++$this->errorRecords;
                     Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} - missing data");
                     continue;
@@ -608,7 +605,7 @@ class RecurringImportCommand extends AbstractCommand
                 try {
                     $response = $this->importService->fetchIceCatData($url);
                     $responseArray = json_decode($response, true);
-                    if(array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
+                    if (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
                         $data = [];
                         $data['gtin'] = $responseArray['data']['GeneralInfo']['IcecatId'];
                         $data['original_gtin'] = $responseArray['data']['GeneralInfo']['GTIN'][0];
@@ -624,7 +621,7 @@ class RecurringImportCommand extends AbstractCommand
                         $error = $responseArray['Error'] ?? null;
                         $errorMessage = $responseArray['Message'] ?? null;
                         Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode} - {$error}: {$errorMessage} URL {$url}");
-                        if($statusCode === 403) {
+                        if ($statusCode === 403) {
                             ++$this->forbiddenRecords;
                         } else {
                             ++$this->notFoundRecords;
@@ -644,7 +641,6 @@ class RecurringImportCommand extends AbstractCommand
                         ++$this->notFoundRecords;
                         Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode}- product not found" . " URL {$url}");
                     }
-
                 } catch (\Throwable $e) {
                     ++$this->errorRecords;
                     Simple::log(self::LOG_FILENAME, "ERROR: PIMCORE ID {$object->getId()} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode} - {$e->getMessage()} {$e->getTraceAsString()}");
@@ -654,7 +650,7 @@ class RecurringImportCommand extends AbstractCommand
             ++$this->processedRecords;
             ++$this->rowNumber;
 
-            if($this->rowNumber % 100 == 0) {
+            if ($this->rowNumber % 100 == 0) {
                 \Pimcore::collectGarbage();
             }
 
@@ -688,23 +684,22 @@ class RecurringImportCommand extends AbstractCommand
 
         try {
             $this->createObjectService->createIceCatObject($data);
-            if($pimcoreObject) {
+            if ($pimcoreObject) {
                 Simple::log(self::LOG_FILENAME, "INFO: PIMCORE ID {$pimcoreObject->getId()} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode} - processed successfully");
             } else {
                 Simple::log(self::LOG_FILENAME, "INFO: ROW {$this->rowNumber} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode} - processed successfully");
             }
 
             ++$this->successRecords;
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             ++$this->errorRecords;
 
-            if($pimcoreObject) {
+            if ($pimcoreObject) {
                 Simple::log(self::LOG_FILENAME, "INFO: PIMCORE ID {$pimcoreObject->getId()} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode} - {$e->getMessage()} {$e->getTraceAsString()}");
             } else {
                 Simple::log(self::LOG_FILENAME, "INFO: ROW {$this->rowNumber} LANG {$language} GTIN: {$gtin} Brand: {$brand} ProductCode: {$productCode} - {$e->getMessage()} {$e->getTraceAsString()}");
             }
         }
-
     }
 
     /**
@@ -730,7 +725,7 @@ class RecurringImportCommand extends AbstractCommand
      */
     protected function createOrUpdateEntryInTable($data = [])
     {
-        if(!$this->tableRowId) {
+        if (!$this->tableRowId) {
             $startDatetime = $endDatetime = time();
             $this->db->executeQuery(
                 "INSERT INTO icecat_recurring_import
@@ -741,39 +736,39 @@ class RecurringImportCommand extends AbstractCommand
             $this->tableRowId = $this->db->lastInsertId();
         }
 
-        if(count($data) === 0) {
+        if (count($data) === 0) {
             return;
         }
 
         $set = "";
-        if(isset($data['startDatetime'])) {
+        if (isset($data['startDatetime'])) {
             $set .= " start_datetime = ".$data['startDatetime']. ", ";
         }
-        if(isset($data['endDatetime'])) {
+        if (isset($data['endDatetime'])) {
             $set .= " end_datetime = ".$data['endDatetime']. ", ";
         }
-        if(isset($data['status'])) {
+        if (isset($data['status'])) {
             $set .= " status = '".$data['status']."', ";
         }
-        if(isset($data['totalRecords'])) {
+        if (isset($data['totalRecords'])) {
             $set .= " total_records = ".$data['totalRecords']. ", ";
         }
-        if(isset($data['processedRecords'])) {
+        if (isset($data['processedRecords'])) {
             $set .= " processed_records = ".$data['processedRecords']. ", ";
         }
-        if(isset($data['successRecords'])) {
+        if (isset($data['successRecords'])) {
             $set .= " success_records = ".$data['successRecords']. ", ";
         }
-        if(isset($data['errorRecords'])) {
+        if (isset($data['errorRecords'])) {
             $set .= " error_records = ".$data['errorRecords']. ", ";
         }
-        if(isset($data['notFoundRecords'])) {
+        if (isset($data['notFoundRecords'])) {
             $set .= " not_found_records = ".$data['notFoundRecords']. ", ";
         }
-        if(isset($data['forbiddenRecords'])) {
+        if (isset($data['forbiddenRecords'])) {
             $set .= " forbidden_Records = ".$data['forbiddenRecords']. ", ";
         }
-        if(isset($data['executionType'])) {
+        if (isset($data['executionType'])) {
             $set .= " execution_type = '".$data['executionType']."', ";
         }
 

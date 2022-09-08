@@ -597,7 +597,7 @@ class CreateObjectService
 
 
             $html = "";
-            if($data['URL'] != "") {
+            if ($data['URL'] != "") {
                 $pathinfo = pathinfo($data['URL']);
                 $html = file_get_contents($data['URL']);
                 $html = preg_replace("/src=\"/", 'src="'.$pathinfo['dirname'].'/', $html);

@@ -8,63 +8,63 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         this.loadConfig();
     },
 
-    loadConfig: function() {
+    loadConfig: function () {
         Ext.Ajax.request({
             async: false,
             url: Routing.generate('icecat_getconfig'),
             success: function (res) {
                 let response = Ext.decode(res.responseText);
-                if(response.success) {
-                    if(response.data !== undefined && response.data.languages !== undefined) {
-                        this.configData.selectedLanguages = response.data.languages; 
+                if (response.success) {
+                    if (response.data !== undefined && response.data.languages !== undefined) {
+                        this.configData.selectedLanguages = response.data.languages;
                     }
-                    if(response.data !== undefined && response.data.categorization !== undefined) {
+                    if (response.data !== undefined && response.data.categorization !== undefined) {
                         this.configData.categorization = response.data.categorization;
                     }
 
-                    if(response.data !== undefined && response.data.importRelatedProducts !== undefined) {
+                    if (response.data !== undefined && response.data.importRelatedProducts !== undefined) {
                         this.configData.importRelatedProducts = response.data.importRelatedProducts;
                     }
-                    if(response.data !== undefined && response.data.showSearchPanel !== undefined) {
+                    if (response.data !== undefined && response.data.showSearchPanel !== undefined) {
                         this.configData.showSearchPanel = response.data.showSearchPanel;
                     }
-                    if(response.data !== undefined && response.data.searchLanguages !== undefined) {
+                    if (response.data !== undefined && response.data.searchLanguages !== undefined) {
                         this.configData.searchLanguages = response.data.searchLanguages;
                     }
-                    if(response.data !== undefined && response.data.classes !== undefined) {
+                    if (response.data !== undefined && response.data.classes !== undefined) {
                         this.configData.classes = response.data.classes;
                     }
-                    if(response.data !== undefined && response.data.productClass !== undefined) {
+                    if (response.data !== undefined && response.data.productClass !== undefined) {
                         this.configData.productClass = response.data.productClass;
                     }
-                    if(response.data !== undefined && response.data.gtinField !== undefined) {
+                    if (response.data !== undefined && response.data.gtinField !== undefined) {
                         this.configData.gtinField = response.data.gtinField.name;
                         this.configData.gtinFieldType = response.data.gtinField.type;
                         this.configData.mappingGtinClassField = response.data.gtinField.referenceFieldName;
                         this.configData.mappingGtinLanguageField = response.data.gtinField.language;
                     }
-                    if(response.data !== undefined && response.data.brandNameField !== undefined) {
+                    if (response.data !== undefined && response.data.brandNameField !== undefined) {
                         this.configData.brandNameField = response.data.brandNameField.name;
                         this.configData.brandNameType = response.data.brandNameField.type;
                         this.configData.mappingBrandClassField = response.data.brandNameField.referenceFieldName;
                         this.configData.mappingBrandLanguageField = response.data.brandNameField.language;
                     }
-                    if(response.data !== undefined && response.data.productNameField !== undefined) {
+                    if (response.data !== undefined && response.data.productNameField !== undefined) {
                         this.configData.productNameField = response.data.productNameField.name;
                         this.configData.productNameType = response.data.productNameField.type;
                         this.configData.mappingProductNameClassField = response.data.productNameField.referenceFieldName;
                         this.configData.mappingProductNameLanguageField = response.data.productNameField.language;
                     }
-                    if(response.data !== undefined && response.data.cronExpression !== undefined) {
+                    if (response.data !== undefined && response.data.cronExpression !== undefined) {
                         this.configData.cronExpression = response.data.cronExpression;
                     }
-                    if(response.data !== undefined && response.data.onlyNewObjectProcessed !== undefined) {
+                    if (response.data !== undefined && response.data.onlyNewObjectProcessed !== undefined) {
                         this.configData.onlyNewObjectProcessed = response.data.onlyNewObjectProcessed;
                     }
-                    if(response.data !== undefined && response.data.assetFilePath !== undefined) {
+                    if (response.data !== undefined && response.data.assetFilePath !== undefined) {
                         this.configData.assetFilePath = response.data.assetFilePath;
                     }
-                    if(response.data !== undefined && response.data.lastImportSummary !== undefined) {
+                    if (response.data !== undefined && response.data.lastImportSummary !== undefined) {
                         this.configData.lastImportSummary = response.data.lastImportSummary;
                     }
                 } else {
@@ -202,7 +202,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         });
     },
 
-    getConfigData: function() {
+    getConfigData: function () {
         return this.configData;
     },
 
@@ -248,8 +248,8 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     width: 200,
                     cls: "manual_execution_button",
                     text: t('Start Manual Execution'),
-                    handler: function(button) {
-                        if(this.dirty) {
+                    handler: function (button) {
+                        if (this.dirty) {
                             Ext.Msg.alert('Error', 'Looks like you have made changes in configuration. Please save your changes before proceeding.');
                             return false;
                         }
@@ -262,7 +262,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             }.bind(this)
                         });
                     }.bind(this)
-                }
+            }
             ]
         });
         
@@ -285,14 +285,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             anyMatch: true,
                             width: 300,
                             name: 'cronExpression'
-                        },
+                    },
                         {
                             xtype: 'displayfield',
                             style: 'padding-left: 10px',
                             value: '<a target="_blank" href="https://crontab.guru/">' + t('plugin_pimcore_datahub_data_importer_configpanel_execution_cron_generator') + '</a>'
-                        }
+                    }
                     ]
-                }
+            }
             ]
         });
 
@@ -319,7 +319,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     xtype: 'button',
                     //iconCls: 'pimcore_icon_cancel',
                     text: t('Cancel execution'),
-                    handler: function() {
+                    handler: function () {
                         Ext.Ajax.request({
                             url: Routing.generate('icecat_cancel_recurring_import'),
                             method: 'PUT',
@@ -334,7 +334,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             }.bind(this)
                         });
                     }.bind(this)
-                }
+            }
             ]
         });
 
@@ -356,12 +356,12 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     items: [
                                         this.getAssetComponent()
                                     ]
-                                },
+                            },
                                 {
                                     xtype: "label",
                                     style: "font-size:15px;",
                                     html: "<div class=\"objectlayout_element_text\" style=\"color:#828282\"><div style=\"padding-top:4px;\">OR</div></div>",
-                                },
+                            },
                                 {
                                     xtype: 'fieldset',
                                     width: 660,
@@ -391,7 +391,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                     this.classFieldsStore.reload();
                                                 }.bind(this)
                                             }
-                                        },
+                                    },
                                         {
                                             xtype: "fieldcontainer",
                                             layout: "hbox",
@@ -418,17 +418,17 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                             Ext.getCmp("mapping_gtin_class_field").setValue('');
                                                             Ext.getCmp("mapping_gtin_language_field").hide();
                                                             const record = this.classFieldsStore.findRecord('key', newValue);
-                                                            if(record && record.data.type == "manyToOneRelation") {
+                                                            if (record && record.data.type == "manyToOneRelation") {
                                                                 this.gtinReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
                                                                 this.gtinReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
                                                                 this.gtinReferenceFieldsStore.reload();
                                                                 Ext.getCmp("mapping_gtin_class_field").show();
-                                                            } else if(record && record.data.localized == true) {
+                                                            } else if (record && record.data.localized == true) {
                                                                 //Ext.getCmp("mapping_gtin_language_field").show();
                                                             }
                                                         }.bind(this)
                                                     }
-                                                },
+                                            },
                                                 {
                                                     xtype: "combobox",
                                                     id: "mapping_gtin_class_field",
@@ -451,7 +451,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                             this.dirty = true;
                                                         }.bind(this)
                                                     }
-                                                },
+                                            },
                                                 {
                                                     xtype: "combobox",
                                                     id: "mapping_gtin_language_field",
@@ -469,9 +469,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                     hidden: true,
                                                     value: this.configData.mappingGtinLanguageField ? this.configData.mappingGtinLanguageField : null,
                                                     name: 'mappingGtinLanguageField'
-                                                },
+                                            },
                                             ]
-                                        },
+                                    },
                                         {
                                             xtype: "fieldcontainer",
                                             layout: "hbox",
@@ -497,17 +497,17 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                             Ext.getCmp("mapping_brand_class_field").setValue('');
                                                             Ext.getCmp("mapping_brand_language_field").hide();
                                                             const record = this.classFieldsStore.findRecord('key', newValue);
-                                                            if(record && record.data.type == "manyToOneRelation") {
+                                                            if (record && record.data.type == "manyToOneRelation") {
                                                                 this.brandReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
                                                                 this.brandReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
                                                                 this.brandReferenceFieldsStore.reload();
                                                                 Ext.getCmp("mapping_brand_class_field").show();
-                                                            } else if(record && record.data.localized == true) {
+                                                            } else if (record && record.data.localized == true) {
                                                                 //Ext.getCmp("mapping_brand_language_field").show();
                                                             }
                                                         }.bind(this)
                                                     }
-                                                },
+                                            },
                                                 {
                                                     xtype: "combobox",
                                                     required: false,
@@ -534,7 +534,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                         //     }
                                                         // }.bind(this)
                                                     }
-                                                },
+                                            },
                                                 {
                                                     xtype: "combobox",
                                                     id: "mapping_brand_language_field",
@@ -557,9 +557,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                             this.dirty = true;
                                                         }.bind(this)
                                                     }
-                                                },
+                                            },
                                             ]
-                                        },
+                                    },
                                         {
                                             xtype: "fieldcontainer",
                                             layout: "hbox",
@@ -586,17 +586,17 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                             Ext.getCmp("mapping_productcode_class_field").setValue('');
                                                             Ext.getCmp("mapping_productcode_language_field").hide();
                                                             const record = this.classFieldsStore.findRecord('key', newValue);
-                                                            if(record && record.data.type == "manyToOneRelation") {
+                                                            if (record && record.data.type == "manyToOneRelation") {
                                                                 this.productCodeReferenceFieldsStore.getProxy().setExtraParam("field", newValue);
                                                                 this.productCodeReferenceFieldsStore.getProxy().setExtraParam("class", Ext.getCmp("system_class_loader_Icecat").getValue());
                                                                 this.productCodeReferenceFieldsStore.reload();
                                                                 Ext.getCmp("mapping_productcode_class_field").show();
-                                                            } else if(record && record.data.localized == true) {
+                                                            } else if (record && record.data.localized == true) {
                                                                 //Ext.getCmp("mapping_productcode_language_field").show();
                                                             }
                                                         }.bind(this)
                                                     }
-                                                },
+                                            },
                                                 {
                                                     xtype: "combobox",
                                                     id: "mapping_productcode_class_field",
@@ -619,7 +619,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                             this.dirty = true;
                                                         }.bind(this)
                                                     }
-                                                },
+                                            },
                                                 {
                                                     xtype: "combobox",
                                                     id: "mapping_productcode_language_field",
@@ -635,9 +635,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                     anyMatch: true,
                                                     hidden: true,
                                                     name: 'mappingProductCodeLanguageField'
-                                                }
+                                            }
                                             ]
-                                        },
+                                    },
                                         {
                                             xtype: 'radiogroup',
                                             vertical: 'false',
@@ -652,23 +652,23 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                     name: 'onlyNewObjectProcessed',
                                                     checked: this.configData.onlyNewObjectProcessed == true ? true : false,
                                                     inputValue: '1',
-                                                }, {
-                                                    boxLabel: t('Update all products'),
-                                                    name: 'onlyNewObjectProcessed',
-                                                    checked: this.configData.onlyNewObjectProcessed == true ? false : true,
-                                                    inputValue: '0'
-                                                }
+                                            }, {
+                                                boxLabel: t('Update all products'),
+                                                name: 'onlyNewObjectProcessed',
+                                                checked: this.configData.onlyNewObjectProcessed == true ? false : true,
+                                                inputValue: '0'
+                                            }
                                             ],
                                             listeners: {
                                                 'change': function (e, val) {
                                                     this.dirty = true;
                                                 }.bind(this)
                                             }
-                                        }
+                                    }
                                     ]
-                                },
+                            },
                             ]
-                        },
+                    },
                         {
                             xtype: 'fieldset',
                             width: 300,
@@ -681,13 +681,13 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             items: [
                                 this.lastRunSummary
                             ]
-                        }
+                    }
                     ]
-                },
+            },
                 {
                     xtype: 'tbspacer',
                     height: 10
-                },
+            },
                 {
                     xtype: 'fieldcontainer',
                     layout: "hbox",
@@ -702,11 +702,11 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     items: [
                                         this.crontabExecution
                                     ]
-                                },
+                            },
                                 {
                                     xtype: 'tbspacer',
                                     height: 20
-                                },
+                            },
                                 {
                                     xtype: 'fieldset',
                                     width: 660,
@@ -714,7 +714,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                         {
                                             xtype: 'tbspacer',
                                             height: 10
-                                        },
+                                    },
                                         {
                                             xtype: 'button',
                                             id: 'ice_cat_cron_config_button',
@@ -723,19 +723,19 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             handler: function () {
                                                 var form = this.cronPanel.getForm();
 
-                                                if(Ext.getCmp("system_settings_general_languageSelectionIcecat").getValue().length === 0) {
+                                                if (Ext.getCmp("system_settings_general_languageSelectionIcecat").getValue().length === 0) {
                                                     Ext.Msg.alert("Error", "Language is mandatory. Please select one or more languages.");
                                                     return false;
                                                 }
 
-                                                if((Ext.getCmp("system_class_loader_Icecat").getValue() == "" || Ext.getCmp("system_class_loader_Icecat").getValue() == null) && 
+                                                if ((Ext.getCmp("system_class_loader_Icecat").getValue() == "" || Ext.getCmp("system_class_loader_Icecat").getValue() == null) &&
                                                     (Ext.getCmp("asset_excel_file").getValue() == "" || Ext.getCmp("asset_excel_file").getValue() == null)) {
                                                     Ext.Msg.alert("Error", "Please specify excel file or map pimcore product catalog fields.");
                                                     return false;
                                                 }
 
-                                                if((Ext.getCmp("system_class_loader_Icecat").getValue() != "" && Ext.getCmp("system_class_loader_Icecat").getValue() != null) && 
-                                                    (Ext.getCmp("gtin_cron_Icecat").getValue() == "" || Ext.getCmp("gtin_cron_Icecat").getValue() == null) && 
+                                                if ((Ext.getCmp("system_class_loader_Icecat").getValue() != "" && Ext.getCmp("system_class_loader_Icecat").getValue() != null) &&
+                                                    (Ext.getCmp("gtin_cron_Icecat").getValue() == "" || Ext.getCmp("gtin_cron_Icecat").getValue() == null) &&
                                                     (Ext.getCmp("product_code_cron_Icecat").getValue() == "" || Ext.getCmp("product_code_cron_Icecat").getValue() == null)
                                                     ) {
                                                     Ext.Msg.alert("Error", "Pimcore product catalog fields have mappings missing");
@@ -769,13 +769,13 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                     });
                                                 }
                                             }.bind(this)
-                                        },
+                                    },
                                     ]
-                                },
+                            },
                                 {
                                     xtype: 'tbspacer',
                                     height: 20
-                                },
+                            },
                                 {
                                     xtype: 'fieldset',
                                     width: 660,
@@ -783,13 +783,13 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                         {
                                             xtype: 'tbspacer',
                                             height: 10
-                                        },
+                                    },
                                         this.manualStartButtonContainer
                                     ]
-                                }
+                            }
                                 
                             ]
-                        },
+                    },
                         {
                             xtype: 'fieldset',
                             style: "margin-left:50px;",
@@ -802,12 +802,12 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                 {
                                     xtype: 'tbspacer',
                                     height: 35
-                                },
+                            },
                                 this.cancelButtonContainer
                             ]
-                        }
+                    }
                     ]
-                }
+            }
             ]
         });
         
@@ -817,8 +817,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
             listeners: {
                 'afterrender': function () {
                     let ap = new pimcore.plugin.IceCatActiveProcesses('', 'fetching');
-                    if (ap.refreshTask != 'undefined')
+                    if (ap.refreshTask != 'undefined') {
                         ap.refreshTask.start();
+                    }
                 }
             },
             items: [
@@ -846,7 +847,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     },
                     listeners: {
                         'change': function (e, val, oldValue) {
-                            if(val.length == 0) {
+                            if (val.length == 0) {
                                 Ext.Msg.alert('Error', 'Language is mandatory. Please select one or more languages.');
                                 return false;
                             }
@@ -856,7 +857,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                 method: 'GET',
                                 success: function (res) {
                                     response = Ext.decode(res.responseText);
-                                    if(response.success === false) {
+                                    if (response.success === false) {
                                         Ext.Msg.alert('Error', response.message);
                                         return false;
                                     }
@@ -868,11 +869,11 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             });
                         }.bind(this)
                     }
-                },
+            },
                 {
                     xtype: 'tbspacer',
                     height: 15
-                },
+            },
                 {
                     xtype: 'fieldcontainer',
                     layout: 'hbox',
@@ -889,7 +890,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             name: 'categorization',
                             value: this.configData.categorization ? this.configData.categorization : false,
                             handler:function (component, value) {
-                                Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "make" : "lose") +" Icecat categorization leading in the Pimcore.\n Do you want to switch "+ (value == true ? "on" : "off") +" the Icecat categorization?"),
+                                Ext.MessageBox.confirm(
+                                    t("are_you_sure"),
+                                    t("You are about to "+ (value == true ? "make" : "lose") +" Icecat categorization leading in the Pimcore.\n Do you want to switch "+ (value == true ? "on" : "off") +" the Icecat categorization?"),
                                     function (buttonValue) {
                                         if (buttonValue == "yes") {
                                             Ext.Ajax.request({
@@ -899,7 +902,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                 success: function (res) {
                                                     response = Ext.decode(res.responseText);
                                                     let ufp = Ext.getCmp('pimcore_iceCat_tabPanel');
-                                                    if(response.success === false) {
+                                                    if (response.success === false) {
                                                         Ext.Msg.alert('Error', response.message);
                                                         return false;
                                                     }
@@ -916,9 +919,10 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                         } else {
                                             Ext.getCmp("system_settings_general_categorization").setRawValue(!value);
                                         }
-                                    }.bind(this));
+                                    }.bind(this)
+                                );
                             }.bind(this)
-                        },
+                    },
                         {
                             xtype: "checkbox",
                             required: true,
@@ -931,7 +935,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             name: 'categorization',
                             value: this.configData.importRelatedProducts ? this.configData.importRelatedProducts : false,
                             handler:function (component, value) {
-                                Ext.MessageBox.confirm(t("are_you_sure"), t("You are about to "+ (value == true ? "enable" : "disable") +" importing related products in the Pimcore in case they do not already exist in the Pimcore. Do you wish to enable it?"),
+                                Ext.MessageBox.confirm(
+                                    t("are_you_sure"),
+                                    t("You are about to "+ (value == true ? "enable" : "disable") +" importing related products in the Pimcore in case they do not already exist in the Pimcore. Do you wish to enable it?"),
                                     function (buttonValue) {
                                         if (buttonValue == "yes") {
                                             Ext.Ajax.request({
@@ -941,7 +947,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                 success: function (res) {
                                                     response = Ext.decode(res.responseText);
                                                     let ufp = Ext.getCmp('pimcore_iceCat_tabPanel');
-                                                    if(response.success === false) {
+                                                    if (response.success === false) {
                                                         Ext.Msg.alert('Error', response.message);
                                                         return false;
                                                     }
@@ -953,15 +959,16 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                         } else {
                                             Ext.getCmp("system_settings_general_import_related_products").setRawValue(!value);
                                         }
-                                    }.bind(this));
+                                    }.bind(this)
+                                );
                             }.bind(this)
-                        }
+                    }
                     ]
-                },
+            },
                 {
                     xtype: 'tbspacer',
                     height: 10
-                },
+            },
                 {
                     xtype: 'fieldset',
                     border: true,
@@ -986,7 +993,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     buttonText: 'Select File...',
                                     id: 'file-upload-btn',
         
-                                },
+                            },
         
                                 {
                                     xtype: 'button',
@@ -1016,7 +1023,6 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                         helper.setOtherInfo(resp);
         
                                                         if (resp.success == "true") {
-        
                                                             if (pimcore.globalmanager.get('objectCreatedFlag')) {
                                                                 pimcore.globalmanager.remove('objectCreatedFlag');
                                                             }
@@ -1045,8 +1051,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                                     return;
                                                                 }
                                                                 let ap = new pimcore.plugin.IceCatActiveProcesses('', 'fetching');
-                                                                if (ap.refreshTask != 'undefined')
+                                                                if (ap.refreshTask != 'undefined') {
                                                                     ap.refreshTask.start();
+                                                                }
                                                             }.bind(this), 2000);
         
                                                             // setTimeout(function () {
@@ -1059,7 +1066,6 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                         } else if (resp.success == "false" && resp.status == 303) {
                                                             pimcore.helpers.showNotification('Failure', 'File type not supported,Please use csv or xlsx', 'Failure');
                                                         } else {
-        
                                                             pimcore.helpers.showNotification('Failure', 'Something went wrong!', 'Failure');
                                                         }
                                                     }
@@ -1069,20 +1075,20 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                             });
                                         }
                                     }
-                                },
+                            },
                                 {
                                     xtype: 'label',
                                     forId: 'myFieldId',
                                     text: 'Add product list with GTIN(EAN) or Brand name and Product code',
                                     margin: '0 0 0 55   '
-                                }
+                            }
                             ]
         
-                        },
+                    },
                         {
                             xtype: 'tbspacer',
                             height: 10
-                        },
+                    },
                         {
                             xtype: 'fieldset',
                             width: 1000,
@@ -1095,7 +1101,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     id: 'icecat_upload_by_url_field',
                                     style: "float:left;",
                                     regex: /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})$/,
-                                },
+                            },
                                 {
                                     xtype: 'button',
                                     id: 'icecat_upload_by_url_button',
@@ -1164,7 +1170,6 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                     } else if (resp.success == "false" && resp.status == 303) {
                                                         pimcore.helpers.showNotification('Failure', 'File via URL type not supported,Please use csv or xlsx', 'error');
                                                     } else {
-        
                                                         pimcore.helpers.showNotification('Failure', 'Something went wrong!', 'Failure');
                                                     }
         
@@ -1175,7 +1180,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                         }
                                     }
         
-                                },
+                            },
                                 {
                                     xtype: 'label',
                                     forId: 'myFieldId',
@@ -1185,14 +1190,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                         float: 'left',
         
                                     }
-                                }
+                            }
                             ]
         
-                        },
+                    },
                         {
                             xtype: 'tbspacer',
                             height: 10
-                        },
+                    },
                         {
                             xtype: 'fieldset',
                             width: 1000,
@@ -1202,11 +1207,11 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             // items:
                             items: []
         
-                        },
+                    },
                         {
                             xtype: 'tbspacer',
                             height: 10
-                        },
+                    },
                         {
                             xtype: 'button',
                             id: 'ice_cat_process_restart_button',
@@ -1215,11 +1220,12 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             // style: "float:right; margin-top:-50px;",
                             tooltip: "It will terminate any ongoing process",
                             handler: function () {
-                                Ext.Msg.confirm(t('warning'), t('Are you sure you want to restart?')
+                                Ext.Msg.confirm(
+                                    t('warning'),
+                                    t('Are you sure you want to restart?')
                                     + "<br />" + t("<b style='color:red'>It will terminate current process </b>"),
                                     function (btn) {
                                         if (btn === 'yes') {
-        
                                             Ext.Ajax.request({
                                                 url: Routing.generate('icecat_terminate_process'),
                                                 success: function (response) {
@@ -1236,9 +1242,9 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                     }.bind(this)
                                 );
                             }
-                        }
+                    }
                     ]
-                }
+            }
             ]
         });
 
@@ -1264,14 +1270,14 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                             xtype: "label",
                             style: "font-size:15px;",
                             html: "<div class=\"objectlayout_element_text\" style=\"color:#828282\"><div style=\"padding-top:10px;\">Drag and drop excel file from Assets section.</div><div style=\"padding-top:10px;\">Excel file will have priority over the Pimcore product catalog fields mapping.</div></div>",
-                        },
+                    },
                         {
                             xtype: 'tbspacer',
                             height: 10
-                        },
+                    },
                         this.cronPanel
                     ]
-                }
+            }
                
             ]
         });
@@ -1285,7 +1291,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         }
     },
 
-    getAssetComponent: function() {
+    getAssetComponent: function () {
 
         this.component = Ext.create('Ext.form.TextField', {
             name: 'assetFilePath',
@@ -1296,7 +1302,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
             enableKeyEvents: true,
             msgTarget: 'under',
             listeners: {
-                change: function() {
+                change: function () {
                     this.dirty = true;
                 }.bind(this),
                 render: function (el) {
@@ -1332,7 +1338,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                     iconCls: "pimcore_icon_delete",
                     style: "margin-left: 5px",
                     handler: this.empty.bind(this)
-                }
+            }
             ],
             width: 900,
             componentCls: "object_field object_field_type_manyToOneRelation",
@@ -1351,7 +1357,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
 
     onNodeDrop: function (target, dd, e, data) {
 
-        if(!pimcore.helpers.dragAndDropValidateSingleItem(data)) {
+        if (!pimcore.helpers.dragAndDropValidateSingleItem(data)) {
             return false;
         }
 
@@ -1394,7 +1400,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
         return false;
     },
 
-    updateProgress: function() {
+    updateProgress: function () {
         clearTimeout(this.updateHandle);
         Ext.Ajax.request({
             url: Routing.generate('icecat_check_recurring_import_progress'),
@@ -1402,7 +1408,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
             success: function (response) {
                 let data = Ext.decode(response.responseText);
 
-                if(data.isRunning) {
+                if (data.isRunning) {
                     this.progressBar.show();
                     this.progressBar.updateProgress(data.progress, data.processedItems + '/' + data.totalItems + ' ' + t('plugin_pimcore_datahub_data_importer_configpanel_execution_processed'));
                     this.cancelButtonContainer.show();

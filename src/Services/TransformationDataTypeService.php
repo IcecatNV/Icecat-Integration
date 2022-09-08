@@ -128,7 +128,6 @@ class TransformationDataTypeService
                 $this->addTypesToAttributesArray($localizedDefinition, $targetType, $attributes, true, $keyPrefix);
             }
         }
-
     }
 
     /**

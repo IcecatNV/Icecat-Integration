@@ -502,7 +502,7 @@ class Configuration
         }
 
         if ($this->getGtinField() !== null) {
-            if($this->getMappingGtinClassField() !== null) {
+            if ($this->getMappingGtinClassField() !== null) {
                 $data['icecat']['gtinField']['name'] = $this->getGtinField();
                 $data['icecat']['gtinField']['type'] = $this->getGtinFieldType();
                 $data['icecat']['gtinField']['referenceFieldName'] = $this->getMappingGtinClassField();
@@ -514,7 +514,7 @@ class Configuration
         }
 
         if ($this->getBrandNameField() !== null) {
-            if($this->getMappingBrandClassField() !== null) {
+            if ($this->getMappingBrandClassField() !== null) {
                 $data['icecat']['brandNameField']['name'] = $this->getBrandNameField();
                 $data['icecat']['brandNameField']['type'] = $this->getBrandNameFieldType();
                 $data['icecat']['brandNameField']['referenceFieldName'] = $this->getMappingBrandClassField();
@@ -526,7 +526,7 @@ class Configuration
         }
 
         if ($this->getProductNameField() !== null) {
-            if($this->getMappingProductCodeClassField() !== null) {
+            if ($this->getMappingProductCodeClassField() !== null) {
                 $data['icecat']['productNameField']['name'] = $this->getProductNameField();
                 $data['icecat']['productNameField']['type'] = $this->getProductNameFieldType();
                 $data['icecat']['productNameField']['referenceFieldName'] = $this->getMappingProductCodeClassField();

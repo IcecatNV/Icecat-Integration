@@ -163,7 +163,7 @@ trait IceCateHelper
      */
     public function checkIfCronExpressionValid($cronExpression)
     {
-        if($cronExpression == "") {
+        if ($cronExpression == "") {
             return;
         }
         try {
