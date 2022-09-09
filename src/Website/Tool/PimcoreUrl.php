@@ -9,8 +9,8 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PEL
+ * @copyright Copyright (c) Pimcore GmbH (http://www.pimcore.org)
+ * @license   http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace TestBundle\Website\Tool;
@@ -19,10 +19,10 @@ class PimcoreUrl extends \Pimcore\Twig\Extension\Templating\PimcoreUrl
 {
     /**
      * @param array $urlOptions
-     * @param null $name
-     * @param bool $reset
-     * @param bool $encode
-     * @param bool $relative
+     * @param null  $name
+     * @param bool  $reset
+     * @param bool  $encode
+     * @param bool  $relative
      *
      * @return string
      */

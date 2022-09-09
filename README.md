@@ -18,6 +18,17 @@ To install this plugin use following commands:
 - Create Products in pimcoreusing imported data.
 - Provide Products preview.
 
+**New features in v3.0.0**
+- Helpful Icecat links on the login screen
+- Addition of more enriched content
+- Advanced filter options
+- Overwritable fields - on the fly
+- Single product import
+- Recurring import - on demand and scheduled
+- PSR1 and PSR2 complete code compliant
+
+[Click here to see full details for v3.0.0](./doc/plugin_v3.md)
+
 **New features in v2.0.0**
 - Enable / Disable automatic Icecat product categorization leading in the Pimcore database
 - Filtering products by language / category / brand / searchable attributes

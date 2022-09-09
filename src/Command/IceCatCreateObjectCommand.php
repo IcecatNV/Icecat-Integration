@@ -18,7 +18,6 @@ class IceCatCreateObjectCommand extends AbstractCommand
         parent::__construct();
     }
 
-    //sets name and description
     public function configure()
     {
         $this->setName('icecat:create-object')->setDescription('IMPORT DATA FROM ICECAT');
@@ -27,15 +26,12 @@ class IceCatCreateObjectCommand extends AbstractCommand
         $this->addArgument('ignoreVersion', InputArgument::OPTIONAL, 'Enter 1 to ignore ');
     }
 
-    // Calls a method of IceCatBundle\Services\ImportService that import
-    // data from icecat and return response accordingly
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $userId = $input->getArgument('userId');
         $jobId = $input->getArgument('jobId');
-        $this->importObject->CreateObject($userId, $jobId);
+        $this->importObject->createObject($userId, $jobId);
         $this->writeInfo('Import Completed');
-
         return 0;
     }
 }

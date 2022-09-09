@@ -3,6 +3,7 @@
 namespace IceCatBundle\Services;
 
 use Pimcore\Tool;
+use IceCatBundle\Model\Configuration;
 use Symfony\Component\HttpFoundation\Request;
 
 class SearchService extends AbstractService
@@ -23,17 +24,22 @@ class SearchService extends AbstractService
      */
     public function getSearchLanguages()
     {
+        $config = Configuration::load();
         $data = [];
-        $activatedLanguage = Tool::getValidLanguages();
+        $activatedLanguage = $config->getLanguages();
         foreach ($activatedLanguage as $lang) {
-            $sql = "SELECT COUNT(*) as c FROM object_localized_icecat_category_{$lang} WHERE trim(name) != ''";
-            $result = \Pimcore\Db::get()->fetchAssoc($sql);
-            if ((int)$result['c'] !== 0) {
-                $data[] = [
-                    'key' => $lang,
-                    'value' => \Locale::getDisplayLanguage($lang)
-                ];
-            }
+            $data[] = [
+                'key' => $lang,
+                'value' => \Locale::getDisplayLanguage($lang)
+            ];
+            // $sql = "SELECT COUNT(*) as c FROM object_localized_icecat_category_{$lang} WHERE trim(name) != ''";
+            // $result = \Pimcore\Db::get()->fetchAssoc($sql);
+            // if ((int)$result['c'] !== 0) {
+            //     $data[] = [
+            //         'key' => $lang,
+            //         'value' => \Locale::getDisplayLanguage($lang)
+            //     ];
+            // }
         }
 
         return $data;
@@ -163,7 +169,7 @@ class SearchService extends AbstractService
             }
         }
 
-        $sql = "SELECT * FROM object_localized_Icecat_{$language} o ";
+        $sql = "SELECT * FROM object_localized_Icecat_{$language} o JOIN object_localized_data_Icecat os ON o.o_id = os.ooo_id AND os.language = '{$language}' ";
         $sql .= $this->getFilterCondition($request);
         $sql .= "LIMIT {$start}, {$limit}";
 
@@ -193,7 +199,7 @@ class SearchService extends AbstractService
     public function getSearchResultCount($request)
     {
         $language = $request->get('language', 'en');
-        $sql = "SELECT COUNT(*) as c FROM object_localized_Icecat_{$language} o ";
+        $sql = "SELECT COUNT(*) as c FROM object_localized_Icecat_{$language} o JOIN object_localized_data_Icecat os ON o.o_id = os.ooo_id AND os.language = '{$language}' ";
         $sql .= $this->getFilterCondition($request);
         $result = \Pimcore\Db::get()->fetchAssoc($sql);
 
@@ -210,6 +216,14 @@ class SearchService extends AbstractService
         $language = $request->get('language', 'en');
         $category = trim($request->get('category'));
         $brands = $request->get('brand', []);
+
+        $tour3D = $request->get('3dtour', "false") === "true" ? true : false;
+        $video = $request->get('video') === "true" ? true : false;
+        $reviews = $request->get('reviews') === "true" ? true : false;
+        $productStories = $request->get('productstories') === "true" ? true : false;
+        $multimedia = $request->get('multimedia') === "true" ? true : false;
+        $reasonsToBuy = $request->get('reasonstobuy') === "true" ? true : false;
+        $relatedProducts = $request->get('relatedproducts') === "true" ? true : false;
 
         $parameters = $request->request->all();
         $featuresValues = [];
@@ -259,6 +273,34 @@ class SearchService extends AbstractService
                 $loopIndex++;
             }
             $sql .= ' ) ';
+        }
+
+        if ($tour3D) {
+            $sql .= " AND (o.Tour__images IS NOT NULL AND TRIM(o.Tour__images) != '') ";
+        }
+
+        if ($video) {
+            $sql .= " AND (o.videos IS NOT NULL AND TRIM(o.videos) != '') ";
+        }
+
+        if ($reviews) {
+            $sql .= " AND (os.Reviews IS NOT NULL AND TRIM(os.Reviews) != '' AND os.Reviews != 'a:0:{}') ";
+        }
+
+        if ($productStories) {
+            $sql .= " AND (os.productStory IS NOT NULL AND TRIM(os.productStory) != '' AND os.productStory != 'a:0:{}') ";
+        }
+
+        if ($reasonsToBuy) {
+            $sql .= " AND (o.Reasons_to_buy IS NOT NULL AND TRIM(o.Reasons_to_buy) != '') ";
+        }
+
+        if ($relatedProducts) {
+            $sql .= " AND (o.productRelated IS NOT NULL AND TRIM(o.productRelated) != '') ";
+        }
+
+        if ($multimedia) {
+            $sql .= " AND (o.multiMedia IS NOT NULL AND TRIM(o.multiMedia) != '') ";
         }
 
         return $sql;

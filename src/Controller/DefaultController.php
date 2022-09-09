@@ -2,7 +2,12 @@
 
 namespace IceCatBundle\Controller;
 
+use IceCatBundle\Command\IceCatMaintenanceCommand;
+use IceCatBundle\Command\RecurringImportCommand;
 use IceCatBundle\InstallClass;
+use IceCatBundle\Lib\IceCateHelper;
+use IceCatBundle\Services\IceCatMaintenanceService;
+use IceCatBundle\Services\TransformationDataTypeService;
 use IceCatBundle\Model\Configuration;
 use IceCatBundle\Services\CreateObjectService;
 use IceCatBundle\Services\DataService;
@@ -16,15 +21,27 @@ use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\Folder;
 use Pimcore\Model\User;
 use Pimcore\Tool;
+use Pimcore\Model\DataObject\ClassDefinition;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends FrontendController
 {
+    use IceCateHelper;
+    const ICECAT_CLASS_IDS = [
+        'Icecat',
+        'icecat_category',
+        'icecat_fields_log'
+    ];
+
+    const FIELDS_TYPE_ALLOWED_FOR_CRONTAB_CONFIG = [
+        'input',
+        'textarea',
+        'select'
+    ];
     /**
      * @var array
      */
@@ -49,32 +66,300 @@ class DefaultController extends FrontendController
     {
         try {
             $config = Configuration::load();
+
             if ($config) {
-                return $this->json([
-                    'success' => true,
-                    'data' => [
-                        'languages' => $config->getLanguages(),
-                        'categorization' => $config->getCategorization(),
-                        'showSearchPanel' => $searchService->isSearchEnable(),
-                        'searchLanguages' => $searchService->getSearchLanguages(),
+                return $this->json(
+                    [
+                        'success' => true,
+                        'data' => [
+                            'languages' => $config->getLanguages(),
+                            'categorization' => $config->getCategorization(),
+                            'importRelatedProducts' => $config->getImportRelatedProducts(),
+                            'showSearchPanel' => $searchService->isSearchEnable(),
+                            'searchLanguages' => $searchService->getSearchLanguages(),
+                            'productClass' => $config->getProductClass(),
+                            'gtinField' => [
+                                'name' => $config->getGtinField(),
+                                'type' => $config->getGtinFieldType(),
+                                'referenceFieldName' => $config->getMappingGtinClassField(),
+                                'language' => $config->getMappingGtinLanguageField(),
+                            ],
+                            'brandNameField' => [
+                                'name' => $config->getBrandNameField(),
+                                'type' => $config->getBrandNameFieldType(),
+                                'referenceFieldName' => $config->getMappingBrandClassField(),
+                                'language' => $config->getMappingBrandLanguageField(),
+                            ],
+                            'productNameField' => [
+                                'name' => $config->getProductNameField(),
+                                'type' => $config->getProductNameFieldType(),
+                                'referenceFieldName' => $config->getMappingProductCodeClassField(),
+                                'language' => $config->getMappingProductCodeLanguageField(),
+                            ],
+                            'cronExpression' => $config->getCronExpression(),
+                            'assetFilePath' => $config->getAssetFilePath(),
+                            'onlyNewObjectProcessed' => $config->getOnlyNewObjectProcessed(),
+                            'lastImportSummary' => $this->getLastRunImportSummary()
+                        ]
                     ]
-                ]);
+                );
             } else {
-                return $this->json([
-                    'success' => true,
-                    'data' => [
-                        'languages' => ['en'],
-                        'categorization' => false,
-                        'showSearchPanel' => $searchService->isSearchEnable(),
-                        'searchLanguages' => $searchService->getSearchLanguages(),
+                return $this->json(
+                    [
+                        'success' => true,
+                        'data' => [
+                            'languages' => ['en'],
+                            'categorization' => false,
+                            'showSearchPanel' => $searchService->isSearchEnable(),
+                            'searchLanguages' => $searchService->getSearchLanguages(),
+                            'productClass' => null,
+                            'gtinField' => [
+                                'name' => null,
+                                'type' => null,
+                                'referenceFieldName' => null,
+                                'language' => null,
+                            ],
+                            'brandNameField' => [
+                                'name' => null,
+                                'type' => null,
+                                'referenceFieldName' => null,
+                                'language' => null,
+                            ],
+                            'productNameField' => [
+                                'name' => null,
+                                'type' => null,
+                                'referenceFieldName' => null,
+                                'language' => null,
+                            ],
+                            'cronExpression' => null,
+                            'assetFilePath' => null,
+                            'onlyNewObjectProcessed' => true,
+                            'lastImportSummary' => $this->getLastRunImportSummary()
+                        ]
                     ]
-                ]);
+                );
             }
         } catch (\Exception $e) {
-            return $this->json([
+            return $this->json(
+                [
                 'success' => false,
                 'message' => $e->getMessage()
+                ]
+            );
+        }
+    }
+
+    /**
+     * @Route("/admin/icecat/check-recurring-import-progress", name="icecat_check_recurring_import_progress", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function checkRecurringImportProcessAction()
+    {
+        $sql = "SELECT * FROM icecat_recurring_import WHERE status = 'running'";
+        $result = \Pimcore\Db::get()->fetchAssociative($sql);
+        if (!$result) {
+            return new JsonResponse([
+                'isRunning' => false,
+                'totalItems' => 0,
+                'processedItems' => 0,
+                'progress' => 0
             ]);
+        }
+
+        $progress = $result['total_records'] > 0 ? round($result['processed_records'] / $result['total_records'], 2) : 1;
+
+        return new JsonResponse([
+            'isRunning' => true,
+            'totalItems' => $result['total_records'],
+            'processedItems' => $result['processed_records'],
+            'progress' => $progress
+        ]);
+    }
+
+
+    /**
+     * @Route("/admin/icecat/get-last-run-import-summary", name="icecat_get_last_run_import_summary", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function getLastRunImportSummaryAction()
+    {
+        return new JsonResponse([
+            'html' => $this->getLastRunImportSummary()
+        ]);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getLastRunImportSummary()
+    {
+        $sql = "SELECT * FROM icecat_recurring_import WHERE status = 'finished'";
+        $result = \Pimcore\Db::get()->fetchAssociative($sql);
+        if (!$result) {
+            $html = "<b>No summary found</b>";
+            return $html;
+        }
+
+        $startDatetime = date("Y-m-d H:i A", $result['start_datetime']);
+        $endDatetime = date("Y-m-d H:i A", $result['end_datetime']);
+        $totalRecords = $result['total_records'];
+        $successRecords = $result['success_records'];
+        $errorRecords = $result['error_records'];
+        $notFoundRecords = $result['not_found_records'];
+        $forbiddenRecords = $result['forbidden_records'];
+        $executionType = $result['execution_type'];
+        $totalRecordsTitle = strpos($executionType, 'Excel') !== false ? 'Total records found in excel' : 'Total records found in Pimcore';
+
+        $html = "
+                <style>
+                    table.summary {
+                        border-collapse: collapse;
+                        border-spacing: 0;
+                        width: 100%;
+                        border: 1px solid #ddd;
+                    }
+
+                    .summary th, .summary td {
+                        text-align: left;
+                        padding: 5px;
+                    }
+
+                    .summary tr:nth-child(even) {
+                        background-color: #E0E1E2;
+                    }
+                </style>
+                <table class=\"summary\">
+                    <tr>
+                        <th>Start datetime</th>
+                        <td>{$startDatetime}</td>
+                    </tr>
+                    <tr>
+                        <th>End datetime</th>
+                        <td>{$endDatetime}</td>
+                    </tr>
+                    <tr>
+                        <th>{$totalRecordsTitle}</th>
+                        <td>{$totalRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Successfully processed</th>
+                        <td>{$successRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Not found in Icecat</th>
+                        <td>{$notFoundRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Forbidden products in Icecat</th>
+                        <td>{$forbiddenRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Error records</th>
+                        <td>{$errorRecords}</td>
+                    </tr>
+                    <tr>
+                        <th>Execution type</th>
+                        <td>{$executionType}</td>
+                    </tr>
+                    <tr>
+                        <th>Detailed log file</th>
+                        <td><a href=\"/admin/icecat/download-last-import-log\">Download</a></td>
+                    </tr>
+
+                </table>";
+
+        return $html;
+    }
+
+    /**
+     * @Route("/admin/icecat/start-manual-import", name="icecat_start_manual_import", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function startManualImportAction()
+    {
+        $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:recurring-import --execution-type=manual';
+        exec($command . ' > /dev/null 2>&1 & echo $!; ');
+        sleep(1);
+        return $this->json(
+            [
+                'success' => true,
+            ]
+        );
+    }
+
+    /**
+     * @Route("/admin/icecat/cancel-recurring-import", name="icecat_cancel_recurring_import", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function cancelRecurringImportAction()
+    {
+        $pid = file_get_contents(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid');
+        exec("kill -9 {$pid}");
+        $sql = "DELETE FROM icecat_recurring_import WHERE status = 'running'";
+        \Pimcore\Db::get()->executeQuery($sql);
+        @unlink(PIMCORE_PRIVATE_VAR . '/config/icecat/recurring_import.pid');
+        return $this->json(
+            [
+                'success' => true,
+            ]
+        );
+    }
+
+    /**
+     * @Route("/admin/icecat/download-last-import-log", name="icecat_download_last_import_log", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function downloadLastImportLogAction()
+    {
+        $filename = RecurringImportCommand::LAST_IMPORT_LOG_FILENAME. '.log';
+        $response = new BinaryFileResponse(PIMCORE_LOG_DIRECTORY . "/" . $filename);
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+        return $response;
+    }
+
+    /**
+     * @Route("/admin/icecat/get-selected-languages", name="icecat_getselectedlanguages", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function getSelectedLanguagesAction()
+    {
+        try {
+            $config = Configuration::load();
+            if ($config) {
+                foreach ($config->getLanguages() as $lang) {
+                    $data[] = [
+                        'key' => $lang,
+                        'value' => \Locale::getDisplayLanguage($lang)
+                    ];
+                }
+                return $this->json(
+                    [
+                        'success' => true,
+                        'data' => $data
+                    ]
+                );
+            } else {
+                return $this->json(
+                    [
+                        'success' => true,
+                        'data' => []
+                    ]
+                );
+            }
+        } catch (\Exception $e) {
+            return $this->json(
+                [
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]
+            );
         }
     }
 
@@ -91,19 +376,49 @@ class DefaultController extends FrontendController
             $categoryFolder = DataObject\Folder::getByPath(InstallClass::CATEGORY_FOLDER_PATH);
             $categoryFolderId = ($categoryFolder) ? $categoryFolder->getId() : null;
 
-            return $this->json([
+            return $this->json(
+                [
                 'success' => true,
                 'data' => [
                     'productfolderid' => $productFolderId,
                     'categoryfolderid' => $categoryFolderId
                 ]
-            ]);
+                ]
+            );
         } catch (\Exception $e) {
-            return $this->json([
+            return $this->json(
+                [
                 'success' => false,
                 'message' => $e->getMessage()
-            ]);
+                ]
+            );
         }
+    }
+
+    /**
+     * @Route("/admin/icecat/refresh-product", name="icecat_refresh_product", options={"expose"=true})
+     *
+     * @param Request $request
+     */
+    public function refreshIceCatProduct(Request $request, IceCatMaintenanceService $iceCatMaintenanceService, RecurringImportCommand $rc)
+    {
+        $languages = $request->get('language', ['en']);
+        $objId = $request->get('objectId');
+
+        $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:refresh ' . $objId . ' ' . implode(',', $languages);
+
+        try {
+            exec($command . ' > /dev/null');
+            sleep(2);
+        } catch (\Exception $ex) {
+            return $this->json(['success' => 'false', 'error' => true, 'status' => '200']);
+        }
+        return $this->json(
+            [
+            'success' => true,
+            'message' => 'Refreshed!'
+            ]
+        );
     }
 
     /**
@@ -115,6 +430,28 @@ class DefaultController extends FrontendController
     {
         $languages = $request->get('languages', null);
         $categorization = $request->get('categorization', null);
+        $importRelatedProducts = $request->get('importRelatedProducts', null);
+        $productClass = $request->get('productClass', null);
+
+        $gtinField = $request->get('gtinField', null);
+        $gtinFieldType = $request->get('gtinFieldType', null);
+        $mappingGtinClassField  = $request->get('mappingGtinClassField', null);
+        $mappingGtinLanguageField  = $request->get('mappingGtinLanguageField', null);
+
+        $brandNameField = $request->get('brandNameField', null);
+        $brandNameFieldType = $request->get('brandNameFieldType', null);
+        $mappingBrandClassField  = $request->get('mappingBrandClassField', null);
+        $mappingBrandLanguageField  = $request->get('mappingBrandLanguageField', null);
+
+        $productNameField = $request->get('productNameField', null);
+        $productNameFieldType = $request->get('productNameFieldType', null);
+        $mappingProductCodeClassField = $request->get('mappingProductCodeClassField', null);
+        $mappingProductCodeLanguageField  = $request->get('mappingProductCodeLanguageField', null);
+
+        $assetFilePath = $request->get('assetFilePath', null);
+        $cronExpression = $request->get('cronExpression', null);
+        $onlyNewObjectProcessed = (bool)$request->get('onlyNewObjectProcessed', true);
+
         try {
             $config = Configuration::load();
             if (!$config) {
@@ -126,17 +463,91 @@ class DefaultController extends FrontendController
             if ($categorization !== null) {
                 $config->setCategorization($categorization === 'true' ? true : false);
             }
+
+            if ($importRelatedProducts !== null) {
+                $config->setImportRelatedProducts($importRelatedProducts === 'true' ? true : false);
+            }
+
+            if ($productClass !== null) {
+                $config->setProductClass($productClass);
+            }
+
+            if ($gtinField !== null) {
+                $config->setGtinField($gtinField);
+            }
+
+            if ($gtinFieldType !== null) {
+                $config->setGtinFieldType($gtinFieldType);
+            }
+
+            if ($mappingGtinClassField !== null) {
+                $config->setMappingGtinClassField($mappingGtinClassField);
+            }
+
+            if ($mappingGtinLanguageField !== null) {
+                $config->setMappingGtinLanguageField($mappingGtinLanguageField);
+            }
+
+            if ($brandNameField !== null) {
+                $config->setBrandNameField($brandNameField);
+            }
+
+            if ($brandNameFieldType !== null) {
+                $config->setBrandNameFieldType($brandNameFieldType);
+            }
+
+            if ($mappingBrandClassField !== null) {
+                $config->setMappingBrandClassField($mappingBrandClassField);
+            }
+
+            if ($mappingBrandLanguageField !== null) {
+                $config->setMappingBrandLanguageField($mappingBrandLanguageField);
+            }
+
+            if ($productNameField !== null) {
+                $config->setProductNameField($productNameField);
+            }
+
+            if ($productNameFieldType !== null) {
+                $config->setProductNameFieldType($productNameFieldType);
+            }
+
+            if ($mappingProductCodeClassField !== null) {
+                $config->setMappingProductCodeClassField($mappingProductCodeClassField);
+            }
+
+            if ($mappingProductCodeLanguageField !== null) {
+                $config->setMappingProductCodeLanguageField($mappingProductCodeLanguageField);
+            }
+
+            if ($assetFilePath !== null) {
+                $config->setAssetFilePath($assetFilePath);
+            }
+
+            if ($cronExpression !== null) {
+                $this->checkIfCronExpressionValid($cronExpression);
+                $config->setCronExpression($cronExpression);
+            }
+
+            if ($onlyNewObjectProcessed !== null) {
+                $config->setOnlyNewObjectProcessed($onlyNewObjectProcessed);
+            }
+
             $config->save();
 
-            return $this->json([
+            return $this->json(
+                [
                 'success' => true,
                 'message' => 'OK'
-            ]);
+                ]
+            );
         } catch (\Exception $e) {
-            return $this->json([
+            return $this->json(
+                [
                 'success' => false,
                 'message' => $e->getMessage()
-            ]);
+                ]
+            );
         }
     }
 
@@ -148,7 +559,7 @@ class DefaultController extends FrontendController
     public function createAction(CreateObjectService $createOb)
     {
         try {
-            $response = $createOb->CreateObject(2, '6136f27516bd3');
+            $response = $createOb->createObject(2, '6136f27516bd3');
         } catch (\Exception $e) {
         }
 
@@ -182,9 +593,6 @@ class DefaultController extends FrontendController
             $response = new BinaryFileResponse($path . '/' . $fileName . '.csv');
             $response->headers->set('Content-Type', 'text/csv');
             $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName . '.csv');
-
-            return $response;
-
             return $response;
         } catch (\Exception $e) {
             return $this->redirect($request->server->get('HTTP_REFERER'));
@@ -298,7 +706,7 @@ class DefaultController extends FrontendController
     /**
      * @Route("/icecat/upload-file", methods={"POST"}, name="icecat_upload-file", options={"expose"=true})
      *
-     * @param Request $request
+     * @param Request           $request
      * @param FileUploadService $fileUploadService
      *
      * @return JsonResponse
@@ -334,7 +742,7 @@ class DefaultController extends FrontendController
     /**
      * @Route("/admin/icecat/get-progress-bar-data", methods={"GET"}, name="icecat_get-progress-bar-data", options={"expose"=true})
      *
-     * @param Request $request
+     * @param Request     $request
      * @param DataService $dataService
      *
      * @return JsonResponse
@@ -357,7 +765,7 @@ class DefaultController extends FrontendController
      * @Route("/admin/icecat/grid-get-col-config", name="icecat_grid-get-col-config", options={"expose"=true})
      *
      * @param Request $request
-     * @param bool $isDelete
+     * @param bool    $isDelete
      *
      * @return JsonResponse
      *
@@ -454,7 +862,7 @@ class DefaultController extends FrontendController
                     unset($colConfig['config']);
                     unset($colConfig['isOperator']);
                     unset($colConfig['attributes']);
-                //$className = $column['layout']['classes'][0]['classes'];
+                    //$className = $column['layout']['classes'][0]['classes'];
                     //$classArr = \Pimcore\Model\DataObject\ClassDefinition::getByName($className); //p_r($classArr);
                     //$classId = $classArr->getId();
                     //$this->selectFields[] = "`object_".$classId."`.`o_path` AS `".$column['key']."`";
@@ -489,13 +897,16 @@ class DefaultController extends FrontendController
             }
         }
 
-        usort($availableFields, function ($a, $b) {
-            if ($a['position'] == $b['position']) {
-                return 0;
-            }
+        usort(
+            $availableFields,
+            function ($a, $b) {
+                if ($a['position'] == $b['position']) {
+                    return 0;
+                }
 
-            return ($a['position'] < $b['position']) ? -1 : 1;
-        });
+                return ($a['position'] < $b['position']) ? -1 : 1;
+            }
+        );
 
         if (!empty($gridConfig) && !empty($gridConfig['language'])) {
             $language = $gridConfig['language'];
@@ -594,6 +1005,105 @@ class DefaultController extends FrontendController
     }
 
     /**
+     *
+     * @Route("/admin/icecat/crontab/get_classes", name="icecat_get_classes", options={"expose"=true})
+     *
+     * @return JsonResponse
+     *
+     * @throws \Exception
+     */
+    public function getClasses(Request $request)
+    {
+        $classList = new DataObject\ClassDefinition\Listing();
+        $classesDef = $classList->load();
+        $classesName = [];
+        $i=1;
+        $classesName[0]['display_value'] = '(Empty)';
+        $classesName[0]['key'] = null;
+        foreach ($classesDef as $index => $class) {
+            if (in_array($class->getId(), self::ICECAT_CLASS_IDS)) {
+                continue;
+            }
+            $classesName[$i]['display_value'] = $class->getName();
+            $classesName[$i++]['key'] = $class->getId();
+        }
+        return new \Symfony\Component\HttpFoundation\JsonResponse(['data' => $classesName]);
+    }
+
+    /**
+     *
+     * @Route("/admin/icecat/crontab/get_class_fields", name="icecat_get_class_fields", options={"expose"=true})
+     *
+     * @return JsonResponse
+     *
+     * @throws \Exception
+     */
+    public function getClassFields(Request $request, TransformationDataTypeService $transformationDataTypeService)
+    {
+        $classId =  $request->get('classId', null);
+        if ($classId == "" || $classId == -1) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
+        }
+
+        $transformationTargetType = $request->get('transformation_result_type', [TransformationDataTypeService::DEFAULT_TYPE, TransformationDataTypeService::NUMERIC, TransformationDataTypeService::DATA_OBJECT]);
+
+        return new JsonResponse([
+            'attributes' => $transformationDataTypeService->getPimcoreDataTypes($classId, $transformationTargetType, false, false, false)
+        ]);
+    }
+
+    /**
+     *
+     * @Route("/admin/icecat/crontab/get-reference-fields", name="icecat_getreferencefields", options={"expose"=true})
+     *
+     * @return JsonResponse
+     *
+     * @throws \Exception
+     */
+    public function getReferenceClassFields(Request $request, TransformationDataTypeService $transformationDataTypeService)
+    {
+        $classId =  $request->get('class', null);
+        if ($classId == "" || $classId == -1) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
+        }
+
+        $class = ClassDefinition::getById($classId);
+        /** @var \Pimcore\Model\DataObject\ClassDefinition\Data\ManyToOneRelation $field */
+        $field = $class->getFieldDefinition($request->get("field"));
+
+        if (!$field) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
+        }
+
+        if (!method_exists($field, "getClasses")) {
+            return new JsonResponse([
+                'attributes' => []
+            ]);
+        }
+
+        $referenceClass = is_array($field->getClasses()) && isset($field->getClasses()[0]) ? $field->getClasses()[0] : null;
+
+        if ($referenceClass === null) {
+            throw new \Exception("No class attached on field - {$field->getTitle()}");
+        }
+
+        $class = ClassDefinition::getByName($referenceClass["classes"]);
+        $classId = $class->getId();
+
+        $transformationTargetType = $request->get('transformation_result_type', [TransformationDataTypeService::DEFAULT_TYPE, TransformationDataTypeService::NUMERIC]);
+
+        return new JsonResponse([
+            'attributes' => $transformationDataTypeService->getPimcoreDataTypes($classId, $transformationTargetType, false, false, false)
+        ]);
+    }
+
+    /**
      * @Route("/admin/icecat/create-object", name="icecat_create-object", options={"expose"=true})
      *
      * @param Request $request
@@ -660,7 +1170,7 @@ class DefaultController extends FrontendController
     /**
      * @Route("/admin/icecat/terminate-proccess", methods={"GET"}, name="icecat_terminate_process", options={"expose"=true})
      *
-     * @param Request $request
+     * @param Request     $request
      * @param DataService $dataService
      *
      * @return JsonResponse
@@ -669,7 +1179,7 @@ class DefaultController extends FrontendController
     {
         $db = \Pimcore\Db::get();
         $updateQuery = 'UPDATE ice_cat_processes SET COMPLETED = 1';
-        $db->exec($updateQuery);
+        $db->executeQuery($updateQuery);
         $response = $this->json(['status' => 'true']);
 
         return $response;
