@@ -19,11 +19,13 @@ To install this plugin use following commands:
 - Provide Products preview.
 
 **New features in v3.0.0**
-- Addition of new fields in import
-- Enhanced filtering
-- Overwritable fields
-- Recurring import as background job
-- Single product update
+- Helpful Icecat links on the login screen
+- Addition of more enriched content
+- Advanced filter options
+- Overwritable fields - on the fly
+- Single product import
+- Recurring import - on demand and scheduled
+- PSR1 and PSR2 complete code compliant
 
 [Click here to see full details for v3.0.0](./doc/plugin_v3.md)
 
