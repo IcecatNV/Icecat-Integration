@@ -79,7 +79,7 @@ A detailed summary of the last executed job shows up when the job finishes.
 Its required to set the following command in crontab to make sure the scheduler works properly. 
 
 ```bash
-*/5 * * * * /your/project/bin/console icecat:recurring-import
+*/1 * * * * /your/project/bin/console icecat:recurring-import
 ```
 Keep in mind, that the cron job has to run as the same user as the web interface to avoid permission issues (eg. `www-data`).
 
