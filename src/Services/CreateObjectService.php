@@ -2,13 +2,17 @@
 
 namespace IceCatBundle\Services;
 
+use IceCatBundle\Lib\IceCateHelper;
 use IceCatBundle\Model\Configuration;
 use Pimcore\Log\ApplicationLogger;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Data\BlockElement;
+use Pimcore\Model\DataObject\Icecat;
+use Pimcore\Model\DataObject\Localizedfield;
 
 class CreateObjectService
 {
+    use IceCateHelper;
     const DATAOBJECT_FOLDER = 'ICECAT';
     const CAT_DATAOBJECT_FOLDER = 'ICECAT/CATEGORIES';
     const ASSET_FOLDER = 'ICECAT';
@@ -30,6 +34,15 @@ class CreateObjectService
     protected $logMessage;
     private $csvLogFileName;
     protected $appLogger;
+    protected $modifiedFields;
+
+    public static $recursiveFlag = true;
+
+    protected $fieldNameMappingWithDataKey = [
+        'AwardHighPic' => 'awardHighPic',
+        'AwardLogoPic' => 'awardLogoPic',
+        'LogoPic' => 'logoPic',
+    ];
 
     /**
      * @var Configuration|null
@@ -68,18 +81,27 @@ class CreateObjectService
 
     ];
 
+    protected $importService;
+    protected $userId;
     private $quantityUnitId;
 
     protected $currentDateTimeStamp;
     protected $currentFeatureGroup = [];
     protected $jobHandler;
+    protected $currentLanguage = 'en';
 
-    public function __construct(IceCatLogger $logger, IceCatCsvLogger $csvLogger, ApplicationLogger $appLogger, JobHandlerService $jobHandler)
-    {
+    public function __construct(
+        IceCatLogger $logger,
+        IceCatCsvLogger $csvLogger,
+        ApplicationLogger $appLogger,
+        JobHandlerService $jobHandler,
+        ImportService $importService
+    ) {
         $this->logger = $logger;
         $this->csvLogger = $csvLogger;
         $this->appLogger = $appLogger;
         $this->jobHandler = $jobHandler;
+        $this->importService = $importService;
         $this->config = Configuration::load();
     }
 
@@ -129,7 +151,27 @@ class CreateObjectService
         }
     }
 
-    public function CreateObject($userId, $jobId)
+    /**
+     * @param string $userId
+     *
+     * @return void
+     */
+    public function setUserId($userId)
+    {
+        $this->userId = $userId;
+    }
+
+    /**
+     * @param string $jobId
+     *
+     * @return void
+     */
+    public function setJobId($jobId)
+    {
+        $this->jobId = $jobId;
+    }
+
+    public function createObject($userId, $jobId)
     {
         $this->csvLogFileName = date('Y-m-d H:i:s');
         $this->csvLogMessage = [];
@@ -137,14 +179,14 @@ class CreateObjectService
         $importData = $this->getImportArray($jobId);
 
         if (!$importData) {
-            $this->logMessage = 'NOTHING TO IMPORT TERMINATING OBJECT CREATION FOR JOB ID :' . $jobId;
-            $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+            // $this->logMessage = 'NOTHING TO IMPORT TERMINATING OBJECT CREATION FOR JOB ID :' . $jobId;
+            // $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            // Updating import to be completed
-            $updateArray = ['completed' => 1];
-            $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
+            // // Updating import to be completed
+            // $updateArray = ['completed' => 1];
+            // $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
 
-            return 0;
+            // return 0;
         }
 
         try {
@@ -159,51 +201,25 @@ class CreateObjectService
             $updateArray = ['total_records' => count($importData), 'processed_records' => 0, 'processing_status' => $this->status['PROCESSING']];
             $this->updateCurrentProcess(self::JOB_DATA_CONTAINER_TABLE, $updateArray, 'jobid', $jobId);
             foreach ($importData as $data) {
+                $this->userId = $data['icecat_username'];
                 $time_start = microtime(true);
                 try {
                     $this->jobId = $jobId;
 
-                    $isJobAlive = $this->jobHandler->isLive($this->jobId);
-                    if ($isJobAlive === false) {
-                        $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
-                        $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+                    // $isJobAlive = $this->jobHandler->isLive($this->jobId);
+                    // if ($isJobAlive === false) {
+                    //     $this->logMessage = 'JOB TERMINATED FROM FRONTEND:' . $this->jobId;
+                    //     $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-                        return true;
-                    }
+                    //     return true;
+                    // }
                     //\Pimcore\Cache::clearAll();
-
-                    $this->currentProductId = $data['gtin'];
-                    $this->currentGtin = $data['original_gtin'];
-                    $this->currentLanguage = $data['language'];
 
                     $this->logMessage = 'STARTING OBJECT CREATION FOR JOB ID : ' . $this->jobId . ' AND PRODUCT ID :' . $this->currentProductId;
                     $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+                    self::$recursiveFlag = true;
 
-                    $importArray = json_decode(base64_decode($data['data_encoded']), true);
-                    if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
-                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
-                        $iceCatobject = new $iceCatClass();
-                        $this->createFixFields($importArray['data'], $iceCatobject);
-                        $this->createGallery($importArray['data'], $iceCatobject);
-                        $this->createDynamicFields($importArray['data'], $iceCatobject);
-                        $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
-                        $iceCatobject->setKey($this->currentProductId);
-                        $iceCatobject->setPublished(true);
-                    } else {
-                        /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
-                        $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
-                        $this->createFixFields($importArray['data'], $iceCatobject);
-                        $this->createGallery($importArray['data'], $iceCatobject);
-                        $this->createDynamicFields($importArray['data'], $iceCatobject);
-                    }
-
-                    if (!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
-                        $iceCatobject->setCategorization(null);
-                    } else {
-                        $iceCatobject->setCategorization(true);
-                    }
-
-                    $iceCatobject->save();
+                    $iceCatobject = $this->createIceCatObject($data);
 
                     ++$counter;
                     // Updating Processed Record
@@ -227,7 +243,6 @@ class CreateObjectService
                         'relatedObject' => $iceCatobject
                     ]);
                 } catch (\Throwable $e) {
-                    \Pimcore\Db::get()->rollback();
                     ++$counter;
                     // Updating Processed Record
                     $updateArray = ['processed_records' => $counter];
@@ -280,6 +295,47 @@ class CreateObjectService
         }
     }
 
+    public function createIceCatObject($data)
+    {
+        $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
+        $this->currentProductId = $data['gtin'];
+        $this->currentGtin = $data['original_gtin'];
+        $this->currentLanguage = $data['language'];
+
+        $importArray = json_decode(base64_decode($data['data_encoded']), true);
+        if (empty($iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId))) {
+            /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
+            $iceCatobject = new $iceCatClass();
+            $iceCatobject->setPublished(true);
+            $iceCatobject->setKey($this->currentProductId);
+            $iceCatobject->setParent(\Pimcore\Model\DataObject::getByPath('/' . self::DATAOBJECT_FOLDER));
+            $this->modifiedFields = [];
+            $this->createFixFields($importArray['data'], $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('gallery')) {
+                $this->createGallery($importArray['data'], $iceCatobject);
+            }
+            $this->createDynamicFields($importArray['data'], $iceCatobject);
+        } else {
+            /** @var \Pimcore\Model\DataObject\Icecat $iceCatobject */
+            $iceCatobject = $iceCatClass::getByPath('/' . self::DATAOBJECT_FOLDER . '/' . $this->currentProductId);
+            $this->modifiedFields = $this->getFieldsModifiedLog($iceCatobject->getId(), $this->currentLanguage);
+            $this->createFixFields($importArray['data'], $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('gallery')) {
+                $this->createGallery($importArray['data'], $iceCatobject);
+            }
+            $this->createDynamicFields($importArray['data'], $iceCatobject);
+        }
+
+        if (!is_array($iceCatobject->getRelatedCategories()) || count($iceCatobject->getRelatedCategories()) === 0) {
+            $iceCatobject->setCategorization(null);
+        } else {
+            $iceCatobject->setCategorization(true);
+        }
+
+        $iceCatobject->save();
+        return $iceCatobject;
+    }
+
     /***
      * Mehtods : fetch the object json from db,and
      * return it in array format
@@ -288,52 +344,108 @@ class CreateObjectService
     {
         $db = \Pimcore\Db::get();
         $query = 'select * from ' . self::IMPORTED_DATA_CONTAINER_TABLE . " where job_id = '$id'  and is_product_found = 1 and to_be_created = 1";
-        $data = $db->fetchAll($query);
+        $data = $db->fetchAllAssociative($query);
 
         return $data;
     }
 
+    /**
+     * @param $attributeArray
+     * @param Icecat $iceCatobject
+     */
     public function createFixFields($attributeArray, $iceCatobject)
     {
         try {
             $this->logMessage = 'STARTING FIX FIELD CREATION FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
-            $basicInformation = $attributeArray['GeneralInfo'];
-            $iceCatobject->setProduct_Name($basicInformation['ProductName'], $this->currentLanguage);
-            $iceCatobject->setProduct_Code($basicInformation['BrandPartCode'], $this->currentLanguage);
-            $iceCatobject->setBrand($basicInformation['Brand'], $this->currentLanguage);
-            $iceCatobject->setCategory($basicInformation['Category']['Name']['Value'], $this->currentLanguage);
-            $iceCatobject->setInfo_Modified_On($basicInformation['ReleaseDate'], $this->currentLanguage);
-            $iceCatobject->setIcecat_Product_Id($basicInformation['IcecatId'], $this->currentLanguage);
-            $iceCatobject->setLong_Summary($basicInformation['SummaryDescription']['LongSummaryDescription'], $this->currentLanguage);
-            $iceCatobject->setShort_Summary($basicInformation['SummaryDescription']['ShortSummaryDescription'], $this->currentLanguage);
-            $iceCatobject->setProductTitle($basicInformation['Title'], $this->currentLanguage);
-            $iceCatobject->setGtin($this->currentGtin, $this->currentLanguage);
 
-            if (isset($basicInformation['Description']['LongDesc'])) {
+            $basicInformation = $attributeArray['GeneralInfo'];
+
+            if (!$this->isFieldUpdatedByUser('Product_Name', $this->currentLanguage)) {
+                $iceCatobject->setProduct_Name($basicInformation['ProductName'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('Product_Code', $this->currentLanguage)) {
+                $iceCatobject->setProduct_Code($basicInformation['BrandPartCode'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('Brand', $this->currentLanguage)) {
+                $iceCatobject->setBrand($basicInformation['Brand'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Category', $this->currentLanguage)) {
+                $iceCatobject->setCategory($basicInformation['Category']['Name']['Value'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('ProductName', $this->currentLanguage)) {
+                $iceCatobject->setInfo_Modified_On($basicInformation['ReleaseDate'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Icecat_Product_Id', $this->currentLanguage)) {
+                $iceCatobject->setIcecat_Product_Id($basicInformation['IcecatId'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Long_Summary', $this->currentLanguage)) {
+                $iceCatobject->setLong_Summary($basicInformation['SummaryDescription']['LongSummaryDescription'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Short_Summary', $this->currentLanguage)) {
+                $iceCatobject->setShort_Summary($basicInformation['SummaryDescription']['ShortSummaryDescription'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('productTitle', $this->currentLanguage)) {
+                $iceCatobject->setProductTitle($basicInformation['Title'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('Gtin', $this->currentLanguage)) {
+                $iceCatobject->setGtin($this->currentGtin, $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('brandPartCode', $this->currentLanguage)) {
+                $iceCatobject->setBrandPartCode($basicInformation['BrandPartCode'], $this->currentLanguage);
+            }
+            //$iceCatobject->setReleaseDate($this->getCarbonObjectForDateString($basicInformation['release_date']), $this->currentLanguage);
+            if (!$this->isFieldUpdatedByUser('endOfLifeDate', $this->currentLanguage)) {
+                $iceCatobject->setEndOfLifeDate($this->getCarbonObjectForDateString($basicInformation['EndOfLifeDate']), $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('longDescription', $this->currentLanguage) && isset($basicInformation['Description']['LongDesc'])) {
                 $iceCatobject->setLongDescription($basicInformation['Description']['LongDesc'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['Description']['Disclaimer'])) {
+            if (!$this->isFieldUpdatedByUser('middleDescription', $this->currentLanguage) && isset($basicInformation['Description']['MiddleDesc'])) {
+                $iceCatobject->setMiddleDescription($basicInformation['Description']['MiddleDesc'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('Disclaimer', $this->currentLanguage) && isset($basicInformation['Description']['Disclaimer'])) {
                 $iceCatobject->setDisclaimer($basicInformation['Description']['Disclaimer'], $this->currentLanguage);
             }
-            if (isset($basicInformation['Description']['WarrantyInfo'])) {
-                $iceCatobject->setWarranty($basicInformation['Description']['WarrantyInfo'], $this->currentLanguage);
+
+            if (!$this->isFieldUpdatedByUser('manualPDFURL', $this->currentLanguage) && isset($basicInformation['Description']['ManualPDFURL'])) {
+                $iceCatobject->setManualPDFURL($basicInformation['Description']['ManualPDFURL'], $this->currentLanguage);
             }
-            if (isset($basicInformation['Description']['LongProductName'])) {
+
+            if (!$this->isFieldUpdatedByUser('leafletPDFURL', $this->currentLanguage) && isset($basicInformation['Description']['LeafletPDFURL'])) {
+                $iceCatobject->setLeafletPDFURL($basicInformation['Description']['LeafletPDFURL'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('url', $this->currentLanguage) && isset($basicInformation['Description']['URL'])) {
+                $iceCatobject->setUrl($basicInformation['Description']['URL'], $this->currentLanguage);
+            }
+
+            if (!$this->isFieldUpdatedByUser('warrantyInfo', $this->currentLanguage) && isset($basicInformation['Description']['WarrantyInfo'])) {
+                $iceCatobject->setWarrantyInfo($basicInformation['Description']['WarrantyInfo'], $this->currentLanguage);
+            }
+            if (!$this->isFieldUpdatedByUser('productLongName', $this->currentLanguage) && isset($basicInformation['Description']['LongProductName'])) {
                 $iceCatobject->setProductLongName($basicInformation['Description']['LongProductName'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['ProductFamily']['Value'])) {
+            if (!$this->isFieldUpdatedByUser('productFamily', $this->currentLanguage) && isset($basicInformation['ProductFamily']['Value'])) {
                 $iceCatobject->setProductFamily($basicInformation['ProductFamily']['Value'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['ProductSeries']['Value'])) {
+            if (!$this->isFieldUpdatedByUser('productSeries', $this->currentLanguage) && isset($basicInformation['ProductSeries']['Value'])) {
                 $iceCatobject->setProductSeries($basicInformation['ProductSeries']['Value'], $this->currentLanguage);
             }
 
-            if (isset($basicInformation['BulletPoints']['Values'])) {
+            if (!$this->isFieldUpdatedByUser('BulletPoints', $this->currentLanguage) &&
+                isset($basicInformation['BulletPoints']['Values'])) {
                 $bulletPointsArray = $basicInformation['BulletPoints']['Values'];
                 $bulletHtml = '<ul>';
                 foreach ($bulletPointsArray as $bullet) {
@@ -343,23 +455,51 @@ class CreateObjectService
                 $iceCatobject->setBulletPoints($bulletHtml, $this->currentLanguage);
             }
 
-            $this->createBrandLogo($basicInformation, $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('productStory', $this->currentLanguage)) {
+                $this->setProductStoryData($attributeArray['ProductStory'], $iceCatobject);
+            }
 
-            $this->createReasonsToBuy($attributeArray, $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('brandLogo')) {
+                $this->createBrandLogo($basicInformation, $iceCatobject);
+            }
 
-            // Insert Images in 3d Tour fields if it is available
-            $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('Reasons_to_buy', $this->currentLanguage)) {
+                $this->createReasonsToBuy($attributeArray, $iceCatobject);
+            }
 
-            // Insert Videos in video fields if it is available
-            $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
-            $this->setStoryField($attributeArray, $iceCatobject);
-            $this->setMultiMedia($attributeArray, $iceCatobject);
-            $this->setGalleryIcons($attributeArray, $iceCatobject);
+            if (!$this->isFieldUpdatedByUser('Tour')) {
+                // Insert Images in 3d Tour fields if it is available
+                $this->create3dTourField($attributeArray['Multimedia'], $iceCatobject);
+            }
 
-            if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
-                $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
-            } else {
-                $iceCatobject->setRelatedCategories([]);
+            if (!$this->isFieldUpdatedByUser('videos')) {
+                // Insert Videos in video fields if it is available
+                $this->createVideoField($attributeArray['Multimedia'], $iceCatobject);
+            }
+            if (!$this->isFieldUpdatedByUser('storyUrl', $this->currentLanguage)) {
+                $this->setStoryField($attributeArray, $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('multiMedia', $this->currentLanguage)) {
+                $this->setMultiMedia($attributeArray, $iceCatobject);
+            }
+            if (!$this->isFieldUpdatedByUser('galleryIconBlock', $this->currentLanguage)) {
+                $this->setGalleryIcons($attributeArray, $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('reviews', $this->currentLanguage)) {
+                $this->setReviewData($attributeArray['Reviews'], $iceCatobject);
+            }
+
+            if (!$this->isFieldUpdatedByUser('RelatedCategories')) {
+                if ($this->config && (bool)$this->config->getCategorization() === true && isset($basicInformation['Category'])) {
+                    $this->setCategories($basicInformation['Category'], $attributeArray, $iceCatobject);
+                } else {
+                    $iceCatobject->setRelatedCategories([]);
+                }
+            }
+            if (!$this->isFieldUpdatedByUser('productRelated')) {
+                $this->setProductRelated($iceCatobject, $attributeArray['ProductRelated']);
             }
         } catch (\Exception $e) {
             $this->csvLogMessage[] = 'ERROR IN FIX FIELD CREATION :' . $e->getMessage();
@@ -367,6 +507,112 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN FIX FIELD FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+        }
+    }
+
+    public function getFieldsModifiedLog($objectId, $lang = 'en')
+    {
+        $fieldsModifiedLogs = [];
+        $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog\Listing();
+        //$icecatFieldLog->setCondition("pimcoreId = {$objectId} AND lang = '{$lang}'");
+        $icecatFieldLog->setCondition("pimcoreId = {$objectId}");
+        $list = (array) $icecatFieldLog->load();
+        foreach ($list as $item) {
+            $fieldName = $item->getName();
+            $lang = $item->getLang();
+
+            if (!empty($lang)) {
+                $fieldsModifiedLogs[$lang][strtolower($fieldName)] = true;
+            } else {
+                $fieldsModifiedLogs[strtolower($fieldName)] = true;
+            }
+        }
+        return $fieldsModifiedLogs;
+    }
+
+    public function isFieldUpdatedByUser($fieldName, $lang = '')
+    {
+        $fieldsModifiedLogs = $this->modifiedFields;
+        $fieldName = strtolower($fieldName);
+        if (!empty($lang) && isset($fieldsModifiedLogs[$lang][$fieldName]) && $fieldsModifiedLogs[$lang][$fieldName]) {
+            return true;
+        } elseif (isset($fieldsModifiedLogs[$fieldName]) && $fieldsModifiedLogs[$fieldName]) {
+            return true;
+        }
+        return false;
+    }
+
+    protected function setReviewData($reviews, $object)
+    {
+        if (empty($reviews)) {
+            return;
+        }
+        $blockData = [];
+        foreach ($reviews as $data) {
+            if (empty($data['Language'])) {
+                $data['Language'] = 'en';
+            }
+
+            $data['Language'] = strtolower($data['Language']);
+            $blockData[$data['Language']] = [];
+            $blockData[$data['Language']][] = [
+                    //'awardHighPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardHighPic')),
+                    //'awardLogoPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardLogoPic')),
+                    'awardHighPic' => new BlockElement('awardHighPic', 'image', null),
+                    'awardLogoPic' => new BlockElement('awardLogoPic', 'image', null),
+                    'bottomLine' => new BlockElement('bottomLine', 'input', $data['BottomLine'] ?? null),
+                    'code' => new BlockElement('code', 'input', $data['Code'] ?? null),
+                    'dateAdded' => new BlockElement('dateAdded', 'input', $data['DateAdded'] ?? null),
+                    'group' => new BlockElement('group', 'input', $data['Group'] ?? null),
+                    'reviewId' => new BlockElement('reviewId', 'input', $data['ID'] ?? null),
+                    //'logoPic' => $new BlockElement('logoPic', 'image', this->getImageField($data, 'LogoPic')),
+                    'logoPic' =>new BlockElement('logoPic', 'image', null),
+                    'score' => new BlockElement('', 'input', $data['ID']),
+                    'reviewValue' => new BlockElement('reviewValue', 'textarea', $data['Value'] ?? null),
+                    'valueBad' => new BlockElement('valueBad', 'textarea', $data['ValueBad'] ?? null),
+                    'valueGood' => new BlockElement('valueGood', 'textarea', $data['ValueGood'] ?? null),
+                    'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID']?? null),
+                    'url' => new BlockElement('url', 'input', $data['URL'] ?? null),
+                    'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
+                ];
+        }
+
+        foreach ($blockData as $language => $data) {
+            $object->setReviews($data, $language);
+        }
+    }
+
+    protected function setProductStoryData($ps, $object)
+    {
+        if (empty($ps)) {
+            return;
+        }
+        $blockData = [];
+        foreach ($ps as $data) {
+            if (empty($data['Language'])) {
+                $data['Language'] = 'en';
+            }
+
+            $data['Language'] = strtolower($data['Language']);
+
+
+            $html = "";
+            if ($data['URL'] != "") {
+                $pathinfo = pathinfo($data['URL']);
+                $html = file_get_contents($data['URL']);
+                $html = preg_replace("/src=\"/", 'src="'.$pathinfo['dirname'].'/', $html);
+                $html = preg_replace("/href=\"/", 'href="'.$pathinfo['dirname'].'/', $html);
+            }
+
+            $blockData[$data['Language']] = [];
+            $blockData[$data['Language']][] = [
+                'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null),
+                'preview' => new BlockElement('preview', 'wysiwyg', $html ?? null)
+            ];
+        }
+
+        foreach ($blockData as $language => $data) {
+            $object->setProductStory($data, $language);
         }
     }
 
@@ -417,6 +663,79 @@ class CreateObjectService
 
             $iceCatobject->setRelatedCategories([$categoryObject]);
         }
+    }
+
+    /**
+     * @param Icecat $object
+     * @param $relatedProductsData
+     */
+    public function setProductRelated($object, $relatedProductsData)
+    {
+
+        if (empty($relatedProductsData)) {
+            return;
+        }
+        $object->save();
+        $products = [];
+        $runTimeFetch = [];
+        $counter = 0;
+        foreach ($relatedProductsData as $data) {
+            if (!empty($data['IcecatID'])) {
+                $product = Icecat::getByIcecat_Product_Id($data['IcecatID'], null, 1);
+                if (!empty($product)) {
+                    $products[$data['IcecatID']] = $product;
+                } else {
+                    $runTimeFetch[] = $data;
+                }
+            }
+
+            if ($counter++ > 40) {
+                break;
+            }
+        }
+
+
+        if (self::$recursiveFlag && (bool) $this->config->getImportRelatedProducts()) {
+            self::$recursiveFlag = false;
+            foreach ($runTimeFetch as $data) {
+                $product = $this->createRelatedProduct($data);
+                if (!empty($product)) {
+                    $products[$data['IcecatID']] = $product;
+                }
+            }
+        }
+        if (!empty($products)) {
+            $object->setProductRelated(array_unique($products));
+        }
+    }
+
+    public function createRelatedProduct($data)
+    {
+        try {
+            if (!empty($data['ProductCode']) && !empty($data['Brand'])) {
+                $url = $this->importService->importUrl . "?UserName=" . $this->userId .
+                    "&Language=" . $this->currentLanguage .
+                    "&Brand=" . $data['Brand'] .
+                    "&ProductCode=" . $data['ProductCode'];
+                $completeData = json_decode($this->importService->fetchIceCatData($url), true);
+                if (array_key_exists('statusCode', $completeData)) {
+                } elseif (array_key_exists('COULD_NOT_RESOLVE_HOST', $completeData)) {
+                } elseif (array_key_exists('msg', $completeData) && $completeData['msg'] == 'OK') {
+                    $data = $completeData['data'];
+
+                    $importData = [
+                        'gtin' => $data['GeneralInfo']['IcecatId'],
+                        'original_gtin' => !empty($data['GeneralInfo']['GTIN'][0]) ? $data['GeneralInfo']['GTIN'][0] : $data['GeneralInfo']['IcecatId'],
+                        'language' => $this->currentLanguage,
+                        'data_encoded' => base64_encode(json_encode($completeData))
+                    ];
+                    return $this->createIceCatObject($importData);
+                }
+            }
+        } catch (\Exception $ex) {
+            $this->logger->addLog('create-object', $ex->getMessage(), $ex->getTraceAsString(), 'ERROR');
+        }
+        return null;
     }
 
     public function setMultiMedia($attributeArray, $iceCatobject)
@@ -496,8 +815,6 @@ class CreateObjectService
     public function setGalleryIcons($attributeArray, $iceCatobject)
     {
         try {
-            //return true;
-
             $this->logMessage = 'SETTING GALLERY ICONS  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
@@ -570,7 +887,8 @@ class CreateObjectService
                 } catch (\Exception $e) {
                     $fileName = uniqid();
                 }
-            // Setting assets from link
+
+                // Setting assets from link
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                 if (!empty($asset)) {
                     $asset->setData(file_get_contents($brandLogoUrl));
@@ -590,6 +908,50 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING BRAND LOGO  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+        }
+    }
+
+    /**
+     * @param $data
+     * @param $fieldName
+     * @return Asset|Asset\Image|null
+     */
+    public function getImageField($data, $fieldName)
+    {
+        try {
+            if (empty($data[$fieldName])) {
+                return null;
+            }
+            $this->logMessage = 'SETTING ' . $fieldName .'  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
+            $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
+
+            $fieldUrl = $data[$fieldName];
+            try {
+                $name = pathinfo($fieldUrl, PATHINFO_FILENAME);
+                $extension = pathinfo($fieldUrl, PATHINFO_EXTENSION);
+                $fileName = $name . '.' . $extension;
+            } catch (\Exception $e) {
+                $fileName = uniqid();
+            }
+
+            // Setting assets from link
+            $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+            if (!empty($asset)) {
+                $asset->setData(file_get_contents($fieldUrl));
+                $asset->save();
+            } else {
+                $asset = new \Pimcore\Model\Asset\Image();
+                $asset->setFilename("$fileName");
+                $asset->setData(file_get_contents($fieldUrl));
+                $asset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                $asset->save();
+            }
+            return $asset;
+        } catch (\Exception $e) {
+            $this->processingError[] = $e->getMessage();
+            $this->logMessage = 'ERROR IN SETTING  ' . $fieldName .  '  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
+            $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+            return null;
         }
     }
 
@@ -646,35 +1008,40 @@ class CreateObjectService
                 $arrayHavingVideo = array_values($arrayHavingVideo);
 
                 //Taking only one array for now
-                if (isset($arrayHavingVideo[0])) {
-                    $videos = $arrayHavingVideo[0];
+                if (!empty($arrayHavingVideo)) {
+                    $videosArr = [];
+                    foreach ($arrayHavingVideo as $videos) {
+//                    $videos = $arrayHavingVideo[0];
 
-                    $videoLink = $videos['URL'];
+                        $videoLink = $videos['URL'];
 
-                    // Getting Name from url
-                    try {
-                        $name = pathinfo($videoLink, PATHINFO_FILENAME);
-                        $extension = pathinfo($videoLink, PATHINFO_EXTENSION);
-                        $fileName = $name . '.' . $extension;
-                    } catch (\Exception $e) {
-                        $fileName = uniqid();
+                        // Getting Name from url
+                        try {
+                            $name = pathinfo($videoLink, PATHINFO_FILENAME);
+                            $extension = pathinfo($videoLink, PATHINFO_EXTENSION);
+                            $fileName = $name . '.' . $extension;
+                        } catch (\Exception $e) {
+                            $fileName = uniqid();
+                        }
+
+                        // Setting assets from link
+                        $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+                        if (empty($asset)) {
+                            //Saving video in asset folder
+                            try {
+                                $newAsset = new \Pimcore\Model\Asset();
+                                $newAsset->setFilename(uniqid() . '.' . $extension);
+                                $newAsset->setData(file_get_contents($videos['URL']));
+                                $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                                $newAsset->save();
+                                $videosArr[] = $newAsset;
+                            } catch (\Exception $ex) {
+                                $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $ex->getMessage();
+                            }
+                        }
                     }
-
-                    // Setting assets from link
-                    $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
-                    if (empty($asset)) {
-                        //Saving video in asset folder
-                        $newAsset = new \Pimcore\Model\Asset();
-                        $newAsset->setFilename(uniqid(). '.' . $extension);
-                        $newAsset->setData(file_get_contents($videos['URL']));
-                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                        $newAsset->save();
-
-                        $videoData = new \Pimcore\Model\DataObject\Data\Video();
-                        $videoData->setData($newAsset);
-                        $videoData->setType('asset');
-
-                        $iceCatobject->setVideo($videoData);
+                    if (!empty($videosArr)) {
+                        $iceCatobject->setVideos($videosArr);
                     }
                 }
             }
@@ -842,6 +1209,10 @@ class CreateObjectService
                             if (empty($keyOb)) {
                                 $this->createStoreKey($features);
                             } else {
+                                $title = $features['Feature']['Name']['Value'];
+                                if ($this->isFieldUpdatedByUser($title, $this->currentLanguage)) {
+                                    continue;
+                                }
                                 $this->updateStoreKey($features);
                             }
                             // new \Pimcore\Model\DataObject\Data\QuantityValue(13, 1);

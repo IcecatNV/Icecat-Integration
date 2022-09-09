@@ -9,8 +9,8 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PEL
+ * @copyright Copyright (c) Pimcore GmbH (http://www.pimcore.org)
+ * @license   http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace IceCatBundle\Website\LinkGenerator;
@@ -24,13 +24,13 @@ class ProductLinkGenerator implements LinkGeneratorInterface
 {
     /**
      * @param Concrete $object
-     * @param array $params
+     * @param array    $params
      *
      * @return string
      */
     public function generate(Concrete $object, array $params = []): string
     {
-        include('Template.php');
+        include 'Template.php';
         //echo $object->getId();
         die('error');
     }

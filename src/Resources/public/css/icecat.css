@@ -5,7 +5,9 @@
 .pimcore_icon_table_icecat_cat {
     background: url(/bundles/icecat/img/cat.png) center center no-repeat !important;
 }
-
+.pimcore_icon_table_icecat_crontab {
+    background: url(/bundles/pimcoreadmin/img/flat-color-icons/feed_in.svg) center center no-repeat !important;
+}
 .pimcore_icon_table_icecat_menu {
     background: url(/bundles/icecat/img/cat.png) center center no-repeat !important;
 }

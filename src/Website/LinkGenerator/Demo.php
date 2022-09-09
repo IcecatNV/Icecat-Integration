@@ -9,8 +9,8 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PEL
+ * @copyright Copyright (c) Pimcore GmbH (http://www.pimcore.org)
+ * @license   http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace IceCatBundle\Website\LinkGenerator;
@@ -23,7 +23,7 @@ class Demo implements LinkGeneratorInterface
 {
     /**
      * @param Concrete $object
-     * @param array $params
+     * @param array    $params
      *
      * @return string
      */
@@ -57,7 +57,7 @@ class Demo implements LinkGeneratorInterface
             $finalJson[$value['language']] = json_decode(base64_decode($value['data_encoded']), true);
         }
 
-        include('Template.php');
+        include 'Template.php';
         die;
 
         return 0;

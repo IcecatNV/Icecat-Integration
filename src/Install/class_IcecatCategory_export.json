@@ -1,7 +1,7 @@
 {
     "id": "icecat_category",
     "description": "",
-    "modificationDate": 1653839659,
+    "modificationDate": 1659426077,
     "parentClass": "",
     "implementsInterfaces": "",
     "listingParentClass": "",
@@ -167,7 +167,7 @@
                         ],
                         "locked": false,
                         "icon": "",
-                        "labelWidth": 0,
+                        "labelWidth": 150,
                         "labelAlign": "left"
                     }
                 ],
@@ -179,7 +179,7 @@
         "labelWidth": 100,
         "labelAlign": "left"
     },
-    "icon": "",
+    "icon": "\/bundles\/pimcoreadmin\/img\/flat-color-icons\/diamond.svg",
     "previewUrl": "",
     "group": "",
     "showAppLoggerTab": false,

@@ -11,7 +11,18 @@ pimcore.plugin.IceCatBundle = Class.create(pimcore.plugin.admin, {
 
     pimcoreReady: function (params, broker) {
         // alert("IceCatBundle ready!");
-    }
+    },
+    
+    postOpenObject: function (object, type) {
+        if (
+            object && object.data &&
+            object.data.general && object.data.general.o_className == 'Icecat'
+        ) {
+            (new pimcore.plugin.refreshIcecatProduct(object)).attachRefreshButton();
+        }
+
+    },
+
 });
 
 var IceCatBundlePlugin = new pimcore.plugin.IceCatBundle();

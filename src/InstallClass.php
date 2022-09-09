@@ -109,8 +109,6 @@ class InstallClass extends SettingsStoreAwareInstaller
             try {
                 $class->delete();
             } catch (\Throwable $e) {
-                p_r($e);
-                die;
                 // do fancy things here ..
             }
         }
@@ -124,7 +122,25 @@ class InstallClass extends SettingsStoreAwareInstaller
             }
         }
 
+        $class = ClassDefinition::getByName('IcecatFieldsLog');
+        if ($class) {
+            try {
+                $class->delete();
+            } catch (\Throwable $e) {
+                // do fancy things here ..
+            }
+        }
+
         $folder = DataObject\Folder::getByPath('/ICECAT');
+        if ($folder) {
+            try {
+                $folder->delete();
+            } catch (\Throwable $e) {
+                // do fancy things here ..
+            }
+        }
+
+        $folder = DataObject\Folder::getByPath('/Icecat overwritten fields log');
         if ($folder) {
             try {
                 $folder->delete();
@@ -212,6 +228,24 @@ class InstallClass extends SettingsStoreAwareInstaller
                 PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
         );
+
+        $db->query(
+            'DROP TABLE IF EXISTS `icecat_recurring_import`;
+                CREATE TABLE `icecat_recurring_import` (
+                `id` int NOT NULL AUTO_INCREMENT,
+                `start_datetime` int NOT NULL,
+                `end_datetime` int NOT NULL,
+                `status` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+                `total_records` int NOT NULL,
+                `processed_records` int NOT NULL,
+                `success_records` int NOT NULL,
+                `error_records` int NOT NULL,
+                `not_found_records` int NOT NULL,
+                `forbidden_records` int NOT NULL,
+                `execution_type` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+                PRIMARY KEY (`id`)
+              ) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin'
+        );
     }
 
     /**
@@ -230,6 +264,9 @@ class InstallClass extends SettingsStoreAwareInstaller
         );
         $db->query(
             'DROP TABLE IF EXISTS icecat_user_login'
+        );
+        $db->query(
+            'DROP TABLE IF EXISTS icecat_recurring_import'
         );
     }
 
@@ -272,8 +309,8 @@ class InstallClass extends SettingsStoreAwareInstaller
         $config = \Pimcore\Model\DataObject\Classificationstore\StoreConfig::getByName($name);
 
         if ($config) {
-            $collectionIds = $db->fetchAll("SELECT * FROM classificationstore_collections where storeId = {$config->getId()}");
-            $groupIds = $db->fetchAll("SELECT * FROM classificationstore_groups where storeId = {$config->getId()}");
+            $collectionIds = $db->fetchAllAssociative("SELECT * FROM classificationstore_collections where storeId = {$config->getId()}");
+            $groupIds = $db->fetchAllAssociative("SELECT * FROM classificationstore_groups where storeId = {$config->getId()}");
 
             foreach ($collectionIds as $collectionId) {
                 $db->query(
@@ -313,7 +350,7 @@ class InstallClass extends SettingsStoreAwareInstaller
     public function createClassDefinition()
     {
         $classname = 'Icecat';
-        $filepath = __DIR__ . '/Install/class_Icecat_export_v1.json';
+        $filepath = __DIR__ . '/Install/class_Icecat_export.json';
         $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
         if (!$class) {
             $class = new \Pimcore\Model\DataObject\ClassDefinition();
@@ -329,7 +366,18 @@ class InstallClass extends SettingsStoreAwareInstaller
         \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, \json_encode($classConfig));
 
         $classname = 'IcecatCategory';
-        $filepath = __DIR__ . '/Install/class_IcecatCategory_export_v1.json';
+        $filepath = __DIR__ . '/Install/class_IcecatCategory_export.json';
+        $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
+        if (!$class) {
+            $class = new \Pimcore\Model\DataObject\ClassDefinition();
+            $class->setName($classname);
+            $class->setGroup('Icecat');
+            $json = file_get_contents($filepath);
+            \Pimcore\Model\DataObject\ClassDefinition\Service::importClassDefinitionFromJson($class, $json);
+        }
+
+        $classname = 'IcecatFieldsLog';
+        $filepath = __DIR__ . '/Install/class_IcecatFieldsLog_export.json';
         $class = \Pimcore\Model\DataObject\ClassDefinition::getByName($classname);
         if (!$class) {
             $class = new \Pimcore\Model\DataObject\ClassDefinition();
@@ -353,6 +401,6 @@ class InstallClass extends SettingsStoreAwareInstaller
      */
     public function getLastMigrationVersionClassName(): ?string
     {
-        return Version20220423095622::class;
+        return Version20220907152904::class;
     }
 }

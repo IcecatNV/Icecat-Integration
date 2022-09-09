@@ -34,9 +34,9 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                 iconCls: "pimcore_icon_search",
             };
 
-            panelConfig.title = t("Search By Category");
+            panelConfig.title = t("Advanced Filter Options");
             panelConfig.id = "iceCatBundle_searchPanel";
-            panelConfig.tooltip = t("Search By Category");
+            panelConfig.tooltip = t("Advanced Filter Options");
             this.panel = new Ext.Panel(panelConfig);
 
             this.categoryStore = new Ext.data.JsonStore({
@@ -178,6 +178,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                             fieldLabel: t('Language'),
                             width: 335,
                             listWidth: 150,
+                            labelWidth: 110,
                             mode: 'local',
                             typeAhead: true,
                             forceSelection: true,
@@ -194,6 +195,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                             fieldLabel: t('Category'),
                             width: 333,
                             listWidth: 150,
+                            labelWidth: 110,
                             mode: 'local',
                             typeAhead: true,
                             forceSelection: true,
@@ -215,6 +217,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 fieldLabel: t('Brand'),
                                 width: 333,
                                 listWidth: 150,
+                                labelWidth: 110,
                                 mode: 'local',
                                 typeAhead: true,
                                 forceSelection: true,
@@ -233,7 +236,82 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                                 style: 'margin-left: 5px',
                                 handler: this.toggleBrandComboValues.bind(this)
                             }]
-                        }
+                        }, {
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "3dtour",
+                                fieldLabel: t('3D tour'),
+                                tooltip: '3D tour',
+                                labelWidth: 110,
+                                width: 150
+                                
+                            }, {
+                                xtype: 'checkbox',
+                                name: "video",
+                                fieldLabel: t('Video'),
+                                tooltip: 'Video',
+                                labelWidth: 110,
+                                width: 150
+                                
+                            }]
+                        }, {
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "reviews",
+                                fieldLabel: t('Reviews'),
+                                tooltip: 'Reviews',
+                                labelWidth: 110,
+                                width: 150
+                                
+                            }, {
+                                xtype: 'checkbox',
+                                name: "reasonstobuy",
+                                fieldLabel: t('Reasons to buy'),
+                                tooltip: 'Reasons to buy',
+                                labelWidth: 110,
+                                width: 150
+                                
+                            }]
+                        }, {
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "relatedproducts",
+                                fieldLabel: t('Related Products'),
+                                tooltip: 'Related Products',
+                                labelWidth: 110,
+                                width: 150
+                                
+                            }, {
+                                xtype: 'checkbox',
+                                name: "productstories",
+                                fieldLabel: t('Product Stories'),
+                                tooltip: 'Product Stories',
+                                labelWidth: 110,
+                                width: 150,
+                            }]
+                        }, {
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            combineErrors: true,
+                            items: [{
+                                xtype: 'checkbox',
+                                name: "multimedia",
+                                fieldLabel: t('Multimedia'),
+                                tooltip: 'Multimedia',
+                                labelWidth: 110,
+                                width: 150
+                                
+                            }]
+                        } 
                     ]
                 }]
             });
@@ -424,7 +502,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         this.categoryStore.reload();
 
         this.brandStore.getProxy().setExtraParam("language", value);
-        this.brandStore.getProxy().setExtraParam("category", value);
+        this.brandStore.getProxy().setExtraParam("category", this.searchpanel.getForm().findField("category").getValue());
         this.brandStore.reload();
 
         this.searchpanel.getForm().findField("brand[]").reset();
@@ -488,8 +566,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
 
     setBrandCheckbox: function (component) {
         var combo = Ext.getCmp("search_form").getForm().findField('brand[]');
-        console.log(component.getValue());
-        console.log(this.brandStore.getRange().length);
+        
         // +1 because event is called before select
         if(combo.getValue().length+1 === this.brandStore.getRange().length) {
             var checkbox = Ext.getCmp("search_form").getForm().findField('checkbox_brand');

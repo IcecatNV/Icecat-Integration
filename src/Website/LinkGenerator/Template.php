@@ -285,7 +285,7 @@ $arr = [];
                     $i = 0;
                     foreach ($finalResult as $language) : ?>
                     <li class="<?php echo ($defaultLocale == $language['key']) ? 'active' : ''; ?>">
-                        <a data-toggle="tab" href="#lang<?= $language['key'] ?>"><?= $language['display_value'] ?></a>
+                        <a data-toggle="tab" href="#lang<?php echo $language['key'] ?>"><?php echo $language['display_value'] ?></a>
                     </li>
                         <?php $i++;
                     endforeach; ?>
@@ -302,7 +302,7 @@ $arr = [];
                         ?>
 
                     <div class="tab-pane fade  <?php echo ($defaultLocale == $language['key']) ? 'active in' : ''; ?> "
-                        id="lang<?= $language['key'] ?>">
+                        id="lang<?php echo $language['key'] ?>">
                         <?php if (!empty($data->getProductTitle($language['key']))) : ?>
                         <div class="col-md-12 mt-10">
                             <div class="row">
@@ -314,7 +314,7 @@ $arr = [];
                                                 <?php if (!empty($data->getBrandLogo())) { ?>
                                                 <div class="col-xs-1 col-md-1 col-sm-1 col-lg-1">
                                                     <img class="brand-logo"
-                                                        src="<?= $data->getBrandLogo()->getFullPath() ?>" alt="fgdfgfg"
+                                                        src="<?php echo $data->getBrandLogo()->getFullPath() ?>" alt="fgdfgfg"
                                                         style="width:50px;">
 
                                                 </div>
@@ -348,7 +348,7 @@ $arr = [];
                                                     <a href="/en/search?supplierLocalName=HP"
                                                         title="Search HP data-sheets">
                                                         <span
-                                                            class="data"><?= $data->getBrand($language['key']) ?></span>
+                                                            class="data"><?php echo $data->getBrand($language['key']) ?></span>
                                                     </a>
                                                     <a class="rank-icon" title="Check ‘HP’ global rank"
                                                         href="/en/brand-statistics/HP"></a>
@@ -360,7 +360,7 @@ $arr = [];
                                                         Name</span><span>:</span>
                                                     <a href="/en/search?supplierLocalName=HP" title="">
                                                         <span class="data">
-                                                            <?= $data->getProduct_Name($language['key']) ?></span>
+                                                            <?php echo $data->getProduct_Name($language['key']) ?></span>
                                                     </a>
                                                 </div>
                                                 <?php } ?>
@@ -370,7 +370,7 @@ $arr = [];
                                                         Family</span><span>:</span>
                                                     <a href="/en/search?supplierLocalName=HP" title="">
                                                         <span class="data">
-                                                            <?= $data->getProductFamily($language['key']) ?></span>
+                                                            <?php echo $data->getProductFamily($language['key']) ?></span>
                                                     </a>
                                                 </div>
                                                 <?php } ?>
@@ -380,7 +380,7 @@ $arr = [];
                                                         Series</span><span>:</span>
                                                     <a href="/en/search?supplierLocalName=HP" title="">
                                                         <span class="data">
-                                                            <?= $data->getProductSeries($language['key']) ?></span>
+                                                            <?php echo $data->getProductSeries($language['key']) ?></span>
                                                     </a>
                                                 </div>
                                                 <?php } ?>
@@ -393,7 +393,7 @@ $arr = [];
                                                         Code</span><span>:</span>
                                                     <a href="/en/search?supplierLocalName=HP"
                                                         title="Search HP data-sheets">
-                                                        <span class="data"><?= $data->getProduct_Code() ?></span>
+                                                        <span class="data"><?php echo $data->getProduct_Code() ?></span>
                                                     </a>
                                                     <a class="plus-icon" title="" href="/en/brand-statistics/HP"></a>
                                                 </div>
@@ -405,7 +405,7 @@ $arr = [];
                                                     <a href="/en/search?supplierLocalName=HP"
                                                         title="Search HP data-sheets">
                                                         <span
-                                                            class="data"><?= $data->getCategory($language['key']) ?></span>
+                                                            class="data"><?php echo $data->getCategory($language['key']) ?></span>
                                                     </a>
                                                 </div>
                                                 <?php } ?>
@@ -416,7 +416,7 @@ $arr = [];
                                                     <a href="/en/search?supplierLocalName=HP"
                                                         title="Search HP data-sheets">
                                                         <span
-                                                            class="data"><?= $data->getIcecat_Product_Id($language['key']) ?></span>
+                                                            class="data"><?php echo $data->getIcecat_Product_Id($language['key']) ?></span>
                                                     </a>
                                                 </div>
                                                 <?php } ?>
@@ -426,7 +426,7 @@ $arr = [];
                                                         class="tip-anchor tip-anchor-text">GTIN/EAN</span><span>:</span>
                                                     <a href="/en/search?supplierLocalName=HP" title="">
                                                         <span
-                                                            class="data"><?= $data->getGtin($language['key']) ?></span>
+                                                            class="data"><?php echo $data->getGtin($language['key']) ?></span>
                                                     </a>
                                                 </div>
                                                 <?php } ?>
@@ -459,7 +459,7 @@ $arr = [];
                                                     <div class="info-item">
                                                         <span class="tip-anchor tip-anchor-text">Info modified on</span><span>:</span>
                                                         <a href="/en/search?supplierLocalName=HP" title="Search HP data-sheets">
-                                                            <span class="data"><?= $data->getInfo_Modified_On($language['key']) ?></span>
+                                                            <span class="data"><?php echo $data->getInfo_Modified_On($language['key']) ?></span>
                                                         </a>
                                                     </div>
                                                 <?php } ?>
@@ -482,8 +482,8 @@ $arr = [];
                                                     <span>
                                                         <img class="jpg-icon" src="/bundles/icecat/img/jpg-icon.jpg">
                                                         <a id="" target="_blank"
-                                                            href="<?= $relatedPdfObject->getFullPath() ?>">
-                                                                <?= $pdfObject->getDescription(); ?>
+                                                            href="<?php echo $relatedPdfObject->getFullPath() ?>">
+                                                                <?php echo $pdfObject->getDescription(); ?>
                                                         </a>
                                                     </span>
 
@@ -493,8 +493,8 @@ $arr = [];
 
                                                     <span><i class="fa fa-file-pdf-o" aria-hidden="true"></i>
                                                         <a id="" target="_blank"
-                                                            href="<?= $relatedPdfObject->getFullPath() ?>">
-                                                                <?= $pdfObject->getDescription(); ?>
+                                                            href="<?php echo $relatedPdfObject->getFullPath() ?>">
+                                                                <?php echo $pdfObject->getDescription(); ?>
                                                         </a>
                                                     </span>
 
@@ -513,7 +513,7 @@ $arr = [];
                                 </div>
                                 <div class="col-md-6 col-sm-6 col-xs-6">
                                     <?php if (!empty($data->getGallery()->getItems())) { ?>
-                                    <div id="myCarousel<?= $language['key'] ?>" class="carousel slide"
+                                    <div id="myCarousel<?php echo $language['key'] ?>" class="carousel slide"
                                         data-ride="carousel">
 
                                         <div class="carousel-inner side-slider">
@@ -522,7 +522,7 @@ $arr = [];
                                             <div class="item <?php if ($i == 0) {
                                                         echo 'active';
                                                              } ?>">
-                                                <img src="<?= $img->getImage()->getPath() ?>/<?= $img->getImage()->getFilename() ?>"
+                                                <img src="<?php echo $img->getImage()->getPath() ?>/<?php echo $img->getImage()->getFilename() ?>"
                                                     alt="" style="width:100%;">
                                             </div>
                                                 <?php $i++;
@@ -532,12 +532,12 @@ $arr = [];
 
 
                                         <!-- Left and right controls -->
-                                        <a class="left carousel-control" href="#myCarousel<?= $language['key'] ?>"
+                                        <a class="left carousel-control" href="#myCarousel<?php echo $language['key'] ?>"
                                             data-slide="prev">
                                             <span class="glyphicon glyphicon-chevron-left"></span>
                                             <span class="sr-only">Previous</span>
                                         </a>
-                                        <a class="right carousel-control" href="#myCarousel<?= $language['key'] ?>"
+                                        <a class="right carousel-control" href="#myCarousel<?php echo $language['key'] ?>"
                                             data-slide="next">
                                             <span class="glyphicon glyphicon-chevron-right"></span>
                                             <span class="sr-only">Next</span>
@@ -552,7 +552,7 @@ $arr = [];
                                                         $decription = ($blockItemMaster['galleryIconDescription']->getData()); ?>
 
                                         <div class="item"><img data-toggle="tooltip" data-placement="right"
-                                                title="<?= $decription ?>" src="<?= $icon->getFullPath() ?>"
+                                                title="<?php echo $decription ?>" src="<?php echo $icon->getFullPath() ?>"
                                                 alt="no-image"></div>
 
                                             <?php
@@ -580,22 +580,22 @@ $arr = [];
                                                 <?php if (!empty($data->getProductLongName($language['key']))) { ?>
                                                 <div class="main-head">
                                                     <p> <b> Long product name
-                                                            <?= $data->getProductTitle($language['key'])  ?>
+                                                            <?php echo $data->getProductTitle($language['key'])  ?>
                                                             : </b></p>
-                                                    <?= $data->getProductLongName($language['key']) ?>
+                                                    <?php echo $data->getProductLongName($language['key']) ?>
                                                 </div>
                                                 <?php } ?>
                                                 <?php if (!empty($data->getWarranty($language['key']))) { ?>
                                                 <div class="main-head">
                                                     <b> Warranty: </b>
-                                                    <?= $data->getWarranty($language['key']) ?>
+                                                    <?php echo $data->getWarranty($language['key']) ?>
                                                 </div>
                                                 <?php } ?>
                                                 <?php if (!empty($data->getLongDescription($language['key']))) { ?>
                                                 <div class="main-head">
-                                                    <p> <b> <?= $data->getProductTitle($language['key'])  ?>
+                                                    <p> <b> <?php echo $data->getProductTitle($language['key'])  ?>
                                                             : </b></p>
-                                                    <?= $data->getLongDescription($language['key']) ?>
+                                                    <?php echo $data->getLongDescription($language['key']) ?>
                                                 </div>
                                                 <?php } ?>
 
@@ -604,33 +604,33 @@ $arr = [];
                                                 <?php if (!empty($data->getShort_Summary($language['key']))) { ?>
                                                 <div class="main-head">
                                                     <p> <b> Short summary description
-                                                            <?= $data->getProductTitle($language['key'])  ?>
+                                                            <?php echo $data->getProductTitle($language['key'])  ?>
                                                             : </b></p>
-                                                    <?= $data->getShort_Summary($language['key']) ?>
+                                                    <?php echo $data->getShort_Summary($language['key']) ?>
                                                 </div>
                                                 <?php } ?>
                                                 <?php if (!empty($data->getLong_Summary($language['key']))) { ?>
                                                 <div class="main-head">
                                                     <p> <b> Long summary description
-                                                            <?= $data->getProductTitle($language['key'])  ?>
+                                                            <?php echo $data->getProductTitle($language['key'])  ?>
                                                             : </b></p>
-                                                    <?= $data->getLong_Summary($language['key']) ?>
+                                                    <?php echo $data->getLong_Summary($language['key']) ?>
                                                 </div>
                                                 <?php } ?>
                                                 <?php if (!empty($data->getBulletPoints($language['key']))) { ?>
                                                 <div class="main-head">
                                                     <p><b> Bullet points description
-                                                            <?= $data->getProductTitle($language['key'])  ?>
+                                                            <?php echo $data->getProductTitle($language['key'])  ?>
                                                             : </b></p>
-                                                    <?= $data->getBulletPoints($language['key']) ?>
+                                                    <?php echo $data->getBulletPoints($language['key']) ?>
                                                 </div>
                                                 <?php } ?>
                                                 <?php if (!empty($data->getDisclaimer($language['key']))) { ?>
                                                 <div class="main-head">
                                                     <p><b> Disclaimer
-                                                            <?= $data->getProductTitle($language['key'])  ?>
+                                                            <?php echo $data->getProductTitle($language['key'])  ?>
                                                             : </b></p>
-                                                    <?= $data->getDisclaimer($language['key']) ?>
+                                                    <?php echo $data->getDisclaimer($language['key']) ?>
                                                 </div>
                                                 <?php } ?>
 
@@ -645,29 +645,29 @@ $arr = [];
                         <div class="tabbable">
                             <ul class="nav nav-tabs">
                                 <li class="active"><a data-toggle="tab"
-                                        href="#home<?= $language['key'] ?>">Specifications</a>
+                                        href="#home<?php echo $language['key'] ?>">Specifications</a>
                                 </li>
 
                                 <?php if (!empty(strip_tags($data->getReasons_to_buy($language['key'])))) { ?>
-                                <li><a data-toggle="tab" href="#menu1<?= $language['key'] ?>">Reasons to
+                                <li><a data-toggle="tab" href="#menu1<?php echo $language['key'] ?>">Reasons to
                                         buy</a></li>
                                 <?php } ?>
                                 <?php if (!empty(($data->getStoryUrl($language['key'])))) { ?>
-                                <li><a data-toggle="tab" href="#menu4<?= $language['key'] ?>">Story</a></li>
+                                <li><a data-toggle="tab" href="#menu4<?php echo $language['key'] ?>">Story</a></li>
                                 <?php } ?>
 
                                 <?php if (!empty($data->getTour()->getItems())) { ?>
-                                <li><a data-toggle="tab" href="#menu2<?= $language['key'] ?>">3D Tour</a>
+                                <li><a data-toggle="tab" href="#menu2<?php echo $language['key'] ?>">3D Tour</a>
                                 </li>
                                 <?php } ?>
 
                                 <?php if (!empty($data->getVideo())) {  ?>
-                                <li><a data-toggle="tab" href="#menu3<?= $language['key'] ?>">Video</a></li>
+                                <li><a data-toggle="tab" href="#menu3<?php echo $language['key'] ?>">Video</a></li>
                                 <?php } ?>
 
                             </ul>
                             <div id="myTabContent" class="tab-content">
-                                <div class="tab-pane fade active in" id="home<?= $language['key'] ?>">
+                                <div class="tab-pane fade active in" id="home<?php echo $language['key'] ?>">
                                     <div class="spec-head">
                                         <div class="col-md-12 col-sm-12 col-lg-12">
                                             <div class="row">
@@ -722,19 +722,19 @@ $arr = [];
                                                     }
                                                     ?>
                                                 <div
-                                                    class="<?= (!isset($halved[1]) ? 'col-md-12 col-sm-12 col-lg-12' : 'col-md-6 col-sm-6 col-lg-6') ?> ">
+                                                    class="<?php echo (!isset($halved[1]) ? 'col-md-12 col-sm-12 col-lg-12' : 'col-md-6 col-sm-6 col-lg-6') ?> ">
                                                     <?php
                                                             $i = 0;
                                                     foreach ($firstArray as $mainArrayKey => $values) { ?>
                                                     <div class="inner-spec-head">
                                                         <table class="table table-custom">
                                                             <div>
-                                                                <h5><?= $keys[$i] ?></h5>
+                                                                <h5><?php echo $keys[$i] ?></h5>
                                                             </div>
                                                             <tbody>
                                                                 <?php foreach ($values as $features) { ?>
                                                                 <tr>
-                                                                    <td><?= $features[0] ?>
+                                                                    <td><?php echo $features[0] ?>
                                                                     </td>
                                                                     <td class="text-fix">
                                                                         <?php
@@ -764,12 +764,12 @@ $arr = [];
                                                     <div class="inner-spec-head">
                                                         <table class="table table-custom">
                                                             <div>
-                                                                <h5><?= $keys[$i]; ?></h5>
+                                                                <h5><?php echo $keys[$i]; ?></h5>
                                                             </div>
                                                             <tbody>
                                                                 <?php foreach ($values as $features) { ?>
                                                                 <tr>
-                                                                    <td><?= $features[0] ?>
+                                                                    <td><?php echo $features[0] ?>
                                                                     </td>
                                                                     <td class="text-fix">
                                                                         <?php
@@ -814,14 +814,14 @@ $arr = [];
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="menu1<?= $language['key'] ?>">
+                                <div class="tab-pane fade" id="menu1<?php echo $language['key'] ?>">
 
                                     <div class="spec-head">
 
                                         <?php if (!empty(strip_tags($data->getReasons_to_buy($language['key'])))) {
                                             ?>
 
-                                            <?= $data->getReasons_to_buy($language['key']) ?>
+                                            <?php echo $data->getReasons_to_buy($language['key']) ?>
                                             <?php
                                         } else { ?>
                                         <h5>Empty!!!</h5>
@@ -835,7 +835,7 @@ $arr = [];
 
 
                                 </div>
-                                <div class="tab-pane fade" id="menu2<?= $language['key'] ?>">
+                                <div class="tab-pane fade" id="menu2<?php echo $language['key'] ?>">
                                     <table border="0" cellpadding="0" cellspacing="0" class="custom-table-center">
 
 
@@ -856,7 +856,7 @@ $arr = [];
                                         <?php if (!empty($data->getTour()->getItems())) { ?>
                                             <?php $i = 0;
                                             foreach ($data->getTour() as $img) { ?>
-                                        <img src="<?= $img->getImage()->getPath() ?>/<?= $img->getImage()->getFilename() ?>"
+                                        <img src="<?php echo $img->getImage()->getPath() ?>/<?php echo $img->getImage()->getFilename() ?>"
                                             alt="" style="width:50%;">
                                             <?php } ?>
                                         <?php } else { ?>
@@ -875,7 +875,7 @@ $arr = [];
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="menu3<?= $language['key'] ?>">
+                                <div class="tab-pane fade" id="menu3<?php echo $language['key'] ?>">
 
                                     <div class="spec-head">
 
@@ -890,7 +890,7 @@ $arr = [];
 
                                             $path = ($videoAsset->getFullPath()); ?>
                                         <video width="320" height="240" controls>
-                                            <source src="<?= $path ?>" type="video/mp4">
+                                            <source src="<?php echo $path ?>" type="video/mp4">
                                         </video>
                                             <?php
                                         } else { ?>
@@ -909,11 +909,11 @@ $arr = [];
 
 
                                 </div>
-                                <div class="tab-pane fade" id="menu4<?= $language['key'] ?>">
+                                <div class="tab-pane fade" id="menu4<?php echo $language['key'] ?>">
 
                                     <div class="spec-head" id="my-div-frame-wrapper">
 
-                                        <iframe src="<?= $data->getStoryUrl($language['key']) ?>" scrolling="yes"
+                                        <iframe src="<?php echo $data->getStoryUrl($language['key']) ?>" scrolling="yes"
                                             style="width: 100%; overflow: hidden; resize: both; height:800px;  border:none"
                                             title="Iframe Example" id="myframe">
                                         </iframe>
