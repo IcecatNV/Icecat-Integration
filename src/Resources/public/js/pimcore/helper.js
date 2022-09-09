@@ -1,14 +1,11 @@
 pimcore.registerNS("pimcore.plugin.iceCatHelper");
 pimcore.plugin.iceCatHelper = Class.create({
     initialize: function (parent) {
-        // this.getPanel();
         this.uploadPanel = new pimcore.plugin.iceCatUploadFilePanel();
         this.importGridPanel = new pimcore.plugin.iceCatImportGridPanel();
-        // this.runningProcessesPanel = new pimcore.plugin.iceCatRunningProcessesPanel();
         this.unfetchedProductGrid = new pimcore.plugin.unfetchedProductGrid();
         this.applicationLogGridPanel = new pimcore.plugin.iceCatApplicationLogGridPanel();
         this.searchPanel = new pimcore.plugin.iceCatSearchPanel(this.uploadPanel);
-        //this.cronPanel = new pimcore.plugin.iceCatCronPanelPanel();
     },
     addFileTabIndex: 1,
     intervalObj: '',
@@ -29,28 +26,28 @@ pimcore.plugin.iceCatHelper = Class.create({
             ufp.add(this.applicationLogGridPanel.getTabPanel());
         }
 
-        // if (!ufp.child('#iceCatBundle_cronPanel')) {
-        //     ufp.add(this.cronPanel.getPanel());
+        // if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
+        // && this.uploadPanel.getConfigData().showSearchPanel) {
+        //     if (!ufp.child('#iceCatBundle_searchPanel')) {
+        //         ufp.add(this.searchPanel.getPanel());
+        //     }
         // }
-
-        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
-        && this.uploadPanel.getConfigData().showSearchPanel) {
-            if (!ufp.child('#iceCatBundle_searchPanel')) {
-                ufp.add(this.searchPanel.getPanel());
-            }
-        }
         
+        if (!ufp.child('#iceCatBundle_searchPanel')) {
+            ufp.add(this.searchPanel.getPanel());
+        }
 
         ufp.child('#iceCatBundle_uploadFilePanel').tab.show();
         ufp.child('#iceCatBundle_importGridPanel').tab.show();
         ufp.child('#icecatApplicationLoggerPanel').tab.show();
         ufp.child('#iceCatBundle_unfetchedProductGrid').tab.show();
-        // ufp.child('#iceCatBundle_cronPanel').tab.show();
 
-        if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
-        && this.uploadPanel.getConfigData().showSearchPanel) {
-            ufp.child('#iceCatBundle_searchPanel').tab.show();
-        }
+        // if(this.uploadPanel.getConfigData() && this.uploadPanel.getConfigData().showSearchPanel !== "undefined" 
+        // && this.uploadPanel.getConfigData().showSearchPanel) {
+        //     ufp.child('#iceCatBundle_searchPanel').tab.show();
+        // }
+
+        ufp.child('#iceCatBundle_searchPanel').tab.show();
 
         Ext.Ajax.request({
             url: Routing.generate('icecat_check_product_count'),
@@ -134,10 +131,8 @@ pimcore.plugin.iceCatHelper = Class.create({
                     loginButtonEle.prop('disabled', false);
                     this.hidePanels();
                 } else {
-                    //loginMsgEle.html('<p style="color:green">Logged In Successfully</p>');
                     loginMsgEle.html('');
                     loginMsgEle.show();
-                    //loginButtonEle.prop('disabled', true);
                     loginScreen.hide();
                     logoutScreen.show();
                     this.showPanels();
@@ -254,9 +249,6 @@ pimcore.plugin.iceCatHelper = Class.create({
                     let ap = new pimcore.plugin.IceCatActiveCreationProcesses('', 'processing', 'processingProgressBarFieldset');
                     ap.refreshTask.start();
                 }.bind(this), 2000);
-                // setTimeout(function () {
-                //     this.getOtherInfo()
-                // }.bind(this), 10000);
             }.bind(this),
             failure: function (err) {
 
@@ -270,10 +262,8 @@ pimcore.plugin.iceCatHelper = Class.create({
             success: function (response) {
                 let res = JSON.parse(response.responseText);
                 if (res.success == 'false') {
-                    // pimcore.helpers.showNotification('Failure', res.message, 'error');
                     return;
                 }
-
                 pimcore.helpers.closeObject(res.folderId);
                 pimcore.helpers.openObject(res.folderId, 'folder');
             }.bind(this),

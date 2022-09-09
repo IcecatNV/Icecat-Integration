@@ -479,7 +479,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                                                 {
                                                     xtype: "combobox",
                                                     id: "brand_name_cron_Icecat",
-                                                    fieldLabel: 'Brand',
+                                                    fieldLabel: 'Brand Name',
                                                     triggerAction: 'all',
                                                     store: this.classFieldsStore,
                                                     displayField: 'title',

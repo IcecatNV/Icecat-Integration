@@ -3,6 +3,7 @@
 namespace IceCatBundle\Services;
 
 use Pimcore\Tool;
+use IceCatBundle\Model\Configuration;
 use Symfony\Component\HttpFoundation\Request;
 
 class SearchService extends AbstractService
@@ -23,17 +24,22 @@ class SearchService extends AbstractService
      */
     public function getSearchLanguages()
     {
+        $config = Configuration::load();
         $data = [];
-        $activatedLanguage = Tool::getValidLanguages();
+        $activatedLanguage = $config->getLanguages();
         foreach ($activatedLanguage as $lang) {
-            $sql = "SELECT COUNT(*) as c FROM object_localized_icecat_category_{$lang} WHERE trim(name) != ''";
-            $result = \Pimcore\Db::get()->fetchAssoc($sql);
-            if ((int)$result['c'] !== 0) {
-                $data[] = [
-                    'key' => $lang,
-                    'value' => \Locale::getDisplayLanguage($lang)
-                ];
-            }
+            $data[] = [
+                'key' => $lang,
+                'value' => \Locale::getDisplayLanguage($lang)
+            ];
+            // $sql = "SELECT COUNT(*) as c FROM object_localized_icecat_category_{$lang} WHERE trim(name) != ''";
+            // $result = \Pimcore\Db::get()->fetchAssoc($sql);
+            // if ((int)$result['c'] !== 0) {
+            //     $data[] = [
+            //         'key' => $lang,
+            //         'value' => \Locale::getDisplayLanguage($lang)
+            //     ];
+            // }
         }
 
         return $data;

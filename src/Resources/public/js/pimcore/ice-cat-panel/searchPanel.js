@@ -34,9 +34,9 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
                 iconCls: "pimcore_icon_search",
             };
 
-            panelConfig.title = t("Search By Category");
+            panelConfig.title = t("Advanced Filter Options");
             panelConfig.id = "iceCatBundle_searchPanel";
-            panelConfig.tooltip = t("Search By Category");
+            panelConfig.tooltip = t("Advanced Filter Options");
             this.panel = new Ext.Panel(panelConfig);
 
             this.categoryStore = new Ext.data.JsonStore({
@@ -502,7 +502,7 @@ pimcore.plugin.iceCatSearchPanel = Class.create({
         this.categoryStore.reload();
 
         this.brandStore.getProxy().setExtraParam("language", value);
-        this.brandStore.getProxy().setExtraParam("category", value);
+        this.brandStore.getProxy().setExtraParam("category", this.searchpanel.getForm().findField("category").getValue());
         this.brandStore.reload();
 
         this.searchpanel.getForm().findField("brand[]").reset();

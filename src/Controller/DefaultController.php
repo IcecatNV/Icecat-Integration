@@ -264,7 +264,7 @@ class DefaultController extends FrontendController
                         <td>{$executionType}</td>
                     </tr>
                     <tr>
-                        <th>Detail log file</th>
+                        <th>Detailed log file</th>
                         <td><a href=\"/admin/icecat/download-last-import-log\">Download</a></td>
                     </tr>
 

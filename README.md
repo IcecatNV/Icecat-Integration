@@ -22,7 +22,8 @@ To install this plugin use following commands:
 - Addition of new fields in import
 - Enhanced filtering
 - Overwritable fields
-- Background job and scheduler
+- Recurring import as background job
+- Single product update
 
 [Click here to see full details for v3.0.0](./doc/plugin_v3.md)
 
