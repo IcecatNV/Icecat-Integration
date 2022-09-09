@@ -13,78 +13,97 @@ $ composer require icecat/icecat-integration:^3.0
 $ bin/console doctrine:migrations:migrate --prefix=IceCatBundle\\Migrations
 ~~~~~~~~~~~~~~~~~~~~~
 
+**Prequisite for the scheduled job**
+
+Set the following command to the crontab
+```bash
+*/1 * * * * /your/project/bin/console icecat:recurring-import
+```
+The cron job has to run as the same user as the web interface to avoid permission issues (eg. `www-data`).
+
 ## New features listing
 
-**Addition of new fields in import**
+**Helpul Icecat links on the login screen**
 
-<ins>Reviews</ins>
+User will be able to easily navigate to Icecat's registration, forgot password and contact us pages.
 
-Icecat product's reviews are now part of the import process. 
+![img1](./images/redirection-links.png)
+
+**Addition of more enriched content**
+
+<ins>Product Reviews</ins>
+
+Icecat multilingual product reviews are now part of the import process. 
 
 ![img1](./images/reviews.png)
 
 <ins>Product Stories</ins>
 
-Products stories URL(s) are now imported along with the nice preview.
+Icecat multilingual products stories URL(s) are now part of the import process with the preview.
 
 ![img1](./images/product-stories.png)
 
 <ins>Videos</ins>
 
-Video field is changed from type video to many to many relation. This is done to enable the import process to download and attach multiple videos if any product has. 
+Video field is changed from type video to many to many relation. This is done to enable the import process to download and attach multiple videos. 
 
 ![img1](./images/videos.png)
 
 <ins>Related Products</ins>
 
-Related products are now part of import process with an extra configuration on the Icecat screen. 
-By default, import process only checks if the related products already exists in Pimcore and attaches them to product. With this configuration enabled, import will also create the related products on the fly which don't exists.
+Related products are now part of the import process. To create related products on the fly, user has an option to enable 'Import Related Products' setting.
+
+Once enabled, if the related products not already exists in the Pimcore, it will first import the related products and then attaches them to the main product.
+
+If disabled, it will check if the related products already exists in the Pimcore, if yes, it will then attach to the main product.
 
 ![img1](./images/import-related-product-flag.png)
+
+Related products overview.
+
 ![img1](./images/related-products.png)
 
 
 **Advanced filter options**
 
-Additional filters are added on Icecat filter screen to enable user to search for products more easily and efficiently. 
+Additional filters are now available to enable user to search for the required products more easily and efficiently. 
 
 ![img1](./images/filter-options.png)
 
-**Icecat links on login screen**
 
-Helpful links are included on login screen to easily navigate user to Icecat's user registration page, forgot password page and contact us page.
 
-![img1](./images/redirection-links.png)
+**Overwritable fields - on the fly**
 
-**Overwritable fields**
+User has the ability to not overwrite product fields while (re)importing products from Icecat.
 
-Provided users the ability to not overwrite product fields while (re)importing products from Icecat.
-Whenever user makes any updates to Icecat class objects, change logs gets recorded in Pimcore and when re-importing import process makes sure to not overwrite those fields data.
-
-All the change logs can be seen under "Icecat overwritten fields log" folder.
+Whenever user makes any changes locally in the Pimcore products, changes automatically get recorded in 'Icecat overwritten fields log' folder. These fields will not be overwritten while (re)importing.
 
 ![img1](./images/overwritable-fields.png)
 
-In order to make those fields overwritable again, just delete the log entries from the folder and data will be reimported.
+In order to make those fields again overwritable, simply delete the required log entries from the 'Icecat overwritten fields log' folder.
 
-**Recurring Import**
+**Single product import**
 
-A new section is added on icecat screen to allow users to set automated recurring import from Icecat.
-Multiple options are provided like users can either save any excel file with list of GTINs / Product code and Brand combinations or can set their Product class fields mapping to pick list of products from there which needs to be imported from Icecat.
-Users can set the schedule of recurring import job as cron expression or can also do a manual start. Running job can be cancelled at any time. 
-A detailed summary of the last executed job shows up when the job finishes.
+User has the ability to refresh single product from Icecat using the button placed on the object toolbar.
+
+![img1](./images/single-product-update.png)
+
+**Recurring import - on demand and scheduled**
+
+<ins>Prerequisite: Set the following command to the crontab</ins>
+*/1 * * * * /your/project/bin/console icecat:recurring-import
+
+User has the ability to :- 
+
+- Schedule automated recurring imports from excel file or directly from Pimcore product catalog
+- On demand imports
+
+User can attach excel file from Assets section or map product catalog fields which are required to fetch data from Icecat.
+
+A detailed summary of the last completed job will be visible when the job finishes.
 
 ![img1](./images/recurring-import.png)
 
-Its required to set the following command in crontab to make sure the scheduler works properly. 
+User can cancel the job anytime using 'Cancel execution' button.
 
-```bash
-*/1 * * * * /your/project/bin/console icecat:recurring-import
-```
-Keep in mind, that the cron job has to run as the same user as the web interface to avoid permission issues (eg. `www-data`).
-
-**Single product update**
-
-Provided option on the object toolbar to update single product from Icecat.
-
-![img1](./images/single-product-update.png)
+![img1](./images/recurring-import-cancel.png)
