@@ -1,4 +1,4 @@
-##Icecat plugin v3.0.0
+## Icecat plugin v3.0.0
 
 **Install latest version**
 
