@@ -91,6 +91,7 @@ User has the ability to refresh single product from Icecat using the button plac
 **Recurring import - on demand and scheduled**
 
 <ins>Prerequisite: Set the following command to the crontab</ins>
+
 */1 * * * * /your/project/bin/console icecat:recurring-import
 
 User has the ability to :- 
