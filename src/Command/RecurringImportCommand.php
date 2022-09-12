@@ -140,6 +140,11 @@ class RecurringImportCommand extends AbstractCommand
         $this->executionType = $input->getOption('execution-type');
 
         $this->configuration = Configuration::load();
+
+        if(!$this->configuration) {
+            return 0;
+        }
+
         $this->db = Db::get();
         $sql = "SELECT count(*) as c FROM icecat_recurring_import WHERE status = 'running'";
         $count = $this->db->fetchRow($sql);
