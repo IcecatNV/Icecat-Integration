@@ -13,7 +13,7 @@ $ composer require icecat/icecat-integration:^3.0
 $ bin/console doctrine:migrations:migrate --prefix=IceCatBundle\\Migrations
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Prequisite for the scheduled job**
+**Prerequisite for the scheduled job**
 
 Set the following command to the crontab
 ```bash
@@ -88,9 +88,10 @@ User has the ability to refresh single product from Icecat using the button plac
 
 ![img1](./images/single-product-update.png)
 
-**Recurring import - on demand and scheduled**
+**Recurring bulk import - on demand and scheduled**
 
 <ins>Prerequisite: Set the following command to the crontab</ins>
+
 */1 * * * * /your/project/bin/console icecat:recurring-import
 
 User has the ability to :- 

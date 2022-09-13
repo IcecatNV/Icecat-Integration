@@ -24,7 +24,7 @@ To install this plugin use following commands:
 - Advanced filter options
 - Overwritable fields - on the fly
 - Single product import
-- Recurring import - on demand and scheduled
+- Recurring bulk import - on demand and scheduled
 - PSR1 and PSR2 complete code compliant
 
 [Click here to see full details for v3.0.0](./doc/plugin_v3.md)
