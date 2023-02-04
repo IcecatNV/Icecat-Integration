@@ -5,6 +5,7 @@ namespace IceCatBundle\Services;
 use Exception;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Pimcore\Bundle\AdminBundle\HttpFoundation\JsonResponse;
+use Pimcore\Log\ApplicationLogger;
 use Symfony\Component\HttpClient\HttpClient;
 
 class ImportService
@@ -33,6 +34,25 @@ class ImportService
 
     ];
 
+
+    const APPLOGGER_PREFIX = 'ICECAT';
+    const PROCESS_TYPE = [
+        'OBJECT_CREATION' => 'OBJECT-CREATION',
+        'DATA_IMPORT' => 'DATA-IMPORT'
+    ];
+
+    const SUBSCRIPTION_LEVELS = [
+
+        1 => "FULL",
+        4 => "FULL",
+        0 => "NO_SUBSCRIPTION",
+        5 => "OPEN",
+        6 => "OPEN"
+
+    ];
+
+    const LOGIN_TABLE = 'icecat_user_login';
+
     protected $gtin = -1;
     protected $brandName = '';
     protected $productCode = '';
@@ -41,16 +61,85 @@ class ImportService
     protected $totalLanguageCount = 1;
     protected $jobHandler;
 
+
+    protected $appLogger;
+
+
+    protected $skipProductImport = false;
+
     // This will be stored in GTIN column in database
     // but it is product icecat id , and GTIN Column is storing
     // id in it
     protected $currentProductIceCatId;
 
-    public function __construct(JobHandlerService $jobObject, IceCatLogger $logger, JobHandlerService $jobHandler)
+    /**
+     * Stores App key
+     *
+     * @var string
+     */
+    protected $appKey;
+
+    /**
+     * Stores API token
+     *
+     * @var string
+     */
+    protected $apiToken;
+
+
+    /**
+     * Stores subscription level
+     *
+     * @var string
+     */
+    protected $subscriptionLevel;
+
+
+    /**
+     *
+     * @var string
+     */
+    protected $contentToken;
+
+
+    /**
+     * @var mixed
+     */
+    protected $jobObject;
+
+    /**
+     * 
+     * @var mixed
+     */
+    protected $logger;
+
+
+    /**
+     * @var string
+     */
+    protected $logMessage;
+
+
+    /**
+     * @var string
+     */
+    protected $pimcoreUserId;
+
+
+    /**
+     * Total number of that is fetced from icecat and 
+     * need to be processed
+     * 
+     * @var string 
+     */
+    protected $totalFetchedRecords;
+
+    public function __construct(JobHandlerService $jobObject, IceCatLogger $logger, JobHandlerService $jobHandler, ApplicationLogger $appLogger)
     {
         $this->jobObject = $jobObject;
         $this->logger = $logger;
         $this->jobHandler = $jobHandler;
+        $this->appLogger = $appLogger;
     }
 
     public function updateCurrentJob($updateArray, $identifierCol, $identifierVal)
@@ -119,6 +208,8 @@ class ImportService
 
                 ];
 
+                $this->totalFetchedRecords = $totalCsvCount['totalRecords'];
+
                 $this->updateCurrentJob($updateArray, 'jobid', $this->currentJObId);
 
                 if ($totalCsvCount < 1) {
@@ -167,6 +258,8 @@ class ImportService
                     'file_row_count' => $totalXlsCount
                 ];
                 $this->updateCurrentJob($updateArray, 'jobid', $this->currentJObId);
+
+                $this->totalFetchedRecords = $totalXlsCount;
 
                 foreach ($excelDataArray as $value) {
                     // $rows[] =  $value;
@@ -238,9 +331,24 @@ class ImportService
             }
             //Calling icecat api
             try {
+
                 $response = $this->fetchIceCatData($url);
                 $responseArray = json_decode($response, true);
+
+                # Invalide key error
+                if (isset($responseArray['Code']) && $responseArray['Code'] == 400) {
+                    $updateArray = ['fetching_status' => $this->status['PARTIALLY_DONE'], 'fetched_records' => $this->totalFetchedRecords, 'fetching_error' => $responseArray['Message'], 'last_run_dateTime' => date('Y-m-d H:i:s')];
+                    $this->updateCurrentJob($updateArray, 'jobid', $this->currentJObId);
+
+                    $this->logMessage = 'STATUS: ' . $responseArray['Message'] . ' ROW NUMBER :-' . $counter + 1  . ' FOR JOB ID :' . $this->currentJObId;
+                    $this->appLogger->error($this->logMessage, [
+                        'component' => self::APPLOGGER_PREFIX . ' ' . self::PROCESS_TYPE['OBJECT_CREATION'],
+
+                    ]);
+                    die('Aborting Execution');
+                }
             } catch (Exception $e) {
+
                 // IN CASE OF INTERNET ACCESSIBLITY IS NOT AVAILABEL OR ICE CAT'S SERVER IS DOWN
                 $response = '';
                 $responseArray['COULD_NOT_RESOLVE_HOST'] = true;
@@ -357,10 +465,16 @@ class ImportService
      */
     public function fetchIceCatData($url)
     {
+        $this->initializeKeys();
+        $subscriptionType =  self::SUBSCRIPTION_LEVELS[$this->subscriptionLevel] ?? null;
+        $headers['headers']['api-token'] = $this->apiToken;
+        if ($subscriptionType == "FULL") {
+            $headers['headers']['content-token'] = $this->contentToken;
+            $url .= '&app_key=' . $this->appKey;
+        }
         $httpClient = HttpClient::create();
-        $responseObject = $httpClient->request('GET', $url);
+        $responseObject = $httpClient->request('GET', $url, $headers);
         $response = $responseObject->getContent(false);
-
         return $response;
     }
 
@@ -371,7 +485,6 @@ class ImportService
     {
         try {
             $filesData = $this->jobObject->getJobById($jobId);
-
             if (!empty($filesData)) {
                 foreach ($filesData as $file) {
                     // LOGGING
@@ -412,6 +525,28 @@ class ImportService
             $response = ['status' => 'error', 'message' => 'Something went wrong! Error: ' . $e->getMessage()];
 
             return new JsonResponse($response);
+        }
+    }
+
+
+
+    /**
+     * This function sets all the required key
+     * 
+     *
+     * @param string $icecatUserName
+     * @return void
+     */
+    public function initializeKeys()
+    {
+        $db = \Pimcore\Db::get();
+        $sql = 'SELECT * FROM ' . self::LOGIN_TABLE . ' WHERE  icecat_user_id =' . $db->quote($this->icecatUserName);
+        $result = $db->fetchRow($sql);
+        if (!empty($result)) {
+            $this->apiToken = $result['access_token'];
+            $this->appKey = $result['app_key'];
+            $this->contentToken = $result['content_token'];
+            $this->subscriptionLevel = $result['subscription_level'];
         }
     }
 }

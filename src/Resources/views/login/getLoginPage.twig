@@ -39,6 +39,16 @@
         .links-set a {
             color: #254099;
         }
+        .label_name{
+            margin-bottom:0!important;
+            font-size: 13px;
+        }
+        .account-form{
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 30px;
+            padding: 20px;
+        }
     </style>
     <script>
         let helper1 = new window.top.pimcore.plugin.iceCatHelper();
@@ -89,7 +99,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group row">
+                        <div class="form-group row">
                         <div class="col-sm-12 text-center">
                             <button  id="icecat_login_button" class="btn btn-primary btn-login" onclick="enableOtherTabs()">Sign in</button>
                         </div>
@@ -111,18 +121,67 @@
                         <script>
                             getOtherInfo();
                         </script>
-                        {% endif %}
-            <div class="col-sm-12 text-center">
-                <h3>Logged in successfully!!</h3>
+            {% endif %}
+            <div  class="col-sm-2"></div>
+            <div  class="col-sm-8">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <h4>Logged in successfully!!</h4>
                 <button  id="icecat_login_button" class="btn btn-primary btn-login" onclick="logOutUser()">Sign Out</button>
+                </div>
             </div>
+<div  class="col-sm-2"></div>
 
+             {% if login_status == 1 %}
+                <div class="col-md-2"></div>
+            <div class="col-sm-8">
+                <div id="successMessage"> </div>
+
+                <div id = "errorMessage" style="display:none" class="alert alert-danger" role="alert">
+                    Something went wrong !!
+                </div>
+                <form id = "account-info" class="account-form">
+
+                    <div class="form-group">
+                        <label class="label_name" for="accessToken">Access Token</label>
+                        <input type="text"  value="{{access_token}}" class="form-control" required id="accessToken" placeholder="">
+                    </div>
+
+                    {% if(  subscription_level  ==  '4' or subscription_level ==  '1') %}
+                    <div class="form-group">
+                        <label class="label_name" for="contentToken">Content Token</label>
+                        <input type="text" value="{{content_token}}" class="form-control" required id="contentToken" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label class="label_name" for="appKey">App key</label>
+                        <input type="text" value="{{app_key}}" class="form-control" required id="appKey" placeholder="">
+
+                    </div>
+                    {% endif %}
+
+                    {% if(  subscription_level  !=  '4' and subscription_level !=  '1') %}
+                        <a href = "https://icecat.biz/en/menu/contacts/index.html" style="color:#3f5498"> Upgrade to Full Icecat </a>  
+                    {% endif %}
+
+                    <div style="display: flex; justify-content: end;">
+                        <button type = "submit" class="btn btn-primary btn-login">Save</button>
+                    </div>
+                </form>
+            </div>
+             <div class="col-md-2"></div>
+
+
+
+             {% endif %}
+
+            
         </div>
     </div>
 </div>
 <script type="application/javascript">
     let helper = new window.top.pimcore.plugin.iceCatHelper();
     function enableOtherTabs() {
+        
+       
         let loginMsgEle = $("#icecat_login_err_msg");
         let loginButtonEle = $("#icecat_login_button");
         let userName = $("#inputEmail3").val();
@@ -136,6 +195,11 @@
             return;
         }
         helper.loginIceCatUser(userName, password, loginMsgEle, loginButtonEle, loginScreen, logoutScreen);
+        let isUserLoggedIn = helper.isUserLoggedIn();
+        if(isUserLoggedIn == true){
+            location.reload();
+        }
+        
     }
 
     function logOutUser() {
@@ -148,6 +212,36 @@
     {
         helper.getOtherInfo();
     }
+
+
+$(document).ready(function () {
+  $("#account-info").submit(function (event) {
+      event.preventDefault();
+    var formData = {
+      contentToken: $("#contentToken").val(),
+      appKey: $("#appKey").val(),
+      accessToken: $("#accessToken").val(),
+    };
+
+    $.ajax({
+      type: "POST",
+      url: "/icecat/account-update",
+      data: formData,
+      dataType: "json",
+      encode: true,
+    }).done(function (data) {
+        $("#successMessage").html(`<div id = "successMessage" display ="none" class="alert alert-primary alert-dismissible fade show" role="alert">
+                        <strong>Information Updated . </strong> 
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+            </div>`);
+      
+    });
+
+    
+  });
+});
 </script>
 </body>
 
