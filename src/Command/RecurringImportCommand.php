@@ -55,7 +55,7 @@ class RecurringImportCommand extends AbstractCommand
     protected $configuration;
 
     /**
-     * @var string
+     * @var array
      */
     protected $icecatLoginUser;
 
@@ -333,12 +333,13 @@ class RecurringImportCommand extends AbstractCommand
                 $brandName = isset($data[$readerArray['BRAND NAME']]) ? $data[$readerArray['BRAND NAME']] : null;
             }
 
+            $skipDueToInvalidApiKey = false;
             foreach ($this->configuration->getLanguages() as $language) {
                 $url = null;
                 if (isset($gtin) && (!empty($gtin)) && is_numeric($gtin)) {
-                    $url = $this->importService->importUrl . "?UserName=$this->icecatLoginUser&Language=$language&GTIN=$gtin";
+                    $url = $this->importService->importUrl . "?UserName={$this->icecatLoginUser['icecat_user_id']}&Language=$language&GTIN=$gtin";
                 } elseif ((isset($productCode) && !empty($productCode)) && (isset($brandName) && !empty($brandName))) {
-                    $url = $this->importService . "?UserName=$this->icecatLoginUser&Language=$language&Brand=$brandName&ProductCode=$productCode";
+                    $url = $this->importService . "?UserName={$this->icecatLoginUser['icecat_user_id']}&Language=$language&Brand=$brandName&ProductCode=$productCode";
                 }
 
                 if ($url === null) {
@@ -350,6 +351,15 @@ class RecurringImportCommand extends AbstractCommand
                 try {
                     $response = $this->importService->fetchIceCatData($url);
                     $responseArray = json_decode($response, true);
+
+                    if (isset($responseArray['Code']) && ($responseArray['Code'] == 400 || $responseArray['Code'] == 403)) {
+                        $this->createOrUpdateEntryInTable([
+                            "processedRecords" => 0,
+                        ]);
+                        Simple::log(self::LOG_FILENAME, "ERROR: {$responseArray['Error']} MESSAGE: {$responseArray['Message']} HTTPSTATUSCODE: {$responseArray['Code']}");
+                        return 0;
+                    }
+
                     if (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
                         $data = [];
                         $data['gtin'] = $responseArray['data']['GeneralInfo']['IcecatId'];
@@ -529,7 +539,7 @@ class RecurringImportCommand extends AbstractCommand
                         }
                     }
                     if ($gtin) {
-                        $url = $this->importService->importUrl . "?UserName=$this->icecatLoginUser&Language=$language&GTIN=$gtin";
+                        $url = $this->importService->importUrl . "?UserName={$this->icecatLoginUser['icecat_user_id']}&Language=$language&GTIN=$gtin";
                     }
                 }
 
@@ -597,7 +607,7 @@ class RecurringImportCommand extends AbstractCommand
                     }
 
                     if (!$gtin && $brand && $productCode) {
-                        $url = $this->importService->importUrl . "?UserName=$this->icecatLoginUser&Language=$language&Brand=$brand&ProductCode=$productCode";
+                        $url = $this->importService->importUrl . "?UserName={$this->icecatLoginUser['icecat_user_id']}&Language=$language&Brand=$brand&ProductCode=$productCode";
                     }
                 }
 
@@ -610,6 +620,15 @@ class RecurringImportCommand extends AbstractCommand
                 try {
                     $response = $this->importService->fetchIceCatData($url);
                     $responseArray = json_decode($response, true);
+
+                    if (isset($responseArray['Code']) && ($responseArray['Code'] == 400 || $responseArray['Code'] == 403)) {
+                        $this->createOrUpdateEntryInTable([
+                            "processedRecords" => 0,
+                        ]);
+                        Simple::log(self::LOG_FILENAME, "ERROR: {$responseArray['Error']} MESSAGE: {$responseArray['Message']} HTTPSTATUSCODE: {$responseArray['Code']}");
+                        return 0;
+                    }
+
                     if (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
                         $data = [];
                         $data['gtin'] = $responseArray['data']['GeneralInfo']['IcecatId'];
@@ -684,7 +703,7 @@ class RecurringImportCommand extends AbstractCommand
         CreateObjectService::processDataObjectFolder();
         CreateObjectService::processAssetObjectFolder();
         $this->createObjectService->setStoreId();
-        $this->createObjectService->setUserId($this->icecatLoginUser);
+        $this->createObjectService->setUserId($this->icecatLoginUser['icecat_user_id']);
         $this->createObjectService->setJobId(' RECURRING_IMPORT '.date("Y-m-d H:i A") . ' ');
 
         try {
@@ -714,10 +733,11 @@ class RecurringImportCommand extends AbstractCommand
      */
     protected function setIcecatLoginUser()
     {
-        $sql = 'SELECT * FROM icecat_user_login ORDER BY id DESC';
+        $sql = 'SELECT * FROM icecat_user_login WHERE login_status = 1 ORDER BY id DESC';
         $result = $this->db->fetchRow($sql);
         if (!empty($result)) {
-            $this->icecatLoginUser = $result['icecat_user_id'];
+            //$this->icecatLoginUser = $result['icecat_user_id'];
+            $this->icecatLoginUser = $result;
         } else {
             $this->icecatLoginUser = null;
         }
