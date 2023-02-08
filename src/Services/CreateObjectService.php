@@ -444,8 +444,10 @@ class CreateObjectService
                 $iceCatobject->setProductSeries($basicInformation['ProductSeries']['Value'], $this->currentLanguage);
             }
 
-            if (!$this->isFieldUpdatedByUser('BulletPoints', $this->currentLanguage) &&
-                isset($basicInformation['BulletPoints']['Values'])) {
+            if (
+                !$this->isFieldUpdatedByUser('BulletPoints', $this->currentLanguage) &&
+                isset($basicInformation['BulletPoints']['Values'])
+            ) {
                 $bulletPointsArray = $basicInformation['BulletPoints']['Values'];
                 $bulletHtml = '<ul>';
                 foreach ($bulletPointsArray as $bullet) {
@@ -556,25 +558,25 @@ class CreateObjectService
             $data['Language'] = strtolower($data['Language']);
             $blockData[$data['Language']] = [];
             $blockData[$data['Language']][] = [
-                    //'awardHighPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardHighPic')),
-                    //'awardLogoPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardLogoPic')),
-                    'awardHighPic' => new BlockElement('awardHighPic', 'image', null),
-                    'awardLogoPic' => new BlockElement('awardLogoPic', 'image', null),
-                    'bottomLine' => new BlockElement('bottomLine', 'input', $data['BottomLine'] ?? null),
-                    'code' => new BlockElement('code', 'input', $data['Code'] ?? null),
-                    'dateAdded' => new BlockElement('dateAdded', 'input', $data['DateAdded'] ?? null),
-                    'group' => new BlockElement('group', 'input', $data['Group'] ?? null),
-                    'reviewId' => new BlockElement('reviewId', 'input', $data['ID'] ?? null),
-                    //'logoPic' => $new BlockElement('logoPic', 'image', this->getImageField($data, 'LogoPic')),
-                    'logoPic' =>new BlockElement('logoPic', 'image', null),
-                    'score' => new BlockElement('', 'input', $data['ID']),
-                    'reviewValue' => new BlockElement('reviewValue', 'textarea', $data['Value'] ?? null),
-                    'valueBad' => new BlockElement('valueBad', 'textarea', $data['ValueBad'] ?? null),
-                    'valueGood' => new BlockElement('valueGood', 'textarea', $data['ValueGood'] ?? null),
-                    'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID']?? null),
-                    'url' => new BlockElement('url', 'input', $data['URL'] ?? null),
-                    'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
-                ];
+                //'awardHighPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardHighPic')),
+                //'awardLogoPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardLogoPic')),
+                'awardHighPic' => new BlockElement('awardHighPic', 'image', null),
+                'awardLogoPic' => new BlockElement('awardLogoPic', 'image', null),
+                'bottomLine' => new BlockElement('bottomLine', 'input', $data['BottomLine'] ?? null),
+                'code' => new BlockElement('code', 'input', $data['Code'] ?? null),
+                'dateAdded' => new BlockElement('dateAdded', 'input', $data['DateAdded'] ?? null),
+                'group' => new BlockElement('group', 'input', $data['Group'] ?? null),
+                'reviewId' => new BlockElement('reviewId', 'input', $data['ID'] ?? null),
+                //'logoPic' => $new BlockElement('logoPic', 'image', this->getImageField($data, 'LogoPic')),
+                'logoPic' => new BlockElement('logoPic', 'image', null),
+                'score' => new BlockElement('', 'input', $data['ID']),
+                'reviewValue' => new BlockElement('reviewValue', 'textarea', $data['Value'] ?? null),
+                'valueBad' => new BlockElement('valueBad', 'textarea', $data['ValueBad'] ?? null),
+                'valueGood' => new BlockElement('valueGood', 'textarea', $data['ValueGood'] ?? null),
+                'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID'] ?? null),
+                'url' => new BlockElement('url', 'input', $data['URL'] ?? null),
+                'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
+            ];
         }
 
         foreach ($blockData as $language => $data) {
@@ -600,8 +602,8 @@ class CreateObjectService
             if ($data['URL'] != "") {
                 $pathinfo = pathinfo($data['URL']);
                 $html = file_get_contents($data['URL']);
-                $html = preg_replace("/src=\"/", 'src="'.$pathinfo['dirname'].'/', $html);
-                $html = preg_replace("/href=\"/", 'href="'.$pathinfo['dirname'].'/', $html);
+                $html = preg_replace("/src=\"/", 'src="' . $pathinfo['dirname'] . '/', $html);
+                $html = preg_replace("/href=\"/", 'href="' . $pathinfo['dirname'] . '/', $html);
             }
 
             $blockData[$data['Language']] = [];
@@ -632,7 +634,7 @@ class CreateObjectService
             $categoryObject = \Pimcore\Model\DataObject\IcecatCategory::getByIcecat_id($categoryId, true);
             if (!$categoryObject) {
                 $categoryObject = new \Pimcore\Model\DataObject\IcecatCategory();
-                $categoryObject->setParent(\Pimcore\Model\DataObject\Service::createFolderByPath('/'.self::CAT_DATAOBJECT_FOLDER));
+                $categoryObject->setParent(\Pimcore\Model\DataObject\Service::createFolderByPath('/' . self::CAT_DATAOBJECT_FOLDER));
                 $categoryObject->setKey($categoryId);
                 $categoryObject->setIcecat_id($categoryId);
                 $categoryObject->setPublished(true);
@@ -922,7 +924,7 @@ class CreateObjectService
             if (empty($data[$fieldName])) {
                 return null;
             }
-            $this->logMessage = 'SETTING ' . $fieldName .'  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
+            $this->logMessage = 'SETTING ' . $fieldName . '  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
             $fieldUrl = $data[$fieldName];
@@ -970,7 +972,7 @@ class CreateObjectService
                             $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
                             $flag = 'RIGHT';
                         else :
-                                    $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
+                            $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
                             $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
                             $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
 
@@ -1011,7 +1013,7 @@ class CreateObjectService
                 if (!empty($arrayHavingVideo)) {
                     $videosArr = [];
                     foreach ($arrayHavingVideo as $videos) {
-//                    $videos = $arrayHavingVideo[0];
+                        //                    $videos = $arrayHavingVideo[0];
 
                         $videoLink = $videos['URL'];
 
@@ -1205,7 +1207,7 @@ class CreateObjectService
                                 continue;
                             }
 
-                            $keyOb = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId);
+                            $keyOb = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId, true);
                             if (empty($keyOb)) {
                                 $this->createStoreKey($features);
                             } else {
@@ -1258,7 +1260,7 @@ class CreateObjectService
             $definition->setName($keyName);
             $definition->setTitle($title);
             $value = '';
-            switch ($dataType) :
+            switch ($dataType):
                 case 'QuantityValue':
                     $tempValue = $features['RawValue'];
                     $signid = $this->processQuantityValueUnit($sign);
@@ -1305,7 +1307,7 @@ class CreateObjectService
             //Adding group to  collection
             $this->setCollectionGroupLink($groupId, $collectionId);
 
-            \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
+            # \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
             $keyConfig = new \Pimcore\Model\DataObject\Classificationstore\KeyConfig();
             $keyConfig->setName($keyName . $dataType);
 
@@ -1358,8 +1360,8 @@ class CreateObjectService
             $definition = new $className();
             $definition->setName($keyName);
 
-            \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
-            $keyConfig = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId);
+            # \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
+            $keyConfig = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId, true);
 
             $previousDefiniton = json_decode($keyConfig->getDefinition(), true);
 
@@ -1368,7 +1370,7 @@ class CreateObjectService
             $definition->setTitle($title);
 
             $value = '';
-            switch ($dataType) :
+            switch ($dataType):
                 case 'QuantityValue':
                     $tempValue = $features['RawValue'];
                     $signid = $this->processQuantityValueUnit($sign);
@@ -1437,7 +1439,7 @@ class CreateObjectService
             $this->keyId = $keyConfig->getId();
             $this->valueToBeInsert = $value;
 
-            $groupObject = \Pimcore\Model\DataObject\Classificationstore\GroupConfig::getByName($keyName . $dataType . 'Group', $this->storeId);
+            $groupObject = \Pimcore\Model\DataObject\Classificationstore\GroupConfig::getByName($keyName . $dataType . 'Group', $this->storeId, true);
             $this->groupId = $groupObject->getId();
         } catch (\Exception $e) {
             $this->processingError[] = $e->getMessage();

@@ -130,8 +130,8 @@
                 </div>
             </div>
 <div  class="col-sm-2"></div>
-
-             {% if login_status == 1 %}
+        {% if login_status == 1 %}
+            
                 <div class="col-md-2"></div>
             <div class="col-sm-8">
                 <div id="successMessage"> </div>
@@ -206,6 +206,7 @@
         let loginScreen = $('#icecat_login_page_container');
         let logoutScreen = $('#icecat_alreadt_loggedin_page_container');
         helper.logOutCatUser(loginScreen, logoutScreen);
+        location.reload();
     }
 
     function getOtherInfo()

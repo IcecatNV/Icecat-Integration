@@ -180,6 +180,7 @@ pimcore.plugin.iceCatHelper = Class.create({
     logOutCatUser: function (loginScreen, logoutScreen) {
         Ext.Ajax.request({
             url: Routing.generate("icecat_get-logout-page"),
+            async: false,
             success: function (response) {
                 let res = JSON.parse(response.responseText);
                 if (!res.login_status) {

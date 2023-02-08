@@ -332,7 +332,8 @@ class ImportService
             //Calling icecat api
             try {
 
-                $response = $this->fetchIceCatData($url);
+
+                $response = $this->fetchIceCatData($url, $this->icecatUserName);
                 $responseArray = json_decode($response, true);
 
                 # Invalide key error
@@ -463,15 +464,17 @@ class ImportService
      * @return  string $response the Json Response received from ice-cat
      *
      */
-    public function fetchIceCatData($url)
+    public function fetchIceCatData($url, $icecatUserName)
     {
-        $this->initializeKeys();
+        $this->initializeKeys($icecatUserName);
         $subscriptionType =  self::SUBSCRIPTION_LEVELS[$this->subscriptionLevel] ?? null;
         $headers['headers']['api-token'] = $this->apiToken;
         if ($subscriptionType == "FULL") {
             $headers['headers']['content-token'] = $this->contentToken;
             $url .= '&app_key=' . $this->appKey;
         }
+
+        $url .= '&PlatformName=PimcoreOpensourceAddon&PlatformVersion=V4';
         $httpClient = HttpClient::create();
         $responseObject = $httpClient->request('GET', $url, $headers);
         $response = $responseObject->getContent(false);
@@ -537,10 +540,10 @@ class ImportService
      * @param string $icecatUserName
      * @return void
      */
-    public function initializeKeys()
+    public function initializeKeys($icecatUserName)
     {
         $db = \Pimcore\Db::get();
-        $sql = 'SELECT * FROM ' . self::LOGIN_TABLE . ' WHERE  icecat_user_id =' . $db->quote($this->icecatUserName);
+        $sql = 'SELECT * FROM ' . self::LOGIN_TABLE . ' WHERE  icecat_user_id =' . $db->quote($icecatUserName);
         $result = $db->fetchRow($sql);
         if (!empty($result)) {
             $this->apiToken = $result['access_token'];
