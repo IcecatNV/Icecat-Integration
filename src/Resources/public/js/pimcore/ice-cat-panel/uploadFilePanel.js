@@ -289,7 +289,7 @@ pimcore.plugin.iceCatUploadFilePanel = Class.create({
                         {
                             xtype: 'displayfield',
                             style: 'padding-left: 10px',
-                            value: '<a target="_blank" href="https://crontab.guru/">' + t('plugin_pimcore_datahub_data_importer_configpanel_execution_cron_generator') + '</a>'
+                            value: '<a target="_blank" href="https://crontab.guru/">' + t('Cron Expression Generator') + '</a>'
                     }
                     ]
             }

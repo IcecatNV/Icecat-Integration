@@ -125,7 +125,7 @@
             <div  class="col-sm-2"></div>
             <div  class="col-sm-8">
             <div style="display:flex; align-items:center; justify-content:space-between;">
-                <h4>Logged in successfully!!</h4>
+                <h4>Logged in successfully !</h4>
                 <button  id="icecat_login_button" class="btn btn-primary btn-login" onclick="logOutUser()">Sign Out</button>
                 </div>
             </div>
@@ -149,11 +149,11 @@
                     {% if(  subscription_level  ==  '4' or subscription_level ==  '1') %}
                     <div class="form-group">
                         <label class="label_name" for="contentToken">Content Token</label>
-                        <input type="text" value="{{content_token}}" class="form-control" required id="contentToken" placeholder="">
+                        <input type="text" value="{{content_token}}" class="form-control" id="contentToken" placeholder="">
                     </div>
                     <div class="form-group">
                         <label class="label_name" for="appKey">App key</label>
-                        <input type="text" value="{{app_key}}" class="form-control" required id="appKey" placeholder="">
+                        <input type="text" value="{{app_key}}" class="form-control" id="appKey" placeholder="">
 
                     </div>
                     {% endif %}
@@ -231,8 +231,8 @@ $(document).ready(function () {
       dataType: "json",
       encode: true,
     }).done(function (data) {
-        $("#successMessage").html(`<div id = "successMessage" display ="none" class="alert alert-primary alert-dismissible fade show" role="alert">
-                        <strong>Information Updated . </strong> 
+        $("#successMessage").html(`<br/><div id = "successMessage" display ="none" class="alert alert-primary alert-dismissible fade show" role="alert">
+                        <span>Information saved</span> 
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>

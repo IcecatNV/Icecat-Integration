@@ -76,7 +76,7 @@ trait IceCateHelper
     protected function getIcecatLoginUser()
     {
         $db = Db::get();
-        $sql = 'SELECT * FROM icecat_user_login ORDER BY id DESC';
+        $sql = 'SELECT * FROM icecat_user_login WHERE login_status = 1 ORDER BY id DESC';
         $result = $db->fetchRow($sql);
         if (!empty($result)) {
             return $result['icecat_user_id'];
