@@ -297,6 +297,7 @@ class CreateObjectService
 
     public function createIceCatObject($data)
     {
+        $this->setStoreId();
         $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
         $this->currentProductId = $data['gtin'];
         $this->currentGtin = $data['original_gtin'];
