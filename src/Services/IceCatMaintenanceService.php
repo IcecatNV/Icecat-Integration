@@ -36,7 +36,6 @@ class IceCatMaintenanceService
         $configs = Configuration::load();
         $productClass = $configs->getProductClass();
         if (empty($productClass)) {
-            p_r('Product class not set!!');
             return ;
         }
         $gtinField = $configs->getGtinField();
@@ -44,7 +43,6 @@ class IceCatMaintenanceService
         $productNameField = $configs->getProductNameField();
 
         if (empty($gtinField) && (empty($brandNameField) || empty($productNameField))) {
-            p_r('Either GTIN or (brandName and productName) field(s) must be set!!');
             return ;
         }
 
@@ -59,7 +57,7 @@ class IceCatMaintenanceService
         }
     }
 
-    public function refreshProduct($iObjId, $languages)
+    public function refreshProduct($iObjId, $languages): array
     {
         $this->iceCatUser = $this->getIcecatLoginUser();
         $languages = explode(',', $languages);
@@ -67,16 +65,24 @@ class IceCatMaintenanceService
 
         foreach ($languages as $lang) {
             $this->language = $lang;
-            $this->importIceCatProduct($iObj, 'Gtin', 'Brand', 'Product_Code');
+            $return = $this->importIceCatProduct($iObj, 'Gtin', 'Brand', 'Product_Code');
+
+            // check for failure
+            if(isset($return['failure']) && $return['failure']) {
+                return $return;
+            }
         }
+
+        // to make return type strict
+        return [];
     }
     public function importIceCatProduct($product, $gtinField, $brandNameField, $productCodeField)
     {
         $res = $this->getIceCatData($product, $gtinField, $brandNameField, $productCodeField);
 
-        if ($res['failure']) {
+        if (isset($res['failure']) && $res['failure']) {
             // @todo: logging
-            return false;
+            return $res;
         }
 
         $iceCatData = $res['iceCatData'];
@@ -104,9 +110,9 @@ class IceCatMaintenanceService
         }
 
         try {
-            p_r('url to fetch =>' . $url);
-            $response = $this->fetchIceCatData($url);
+            $response = \Pimcore::getKernel()->getContainer()->get("IceCatBundle\\Services\\ImportService")->fetchIceCatData($url, $this->iceCatUser);
             $responseArray = json_decode($response, true);
+
         } catch (\Exception $e) {
             // IN CASE OF INTERNET ACCESSIBLITY IS NOT AVAILABEL OR ICE CAT'S SERVER IS DOWN
             $response = '';
@@ -114,17 +120,29 @@ class IceCatMaintenanceService
         }
 
         $productName = '';
-        if (array_key_exists('statusCode', $responseArray)) {
-            if ($responseArray['statusCode'] == 4) {
+        if (array_key_exists('StatusCode', $responseArray)) {
+            if ($responseArray['StatusCode'] == 4) {
                 $reason = ImportService::REASON['PRODUCT_NOT_FOUND'];
-                $result =  [ 'failure' => true, 'msg' => $reason];
-            } elseif ($responseArray['statusCode'] == 2) {
+                $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'PRODUCT_NOT_FOUND', 'StatusCode' => $responseArray['StatusCode']];
+            } elseif ($responseArray['StatusCode'] == 2) {
                 $reason = ImportService::REASON['INVALID_LANGUAGE'];
-                $result =  [ 'failure' => true, 'msg' => $reason];
+                $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'INVALID_LANGUAGE', 'StatusCode' => $responseArray['StatusCode']];
+            } elseif ($responseArray['StatusCode'] == 19) {
+                $reason = ImportService::REASON['BAD_REQUEST'];
+                $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'BAD_REQUEST', 'StatusCode' => $responseArray['StatusCode']];
+            } elseif ($responseArray['StatusCode'] == 9) {
+                $reason = ImportService::REASON['FORBIDDEN'];
+                $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'FORBIDDEN', 'StatusCode' => $responseArray['StatusCode']];
+            } elseif ($responseArray['StatusCode'] == 1) {
+                $reason = ImportService::REASON['USER_MISSING'];
+                $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'USER_MISSING', 'StatusCode' => $responseArray['StatusCode']];
+            } else {
+                $reason = ImportService::REASON['UNHANDLED'];
+                $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'UNHANDLED', 'StatusCode' => 23];
             }
         } elseif (array_key_exists('COULD_NOT_RESOLVE_HOST', $responseArray)) {
             $reason = ImportService::REASON['COULD_NOT_RESOLVE_HOST'];
-            $result =  [ 'failure' => true, 'msg' => $reason];
+            $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'COULD_NOT_RESOLVE_HOST', 'StatusCode' => 22];
         } elseif (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
             //Product Found
             $gtin = $responseArray['data']['GeneralInfo']['GTIN'][0];
@@ -138,8 +156,6 @@ class IceCatMaintenanceService
                 'data_encoded' => base64_encode($response),
                 'product_name' => $productName
             ];
-
-//            p_r($data);
 
             $result =  [ 'failure' => false, 'iceCatData' => $data];
         }

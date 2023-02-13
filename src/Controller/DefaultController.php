@@ -408,17 +408,25 @@ class DefaultController extends FrontendController
         $command = 'php ' . PIMCORE_PROJECT_ROOT . '/bin/console icecat:refresh ' . $objId . ' ' . implode(',', $languages);
 
         try {
-            exec($command . ' > /dev/null');
-            sleep(2);
+            exec($command . ' > /dev/null', $output, $returnCode);
+
+            if(isset(ImportService::STATUS_CODE_REASON_MAP[$returnCode])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => true,
+                    'status' => $returnCode,
+                    'message' => ImportService::STATUS_CODE_REASON_MAP[$returnCode]
+                ]);
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Refreshed!'
+            ]);
+
         } catch (\Exception $ex) {
-            return $this->json(['success' => 'false', 'error' => true, 'status' => '200']);
+            return $this->json(['success' => false, 'error' => true, 'status' => '200', 'message' => $ex->getMessage()]);
         }
-        return $this->json(
-            [
-            'success' => true,
-            'message' => 'Refreshed!'
-            ]
-        );
     }
 
     /**

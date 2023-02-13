@@ -31,7 +31,20 @@ class ImportService
         'INVALID_KEY' => 'NO VALID KEY AVAILABLE',
         'PRODUCT_NOT_FOUND' => 'PRODUCT NOT FOUND',
         'INVALID_LANGUAGE' => 'LANGUAGE NOT FOUND',
+        'USER_MISSING' => 'UserName, lang are mandatory fields',
+        'BAD_REQUEST' => 'API Token is not valid UUID',
+        'FORBIDDEN' => 'Forbidden: Display of content for users with a Full Icecat subscription level will require the use of a server certificate and a dynamic secret phrase. Please, contact your account manager for help with the implementation.',
+        'UNHANDLED' => 'Something went wrong. Please check logs.'
+    ];
 
+    const STATUS_CODE_REASON_MAP = [
+        1 => 'UserName, lang are mandatory fields',
+        22 => 'SERVER NOT FOUND',
+        4 => 'PRODUCT NOT FOUND',
+        2 => 'LANGUAGE NOT FOUND',
+        19 => 'API Token is not valid UUID',
+        9 => 'Forbidden: Display of content for users with a Full Icecat subscription level will require the use of a server certificate and a dynamic secret phrase. Please, contact your account manager for help with the implementation.',
+        23 => 'Something went wrong. Please check logs.'
     ];
 
 
@@ -108,7 +121,7 @@ class ImportService
     protected $jobObject;
 
     /**
-     * 
+     *
      * @var mixed
      */
     protected $logger;
@@ -127,10 +140,10 @@ class ImportService
 
 
     /**
-     * Total number of that is fetced from icecat and 
+     * Total number of that is fetced from icecat and
      * need to be processed
-     * 
-     * @var string 
+     *
+     * @var string
      */
     protected $totalFetchedRecords;
 
@@ -535,7 +548,7 @@ class ImportService
 
     /**
      * This function sets all the required key
-     * 
+     *
      *
      * @param string $icecatUserName
      * @return void
