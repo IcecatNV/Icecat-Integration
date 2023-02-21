@@ -162,11 +162,11 @@
                     {% if(  subscription_level  ==  '4' or subscription_level ==  '1') %}
                     <div class="form-group">
                         <label class="label_name" for="contentToken">Content Access Token</label>
-                        <input type="text" value="{{content_token}}" class="form-control" id="contentToken" placeholder="">
+                        <input type="text" value="{{content_token}}" class="form-control" id="contentToken" placeholder="" required>
                     </div>
                     <div class="form-group">
                         <label class="label_name" for="appKey">App Key</label>
-                        <input type="text" value="{{app_key}}" class="form-control" id="appKey" placeholder="">
+                        <input type="text" value="{{app_key}}" class="form-control" id="appKey" placeholder="" required>
 
                     </div>
                     {% endif %}

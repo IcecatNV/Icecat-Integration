@@ -89,6 +89,7 @@ class CreateObjectService
     protected $currentFeatureGroup = [];
     protected $jobHandler;
     protected $currentLanguage = 'en';
+    protected $activeUser;
 
     public function __construct(
         IceCatLogger $logger,
@@ -111,6 +112,11 @@ class CreateObjectService
         $query = "SELECT id FROM `classificationstore_stores` WHERE `name` = 'icecat-store' ";
         $data = $db->fetchRow($query);
         $this->storeId = $data['id'];
+    }
+
+    protected function setActiveUser()
+    {
+        $this->activeUser = $this->getIcecatLoginUser();
     }
 
     public function updateCurrentProcess($table, $updateArray, $identifierCol, $identifierVal)
@@ -195,6 +201,11 @@ class CreateObjectService
             self::processAssetObjectFolder();
             //setting icecat store id
             $this->setStoreId();
+            $this->setActiveUser();
+
+            if(!$this->activeUser) {
+                throw new \Exception("No active user found");
+            }
 
             $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
             // Updating processing status and Total Records
@@ -298,6 +309,11 @@ class CreateObjectService
     public function createIceCatObject($data)
     {
         $this->setStoreId();
+        $this->setActiveUser();
+
+        if(!$this->activeUser) {
+            throw new \Exception("No active user found");
+        }
         $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
         $this->currentProductId = $data['gtin'];
         $this->currentGtin = $data['original_gtin'];
@@ -602,7 +618,7 @@ class CreateObjectService
             $html = "";
             if ($data['URL'] != "") {
                 $pathinfo = pathinfo($data['URL']);
-                $html = file_get_contents($data['URL']);
+                $html = file_get_contents($data['URL'] . '?content_token=' . $this->activeUser['content_token']);
                 $html = preg_replace("/src=\"/", 'src="' . $pathinfo['dirname'] . '/', $html);
                 $html = preg_replace("/href=\"/", 'href="' . $pathinfo['dirname'] . '/', $html);
             }
@@ -773,7 +789,7 @@ class CreateObjectService
                 // Setting assets from link
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                 if (!empty($asset)) {
-                    $asset->setData(file_get_contents($link));
+                    $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
                     $asset->save();
                     $assetArray[$counter]['object'] = $asset;
                     $assetArray[$counter]['description'] = $media['Description'];
@@ -781,7 +797,7 @@ class CreateObjectService
                 } else {
                     $newAsset = new \Pimcore\Model\Asset();
                     $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($link));
+                    $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
                     $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                     $newAsset->save();
 
@@ -894,13 +910,13 @@ class CreateObjectService
                 // Setting assets from link
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                 if (!empty($asset)) {
-                    $asset->setData(file_get_contents($brandLogoUrl));
+                    $asset->setData(file_get_contents($brandLogoUrl . '?content_token=' . $this->activeUser['content_token']));
                     $asset->save();
                     $asset = $asset;
                 } else {
                     $newAsset = new \Pimcore\Model\Asset\Image();
                     $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($brandLogoUrl));
+                    $newAsset->setData(file_get_contents($brandLogoUrl . '?content_token=' . $this->activeUser['content_token']));
                     $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                     $newAsset->save();
                     $asset = $newAsset;
@@ -940,12 +956,12 @@ class CreateObjectService
             // Setting assets from link
             $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
             if (!empty($asset)) {
-                $asset->setData(file_get_contents($fieldUrl));
+                $asset->setData(file_get_contents($fieldUrl . '?content_token=' . $this->activeUser['content_token']));
                 $asset->save();
             } else {
                 $asset = new \Pimcore\Model\Asset\Image();
                 $asset->setFilename("$fileName");
-                $asset->setData(file_get_contents($fieldUrl));
+                $asset->setData(file_get_contents($fieldUrl . '?content_token=' . $this->activeUser['content_token']));
                 $asset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                 $asset->save();
             }
@@ -1034,7 +1050,7 @@ class CreateObjectService
                             try {
                                 $newAsset = new \Pimcore\Model\Asset();
                                 $newAsset->setFilename(uniqid() . '.' . $extension);
-                                $newAsset->setData(file_get_contents($videos['URL']));
+                                $newAsset->setData(file_get_contents($videos['URL'] . '?content_token=' . $this->activeUser['content_token']));
                                 $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                                 $newAsset->save();
                                 $videosArr[] = $newAsset;
@@ -1092,13 +1108,13 @@ class CreateObjectService
                         // Setting assets from link
                         $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                         if (!empty($asset)) {
-                            $asset->setData(file_get_contents($link));
+                            $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
                             $asset->save();
                             $assetArray[] = $asset;
                         } else {
                             $newAsset = new \Pimcore\Model\Asset\Image();
                             $newAsset->setFilename("$fileName");
-                            $newAsset->setData(file_get_contents($link));
+                            $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
                             $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                             $newAsset->save();
                             $assetArray[] = $newAsset;
@@ -1141,13 +1157,13 @@ class CreateObjectService
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
 
                 if (!empty($asset)) {
-                    $asset->setData(file_get_contents($imageUrl));
+                    $asset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
                     $asset->save();
                     $assetArray[] = $asset;
                 } else {
                     $newAsset = new \Pimcore\Model\Asset\Image();
                     $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($imageUrl));
+                    $newAsset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
                     $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                     $newAsset->save();
                     $assetArray[] = $newAsset;

@@ -60,6 +60,10 @@ class IceCatMaintenanceService
     public function refreshProduct($iObjId, $languages): array
     {
         $this->iceCatUser = $this->getIcecatLoginUser();
+        if(!$this->iceCatUser) {
+            return [];
+        }
+
         $languages = explode(',', $languages);
         $iObj = DataObject::getById($iObjId);
 
@@ -103,14 +107,14 @@ class IceCatMaintenanceService
         }
 
         $result = [];
-        $url = $this->getIceCatUrlToGetRecord($dataToFetchIceProduct, $this->iceCatUser, $this->language);
+        $url = $this->getIceCatUrlToGetRecord($dataToFetchIceProduct, $this->iceCatUser['icecat_user_id'], $this->language);
         if ($url == -1) {
             $reason = ImportService::REASON['INVALID_KEY'];
             $result =  [ 'failure' => true, 'msg' => $reason];
         }
 
         try {
-            $response = \Pimcore::getKernel()->getContainer()->get("IceCatBundle\\Services\\ImportService")->fetchIceCatData($url, $this->iceCatUser);
+            $response = \Pimcore::getKernel()->getContainer()->get("IceCatBundle\\Services\\ImportService")->fetchIceCatData($url, $this->iceCatUser['icecat_user_id']);
             $responseArray = json_decode($response, true);
 
         } catch (\Exception $e) {
