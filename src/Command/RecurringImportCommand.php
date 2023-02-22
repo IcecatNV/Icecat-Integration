@@ -369,7 +369,7 @@ class RecurringImportCommand extends AbstractCommand
                     if (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
                         $data = [];
                         $data['gtin'] = $responseArray['data']['GeneralInfo']['IcecatId'];
-                        $data['original_gtin'] = $responseArray['data']['GeneralInfo']['GTIN'][0];
+                        $data['original_gtin'] = $responseArray['data']['GeneralInfo']['GTIN'][0] ?? null;
                         $data['language'] = $language;
                         $data['data_encoded'] = base64_encode($response);
                         $this->createOrUpdateObject($data, $language, [
@@ -644,7 +644,7 @@ class RecurringImportCommand extends AbstractCommand
                     if (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
                         $data = [];
                         $data['gtin'] = $responseArray['data']['GeneralInfo']['IcecatId'];
-                        $data['original_gtin'] = $responseArray['data']['GeneralInfo']['GTIN'][0];
+                        $data['original_gtin'] = $responseArray['data']['GeneralInfo']['GTIN'][0] ?? null;
                         $data['language'] = $language;
                         $data['data_encoded'] = base64_encode($response);
                         $this->createOrUpdateObject($data, $language, [

@@ -149,7 +149,7 @@ class IceCatMaintenanceService
             $result =  [ 'failure' => true, 'msg' => $reason, 'reason' => 'COULD_NOT_RESOLVE_HOST', 'StatusCode' => 22];
         } elseif (array_key_exists('msg', $responseArray) && $responseArray['msg'] == 'OK') {
             //Product Found
-            $gtin = $responseArray['data']['GeneralInfo']['GTIN'][0];
+            $gtin = $responseArray['data']['GeneralInfo']['GTIN'][0] ?? null;
             $currentProductIceCatId = $responseArray['data']['GeneralInfo']['IcecatId'];
             $productName = $productName = str_replace("'", "''", $responseArray['data']['GeneralInfo']['ProductName']);
 

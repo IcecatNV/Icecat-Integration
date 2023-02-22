@@ -736,7 +736,7 @@ class CreateObjectService
                     "&Language=" . $this->currentLanguage .
                     "&Brand=" . $data['Brand'] .
                     "&ProductCode=" . $data['ProductCode'];
-                $completeData = json_decode($this->importService->fetchIceCatData($url), true);
+                $completeData = json_decode($this->importService->fetchIceCatData($url, $this->activeUser["icecat_user_id"]), true);
                 if (array_key_exists('statusCode', $completeData)) {
                 } elseif (array_key_exists('COULD_NOT_RESOLVE_HOST', $completeData)) {
                 } elseif (array_key_exists('msg', $completeData) && $completeData['msg'] == 'OK') {

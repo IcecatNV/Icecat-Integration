@@ -384,7 +384,7 @@ class ImportService
                 //Product Found
                 $reason = '';
                 $isProductFound = 1;
-                $this->gtin = $responseArray['data']['GeneralInfo']['GTIN'][0];
+                $this->gtin = $responseArray['data']['GeneralInfo']['GTIN'][0] ?? '';
                 $this->currentProductIceCatId = $responseArray['data']['GeneralInfo']['IcecatId'];
                 $this->productName = $productName = str_replace("'", "''", $responseArray['data']['GeneralInfo']['ProductName']);
             }
@@ -483,7 +483,7 @@ class ImportService
         $subscriptionType =  self::SUBSCRIPTION_LEVELS[$this->subscriptionLevel] ?? null;
         $headers['headers']['api-token'] = $this->apiToken;
         if ($subscriptionType == "FULL") {
-            $headers['headers']['content-token'] = $this->contentToken;
+            //$headers['headers']['content-token'] = $this->contentToken;
             $url .= '&app_key=' . $this->appKey;
         }
 
