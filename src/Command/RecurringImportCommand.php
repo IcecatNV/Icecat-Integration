@@ -340,7 +340,7 @@ class RecurringImportCommand extends AbstractCommand
                 if (isset($gtin) && (!empty($gtin)) && is_numeric($gtin)) {
                     $url = $this->importService->importUrl . "?UserName={$this->icecatLoginUser['icecat_user_id']}&Language=$language&GTIN=$gtin";
                 } elseif ((isset($productCode) && !empty($productCode)) && (isset($brandName) && !empty($brandName))) {
-                    $url = $this->importService . "?UserName={$this->icecatLoginUser['icecat_user_id']}&Language=$language&Brand=$brandName&ProductCode=$productCode";
+                    $url = $this->importService->importUrl . "?UserName={$this->icecatLoginUser['icecat_user_id']}&Language=$language&Brand=$brandName&ProductCode=$productCode";
                 }
 
                 if ($url === null) {
