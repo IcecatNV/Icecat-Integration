@@ -17,7 +17,7 @@ class LoginService extends InfoService
 
     private const CIPHERING_VALUE = "AES-128-CTR";
 
-    // Store the encryption key  
+    // Store the encryption key
     private const ENCRYPTION_KEY = "ICECAT78993123u89123";
 
     /**
@@ -34,7 +34,6 @@ class LoginService extends InfoService
     {
         try {
             if (!empty($username) && !empty($password)) {
-
                 $curl = curl_init();
                 $bodyFields = array(
                     'Login'    => $username,
@@ -78,7 +77,6 @@ class LoginService extends InfoService
 
             return ['status' => 'error', 'message' => 'User name / password empty'];
         } catch (\Exception $e) {
-
             $response = ['status' => 'error', 'message' => 'Something went wrong'];
             return $response;
         }

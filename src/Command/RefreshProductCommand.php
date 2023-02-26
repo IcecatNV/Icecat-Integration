@@ -35,7 +35,7 @@ class RefreshProductCommand extends AbstractCommand
         }
         $return = $this->service->refreshProduct($objId, $langs);
 
-        if(isset($return['StatusCode'])) {
+        if (isset($return['StatusCode'])) {
             return (int)$return['StatusCode'];
         }
 

@@ -26,7 +26,7 @@ class SearchService extends AbstractService
     {
         $data = [];
         $config = Configuration::load();
-        if($config) {
+        if ($config) {
             $activatedLanguage = $config->getLanguages();
             foreach ($activatedLanguage as $lang) {
                 $data[] = [

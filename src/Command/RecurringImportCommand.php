@@ -350,7 +350,6 @@ class RecurringImportCommand extends AbstractCommand
                 }
 
                 try {
-
                     $response = $this->importService->fetchIceCatData($url, $this->icecatLoginUser['icecat_user_id']);
                     $responseArray = json_decode($response, true);
 

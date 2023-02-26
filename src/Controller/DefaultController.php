@@ -410,7 +410,7 @@ class DefaultController extends FrontendController
         try {
             exec($command . ' > /dev/null', $output, $returnCode);
 
-            if(isset(ImportService::STATUS_CODE_REASON_MAP[$returnCode])) {
+            if (isset(ImportService::STATUS_CODE_REASON_MAP[$returnCode])) {
                 return $this->json([
                     'success' => false,
                     'error' => true,
@@ -423,7 +423,6 @@ class DefaultController extends FrontendController
                 'success' => true,
                 'message' => 'Refreshed!'
             ]);
-
         } catch (\Exception $ex) {
             return $this->json(['success' => false, 'error' => true, 'status' => '200', 'message' => $ex->getMessage()]);
         }

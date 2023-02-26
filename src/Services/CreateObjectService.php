@@ -210,7 +210,7 @@ class CreateObjectService
             $this->setStoreId();
             $this->setActiveUser();
 
-            if(!$this->activeUser) {
+            if (!$this->activeUser) {
                 throw new \Exception("No active user found");
             }
 
@@ -318,7 +318,7 @@ class CreateObjectService
         $this->setStoreId();
         $this->setActiveUser();
 
-        if(!$this->activeUser) {
+        if (!$this->activeUser) {
             throw new \Exception("No active user found");
         }
         $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
@@ -468,8 +468,7 @@ class CreateObjectService
                 $iceCatobject->setProductSeries($basicInformation['ProductSeries']['Value'], $this->currentLanguage);
             }
 
-            if (
-                !$this->isFieldUpdatedByUser('BulletPoints', $this->currentLanguage) &&
+            if (!$this->isFieldUpdatedByUser('BulletPoints', $this->currentLanguage) &&
                 isset($basicInformation['BulletPoints']['Values'])
             ) {
                 $bulletPointsArray = $basicInformation['BulletPoints']['Values'];
@@ -637,7 +636,7 @@ class CreateObjectService
                     'preview' => new BlockElement('preview', 'wysiwyg', $html ?? null)
                 ];
             } catch (\Exception $ex) {
-                if($this->executionType === "command") {
+                if ($this->executionType === "command") {
                     \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: ProductStory");
                 }
             }
@@ -820,8 +819,8 @@ class CreateObjectService
                         $assetArray[$counter]['description'] = $media['Description'];
                         $assetArray[$counter]['contentType'] = $media['ContentType'];
                     }
-                } catch(\Exception $ex) {
-                    if($this->executionType === "command") {
+                } catch (\Exception $ex) {
+                    if ($this->executionType === "command") {
                         \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: MultiMedia");
                     }
                 }
@@ -946,7 +945,7 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING BRAND LOGO  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
-            if($this->executionType === "command") {
+            if ($this->executionType === "command") {
                 \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Brand Logo");
             }
         }
@@ -992,7 +991,7 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING  ' . $fieldName .  '  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
-            if($this->executionType === "command") {
+            if ($this->executionType === "command") {
                 \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Reason To Buy");
             }
             return null;
@@ -1080,7 +1079,7 @@ class CreateObjectService
                                 $newAsset->save();
                                 $videosArr[] = $newAsset;
                             } catch (\Exception $ex) {
-                                if($this->executionType === "command") {
+                                if ($this->executionType === "command") {
                                     \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: Videos");
                                 }
                                 $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $ex->getMessage();
@@ -1149,8 +1148,8 @@ class CreateObjectService
                                 $newAsset->save();
                                 $assetArray[] = $newAsset;
                             }
-                        } catch(\Exception $e) {
-                            if($this->executionType === "command") {
+                        } catch (\Exception $e) {
+                            if ($this->executionType === "command") {
                                 \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: 3D Tour");
                             }
                         }
@@ -1205,12 +1204,11 @@ class CreateObjectService
                         $newAsset->save();
                         $assetArray[] = $newAsset;
                     }
-                } catch(\Exception $e) {
-                    if($this->executionType === "command") {
+                } catch (\Exception $e) {
+                    if ($this->executionType === "command") {
                         \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Gallery");
                     }
                 }
-
             }
             if (!empty($assetArray)) {
                 $items = [];
@@ -1320,7 +1318,7 @@ class CreateObjectService
             $definition->setName($keyName);
             $definition->setTitle($title);
             $value = '';
-            switch ($dataType):
+            switch ($dataType) :
                 case 'QuantityValue':
                     $tempValue = $features['RawValue'];
                     $signid = $this->processQuantityValueUnit($sign);
@@ -1430,7 +1428,7 @@ class CreateObjectService
             $definition->setTitle($title);
 
             $value = '';
-            switch ($dataType):
+            switch ($dataType) :
                 case 'QuantityValue':
                     $tempValue = $features['RawValue'];
                     $signid = $this->processQuantityValueUnit($sign);

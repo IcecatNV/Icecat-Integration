@@ -60,7 +60,7 @@ class IceCatMaintenanceService
     public function refreshProduct($iObjId, $languages): array
     {
         $this->iceCatUser = $this->getIcecatLoginUser();
-        if(!$this->iceCatUser) {
+        if (!$this->iceCatUser) {
             return [];
         }
 
@@ -72,7 +72,7 @@ class IceCatMaintenanceService
             $return = $this->importIceCatProduct($iObj, 'Gtin', 'Brand', 'Product_Code');
 
             // check for failure
-            if(isset($return['failure']) && $return['failure']) {
+            if (isset($return['failure']) && $return['failure']) {
                 return $return;
             }
         }
@@ -116,7 +116,6 @@ class IceCatMaintenanceService
         try {
             $response = \Pimcore::getKernel()->getContainer()->get("IceCatBundle\\Services\\ImportService")->fetchIceCatData($url, $this->iceCatUser['icecat_user_id']);
             $responseArray = json_decode($response, true);
-
         } catch (\Exception $e) {
             // IN CASE OF INTERNET ACCESSIBLITY IS NOT AVAILABEL OR ICE CAT'S SERVER IS DOWN
             $response = '';

@@ -344,8 +344,6 @@ class ImportService
             }
             //Calling icecat api
             try {
-
-
                 $response = $this->fetchIceCatData($url, $this->icecatUserName);
                 $responseArray = json_decode($response, true);
 
@@ -362,7 +360,6 @@ class ImportService
                     die('Aborting Execution');
                 }
             } catch (Exception $e) {
-
                 // IN CASE OF INTERNET ACCESSIBLITY IS NOT AVAILABEL OR ICE CAT'S SERVER IS DOWN
                 $response = '';
                 $responseArray['COULD_NOT_RESOLVE_HOST'] = true;
