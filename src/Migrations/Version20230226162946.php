@@ -22,6 +22,7 @@ final class Version20230226162946 extends AbstractMigration
             ADD IF NOT EXISTS `access_token` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
             ADD IF NOT EXISTS `content_token` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
             ADD IF NOT EXISTS `app_key` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+            ADD IF NOT EXISTS `subscription_level` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
             ADD IF NOT EXISTS `icecat_password` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL '
         );
 
@@ -57,6 +58,7 @@ final class Version20230226162946 extends AbstractMigration
         DROP COLUMN  IF  EXISTS `access_token` ,
         DROP COLUMN  IF  EXISTS `content_token`,
         DROP COLUMN  IF  EXISTS `app_key`,
+        DROP COLUMN  IF  EXISTS `subscription_level`,
         DROP COLUMN  IF  EXISTS `icecat_password`
         ');
 
