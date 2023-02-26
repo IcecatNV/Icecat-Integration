@@ -117,9 +117,18 @@ class IcecatProductSubscriber implements EventSubscriberInterface
             $record->save();
         } else {
             if ($lang) {
-                $key = "{$object->getGtin()}-{$lang}-{$name}";
+                if($object->getGtin() == "" || str_contains("ROW-", $object->getGtin())) {
+                    $key = "{$object->getIcecat_Product_Id()}-{$lang}-{$name}";
+                } else {
+                    $key = "{$object->getGtin()}-{$lang}-{$name}";
+                }
+
             } else {
-                $key = "{$object->getGtin()}-{$name}";
+                if ($object->getGtin() == '' || str_contains('ROW-', $object->getGtin())) {
+                    $key = "{$object->getIcecat_Product_Id()}-{$name}";
+                } else {
+                    $key = "{$object->getGtin()}-{$name}";
+                }
             }
 
             $icecatFieldLog = new \Pimcore\Model\DataObject\IcecatFieldsLog();
