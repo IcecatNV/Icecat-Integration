@@ -117,7 +117,7 @@ class IcecatProductSubscriber implements EventSubscriberInterface
             $record->save();
         } else {
             if ($lang) {
-                if($object->getGtin() == "" || (substr($object->getGtin($lang), 0, 4) == "ROW-") {
+                if($object->getGtin() == "" || substr($object->getGtin($lang), 0, 4) == "ROW-") {
                     $key = "{$object->getIcecat_Product_Id()}-{$lang}-{$name}";
                 } else {
                     $key = "{$object->getGtin()}-{$lang}-{$name}";
