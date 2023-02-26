@@ -99,11 +99,11 @@ class IceCatMaintenanceService
         if (!empty($gtinField)) {
             $dataToFetchIceProduct['gtin'] = $product->{'get' . ucfirst($gtinField)}();
         }
-        if (!empty($brandNameField)) {
-            $dataToFetchIceProduct['productCode'] = $product->{'get' . ucfirst($brandNameField)}();
-        }
         if (!empty($productCodeField)) {
-            $dataToFetchIceProduct['brandName'] = $product->{'get' . ucfirst($productCodeField)}();
+            $dataToFetchIceProduct['productCode'] = $product->{'get' . ucfirst($productCodeField)}();
+        }
+        if (!empty($brandNameField)) {
+            $dataToFetchIceProduct['brandName'] = $product->{'get' . ucfirst($brandNameField)}();
         }
 
         $result = [];
