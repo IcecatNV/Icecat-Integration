@@ -2,6 +2,7 @@
 
 namespace IceCatBundle\Services;
 
+use IceCatBundle\Command\RecurringImportCommand;
 use IceCatBundle\Lib\IceCateHelper;
 use IceCatBundle\Model\Configuration;
 use Pimcore\Log\ApplicationLogger;
@@ -83,6 +84,7 @@ class CreateObjectService
 
     protected $importService;
     protected $userId;
+    protected $executionType;
     private $quantityUnitId;
 
     protected $currentDateTimeStamp;
@@ -104,6 +106,11 @@ class CreateObjectService
         $this->jobHandler = $jobHandler;
         $this->importService = $importService;
         $this->config = Configuration::load();
+    }
+
+    public function setExecutionType($executionType)
+    {
+        $this->executionType = $executionType;
     }
 
     public function setStoreId()
@@ -616,18 +623,24 @@ class CreateObjectService
 
 
             $html = "";
-            if ($data['URL'] != "") {
-                $pathinfo = pathinfo($data['URL']);
-                $html = file_get_contents($data['URL'] . '?content_token=' . $this->activeUser['content_token']);
-                $html = preg_replace("/src=\"/", 'src="' . $pathinfo['dirname'] . '/', $html);
-                $html = preg_replace("/href=\"/", 'href="' . $pathinfo['dirname'] . '/', $html);
-            }
+            try {
+                if ($data['URL'] != "") {
+                    $pathinfo = pathinfo($data['URL']);
+                    $html = file_get_contents($data['URL'] . '?content_token=' . $this->activeUser['content_token']);
+                    $html = preg_replace("/src=\"/", 'src="' . $pathinfo['dirname'] . '/', $html);
+                    $html = preg_replace("/href=\"/", 'href="' . $pathinfo['dirname'] . '/', $html);
+                }
 
-            $blockData[$data['Language']] = [];
-            $blockData[$data['Language']][] = [
-                'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null),
-                'preview' => new BlockElement('preview', 'wysiwyg', $html ?? null)
-            ];
+                $blockData[$data['Language']] = [];
+                $blockData[$data['Language']][] = [
+                    'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null),
+                    'preview' => new BlockElement('preview', 'wysiwyg', $html ?? null)
+                ];
+            } catch (\Exception $ex) {
+                if($this->executionType === "command") {
+                    \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: ProductStory");
+                }
+            }
         }
 
         foreach ($blockData as $language => $data) {
@@ -788,24 +801,30 @@ class CreateObjectService
                 }
                 // Setting assets from link
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
-                if (!empty($asset)) {
-                    $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
-                    $asset->save();
-                    $assetArray[$counter]['object'] = $asset;
-                    $assetArray[$counter]['description'] = $media['Description'];
-                    $assetArray[$counter]['contentType'] = $media['ContentType'];
-                } else {
-                    $newAsset = new \Pimcore\Model\Asset();
-                    $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
-                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                    $newAsset->save();
 
-                    $assetArray[$counter]['object'] = $newAsset;
-                    $assetArray[$counter]['description'] = $media['Description'];
-                    $assetArray[$counter]['contentType'] = $media['ContentType'];
+                try {
+                    if (!empty($asset)) {
+                        $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                        $asset->save();
+                        $assetArray[$counter]['object'] = $asset;
+                        $assetArray[$counter]['description'] = $media['Description'];
+                        $assetArray[$counter]['contentType'] = $media['ContentType'];
+                    } else {
+                        $newAsset = new \Pimcore\Model\Asset();
+                        $newAsset->setFilename("$fileName");
+                        $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                        $newAsset->save();
+
+                        $assetArray[$counter]['object'] = $newAsset;
+                        $assetArray[$counter]['description'] = $media['Description'];
+                        $assetArray[$counter]['contentType'] = $media['ContentType'];
+                    }
+                } catch(\Exception $ex) {
+                    if($this->executionType === "command") {
+                        \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: MultiMedia");
+                    }
                 }
-
                 $counter++;
             }
             //Setting relation with meta data
@@ -927,6 +946,9 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING BRAND LOGO  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+            if($this->executionType === "command") {
+                \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Brand Logo");
+            }
         }
     }
 
@@ -970,6 +992,9 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING  ' . $fieldName .  '  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+            if($this->executionType === "command") {
+                \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Reason To Buy");
+            }
             return null;
         }
     }
@@ -1055,6 +1080,9 @@ class CreateObjectService
                                 $newAsset->save();
                                 $videosArr[] = $newAsset;
                             } catch (\Exception $ex) {
+                                if($this->executionType === "command") {
+                                    \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: Videos");
+                                }
                                 $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $ex->getMessage();
                             }
                         }
@@ -1105,21 +1133,29 @@ class CreateObjectService
                         } catch (\Exception $e) {
                             $fileName = uniqid();
                         }
+
                         // Setting assets from link
-                        $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
-                        if (!empty($asset)) {
-                            $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
-                            $asset->save();
-                            $assetArray[] = $asset;
-                        } else {
-                            $newAsset = new \Pimcore\Model\Asset\Image();
-                            $newAsset->setFilename("$fileName");
-                            $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
-                            $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                            $newAsset->save();
-                            $assetArray[] = $newAsset;
+                        try {
+                            $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+                            if (!empty($asset)) {
+                                $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                                $asset->save();
+                                $assetArray[] = $asset;
+                            } else {
+                                $newAsset = new \Pimcore\Model\Asset\Image();
+                                $newAsset->setFilename("$fileName");
+                                $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                                $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                                $newAsset->save();
+                                $assetArray[] = $newAsset;
+                            }
+                        } catch(\Exception $e) {
+                            if($this->executionType === "command") {
+                                \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: 3D Tour");
+                            }
                         }
                     }
+
                     // Setting images for Tour (Tour)
                     if (!empty($assetArray)) {
                         $items = [];
@@ -1154,20 +1190,27 @@ class CreateObjectService
                 $fileName = $galleryImages['ID'];
                 $imageUrl = $galleryImages['Pic'];
 
-                $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+                try {
+                    $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
 
-                if (!empty($asset)) {
-                    $asset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
-                    $asset->save();
-                    $assetArray[] = $asset;
-                } else {
-                    $newAsset = new \Pimcore\Model\Asset\Image();
-                    $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
-                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                    $newAsset->save();
-                    $assetArray[] = $newAsset;
+                    if (!empty($asset)) {
+                        $asset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
+                        $asset->save();
+                        $assetArray[] = $asset;
+                    } else {
+                        $newAsset = new \Pimcore\Model\Asset\Image();
+                        $newAsset->setFilename("$fileName");
+                        $newAsset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
+                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                        $newAsset->save();
+                        $assetArray[] = $newAsset;
+                    }
+                } catch(\Exception $e) {
+                    if($this->executionType === "command") {
+                        \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Gallery");
+                    }
                 }
+
             }
             if (!empty($assetArray)) {
                 $items = [];

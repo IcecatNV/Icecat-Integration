@@ -715,6 +715,7 @@ class RecurringImportCommand extends AbstractCommand
         CreateObjectService::processDataObjectFolder();
         CreateObjectService::processAssetObjectFolder();
         $this->createObjectService->setStoreId();
+        $this->createObjectService->setExecutionType("command");
         $this->createObjectService->setUserId($this->icecatLoginUser['icecat_user_id']);
         $this->createObjectService->setJobId(' RECURRING_IMPORT ' . date("Y-m-d H:i A") . ' ');
 
