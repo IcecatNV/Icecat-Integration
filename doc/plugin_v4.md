@@ -56,6 +56,5 @@ Incase of any issues with the user account, the appropriate errors will be logge
 User could get the API Access Token, Content Access Token and App Key details under My Profile by logging into https://icecat.biz 
 
 ![img1](./images/icecat-portal-1.png)
-
 ![img1](./images/icecat-portal-2.png)
 
