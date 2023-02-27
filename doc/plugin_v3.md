@@ -1,5 +1,7 @@
 ## Icecat plugin v3.0.0
 
+The v3.0.0 plugin version is compatible with Pimcore version 10.2.* or lower versions.
+
 **Install latest version**
 
 ~~~~~~~~~~~~~~~~~~~~~

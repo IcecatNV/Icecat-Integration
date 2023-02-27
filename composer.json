@@ -4,12 +4,14 @@
     "type": "pimcore-bundle",
     "license": "MIT",
     "authors": [{
-        "name": "Faisal Afroz",
-        "email": "faisalroz@mindstask.com"
+        "name": "Icecat NV",
+        "email": "marketing@icecat.com",
+        "homepage": "https://icecat.com"
     }],
     "minimum-stability": "stable",
     "require": {
-        "pimcore/pimcore": "^10.0"
+        "pimcore/pimcore": "^10.5",
+        "dragonmantank/cron-expression": "^3.1"
     },
     "autoload": {
         "psr-4": {

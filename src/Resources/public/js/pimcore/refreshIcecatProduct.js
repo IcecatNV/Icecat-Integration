@@ -134,10 +134,8 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
                                     var resp = JSON.parse(action.response.responseText);
                                     if (resp.success === true) {
                                         pimcore.helpers.showNotification('Success', `Icecat ID ${this.object.data.general.o_key} updated successfully`, 'success');
-                                    } else if (resp.success === false && action.response.status == 303) {
-                                        pimcore.helpers.showNotification('Failure', 'error', 'error');
                                     } else {
-                                        pimcore.helpers.showNotification('Failure', 'Something went wrong!', 'error');
+                                        pimcore.helpers.showNotification('Failure', resp.message, 'error');
                                     }
                                 }
                             }.bind(this),
@@ -148,7 +146,14 @@ pimcore.plugin.refreshIcecatProduct = Class.create({
                                 }
                             }.bind(this),
                             failure: function (form, action) {
-                            },
+                                this.downloadProgressWin.close();
+                                var resp = JSON.parse(action.response.responseText);
+                                if(resp && resp.message) {
+                                    pimcore.helpers.showNotification('Failure', resp.message, 'error');
+                                } else {
+                                    pimcore.helpers.showNotification('Failure', 'Something went wrong !', 'error');
+                                }
+                            }.bind(this),
                             complete: function(){ 
                             }.bind(this)
                         });

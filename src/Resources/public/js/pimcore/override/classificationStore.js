@@ -1,27 +1,23 @@
 Ext.override(pimcore.object.tags.classificationstore, {
-
-       getLayoutEdit: function () {
-
-       
-        this.fieldConfig.datatype ="layout";
+    getLayoutEdit: function () {
+        this.fieldConfig.datatype = "layout";
         this.fieldConfig.fieldtype = "panel";
 
         var wrapperConfig = {
             bodyCls: "pimcore_object_tag_classification_store",
             border: true,
             style: "margin-bottom: 10px",
-            layout: "fit"
         };
 
-        if(this.fieldConfig.width) {
+        if (this.fieldConfig.width) {
             wrapperConfig.width = this.fieldConfig.width;
         }
 
-        if(this.fieldConfig.region) {
+        if (this.fieldConfig.region) {
             wrapperConfig.region = this.fieldConfig.region;
         }
 
-        if(this.fieldConfig.title) {
+        if (this.fieldConfig.title) {
             wrapperConfig.title = this.fieldConfig.title;
         }
 
@@ -29,14 +25,17 @@ Ext.override(pimcore.object.tags.classificationstore, {
 
         var tbarItems = [];
 
-        if (!this.fieldConfig.noteditable && !this.fieldConfig.disallowAddRemove) {
-            tbarItems.push(
-                {
-                    xtype: 'button',
-                    iconCls: "pimcore_icon_add",
-                    handler: function() {
-                        var storeId = this.fieldConfig.storeId;
-                        var keySelectionWindow = new pimcore.object.classificationstore.keySelectionWindow(
+        if (
+            !this.fieldConfig.noteditable &&
+            !this.fieldConfig.disallowAddRemove
+        ) {
+            tbarItems.push({
+                xtype: "button",
+                iconCls: "pimcore_icon_add",
+                handler: function () {
+                    var storeId = this.fieldConfig.storeId;
+                    var keySelectionWindow =
+                        new pimcore.object.classificationstore.keySelectionWindow(
                             {
                                 parent: this,
                                 enableGroups: true,
@@ -45,17 +44,15 @@ Ext.override(pimcore.object.tags.classificationstore, {
                                 storeId: storeId,
                                 object: this.object,
                                 fieldname: this.fieldConfig.name,
-                                maxItems: this.fieldConfig.maxItems
+                                maxItems: this.fieldConfig.maxItems,
                             }
                         );
-                        keySelectionWindow.show();
-                    }.bind(this)
-                }
-            );
+                    keySelectionWindow.show();
+                }.bind(this),
+            });
         }
 
         if (this.dropdownLayout) {
-
         } else {
             var panelConf = {
                 autoScroll: true,
@@ -67,40 +64,48 @@ Ext.override(pimcore.object.tags.classificationstore, {
                 forceLayout: true,
                 enableTabScroll: true,
                 tbar: {
-                    items: tbarItems
-                }
+                    items: tbarItems,
+                },
             };
 
-            if(this.fieldConfig.height) {
+            if (this.fieldConfig.height) {
                 panelConf.height = this.fieldConfig.height;
                 panelConf.autoHeight = false;
             }
 
-
-            for (var i=0; i < nrOfLanguages; i++) {
+            for (var i = 0; i < nrOfLanguages; i++) {
                 this.currentLanguage = this.frontendLanguages[i];
                 this.languageElements[this.currentLanguage] = [];
                 this.groupElements[this.currentLanguage] = {};
 
                 var childItems = [];
 
-
                 for (var groupId in this.fieldConfig.activeGroupDefinitions) {
                     var groupedChildItems = [];
 
-                    if (this.fieldConfig.activeGroupDefinitions.hasOwnProperty(groupId)) {
-                        var group = this.fieldConfig.activeGroupDefinitions[groupId];
+                    if (
+                        this.fieldConfig.activeGroupDefinitions.hasOwnProperty(
+                            groupId
+                        )
+                    ) {
+                        var group =
+                            this.fieldConfig.activeGroupDefinitions[groupId];
 
-                        var fieldset = this.createGroupFieldset(this.currentLanguage, group, groupedChildItems);
+                        var fieldset = this.createGroupFieldset(
+                            this.currentLanguage,
+                            group,
+                            groupedChildItems
+                        );
 
                         childItems.push(fieldset);
-
                     }
                 }
                 var title = this.frontendLanguages[i];
                 if (title != "default") {
                     var title = t(pimcore.available_languages[title]);
-                    var icon = "pimcore_icon_language_" + this.frontendLanguages[i].toLowerCase();
+                    var icon =
+                        "pimcore_icon_language_" +
+                        this.frontendLanguages[i].toLowerCase();
                 } else {
                     var title = t(title);
                     var icon = "pimcore_icon_white_flag";
@@ -108,13 +113,13 @@ Ext.override(pimcore.object.tags.classificationstore, {
 
                 var item = new Ext.Panel({
                     border: false,
-                    height: 'auto',
+                    height: "auto",
                     padding: "10px",
                     deferredRender: false,
                     hideMode: "offsets",
                     iconCls: icon,
                     title: title,
-                    items: childItems
+                    items: childItems,
                 });
 
                 this.languagePanels[this.currentLanguage] = item;
@@ -126,18 +131,23 @@ Ext.override(pimcore.object.tags.classificationstore, {
                 if (this.fieldConfig.labelAlign) {
                     item.labelAlign = this.fieldConfig.labelAlign;
                 }
-                
-                if(icon != 'pimcore_icon_white_flag' && this.fieldConfig.name == "Features" )
-                {
+
+                // Removes default tab from Icecat Classification store
+                if (this.object.data.general.o_className === "Icecat") {
+                    if (
+                        icon != "pimcore_icon_white_flag" &&
+                        this.fieldConfig.name == "Features"
+                    ) {
+                        panelConf.items.push(item);
+                    }
+                } else {
                     panelConf.items.push(item);
                 }
             }
 
-
             this.tabPanel = new Ext.TabPanel(panelConf);
 
             wrapperConfig.items = [this.tabPanel];
-
         }
 
         this.currentLanguage = this.frontendLanguages[0];
