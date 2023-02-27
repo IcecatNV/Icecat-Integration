@@ -33,7 +33,12 @@ class RefreshProductCommand extends AbstractCommand
         if (empty($langs)) {
             $langs = 'en';
         }
-        $this->service->refreshProduct($objId, $langs);
+        $return = $this->service->refreshProduct($objId, $langs);
+
+        if (isset($return['StatusCode'])) {
+            return (int)$return['StatusCode'];
+        }
+
         $this->writeInfo('Import Completed');
         return 0;
     }

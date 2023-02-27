@@ -2,6 +2,7 @@
 
 namespace IceCatBundle\Services;
 
+use IceCatBundle\Command\RecurringImportCommand;
 use IceCatBundle\Lib\IceCateHelper;
 use IceCatBundle\Model\Configuration;
 use Pimcore\Log\ApplicationLogger;
@@ -83,12 +84,14 @@ class CreateObjectService
 
     protected $importService;
     protected $userId;
+    protected $executionType;
     private $quantityUnitId;
 
     protected $currentDateTimeStamp;
     protected $currentFeatureGroup = [];
     protected $jobHandler;
     protected $currentLanguage = 'en';
+    protected $activeUser;
 
     public function __construct(
         IceCatLogger $logger,
@@ -105,12 +108,22 @@ class CreateObjectService
         $this->config = Configuration::load();
     }
 
+    public function setExecutionType($executionType)
+    {
+        $this->executionType = $executionType;
+    }
+
     public function setStoreId()
     {
         $db = \Pimcore\Db::get();
         $query = "SELECT id FROM `classificationstore_stores` WHERE `name` = 'icecat-store' ";
         $data = $db->fetchRow($query);
         $this->storeId = $data['id'];
+    }
+
+    protected function setActiveUser()
+    {
+        $this->activeUser = $this->getIcecatLoginUser();
     }
 
     public function updateCurrentProcess($table, $updateArray, $identifierCol, $identifierVal)
@@ -195,6 +208,11 @@ class CreateObjectService
             self::processAssetObjectFolder();
             //setting icecat store id
             $this->setStoreId();
+            $this->setActiveUser();
+
+            if (!$this->activeUser) {
+                throw new \Exception("No active user found");
+            }
 
             $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
             // Updating processing status and Total Records
@@ -297,6 +315,12 @@ class CreateObjectService
 
     public function createIceCatObject($data)
     {
+        $this->setStoreId();
+        $this->setActiveUser();
+
+        if (!$this->activeUser) {
+            throw new \Exception("No active user found");
+        }
         $iceCatClass = '\Pimcore\Model\DataObject\\' . $this->iceCatClass;
         $this->currentProductId = $data['gtin'];
         $this->currentGtin = $data['original_gtin'];
@@ -445,7 +469,8 @@ class CreateObjectService
             }
 
             if (!$this->isFieldUpdatedByUser('BulletPoints', $this->currentLanguage) &&
-                isset($basicInformation['BulletPoints']['Values'])) {
+                isset($basicInformation['BulletPoints']['Values'])
+            ) {
                 $bulletPointsArray = $basicInformation['BulletPoints']['Values'];
                 $bulletHtml = '<ul>';
                 foreach ($bulletPointsArray as $bullet) {
@@ -556,25 +581,25 @@ class CreateObjectService
             $data['Language'] = strtolower($data['Language']);
             $blockData[$data['Language']] = [];
             $blockData[$data['Language']][] = [
-                    //'awardHighPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardHighPic')),
-                    //'awardLogoPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardLogoPic')),
-                    'awardHighPic' => new BlockElement('awardHighPic', 'image', null),
-                    'awardLogoPic' => new BlockElement('awardLogoPic', 'image', null),
-                    'bottomLine' => new BlockElement('bottomLine', 'input', $data['BottomLine'] ?? null),
-                    'code' => new BlockElement('code', 'input', $data['Code'] ?? null),
-                    'dateAdded' => new BlockElement('dateAdded', 'input', $data['DateAdded'] ?? null),
-                    'group' => new BlockElement('group', 'input', $data['Group'] ?? null),
-                    'reviewId' => new BlockElement('reviewId', 'input', $data['ID'] ?? null),
-                    //'logoPic' => $new BlockElement('logoPic', 'image', this->getImageField($data, 'LogoPic')),
-                    'logoPic' =>new BlockElement('logoPic', 'image', null),
-                    'score' => new BlockElement('', 'input', $data['ID']),
-                    'reviewValue' => new BlockElement('reviewValue', 'textarea', $data['Value'] ?? null),
-                    'valueBad' => new BlockElement('valueBad', 'textarea', $data['ValueBad'] ?? null),
-                    'valueGood' => new BlockElement('valueGood', 'textarea', $data['ValueGood'] ?? null),
-                    'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID']?? null),
-                    'url' => new BlockElement('url', 'input', $data['URL'] ?? null),
-                    'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
-                ];
+                //'awardHighPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardHighPic')),
+                //'awardLogoPic' => new BlockElement('awardHighPic', 'image', $this->getImageField($data, 'AwardLogoPic')),
+                'awardHighPic' => new BlockElement('awardHighPic', 'image', null),
+                'awardLogoPic' => new BlockElement('awardLogoPic', 'image', null),
+                'bottomLine' => new BlockElement('bottomLine', 'input', $data['BottomLine'] ?? null),
+                'code' => new BlockElement('code', 'input', $data['Code'] ?? null),
+                'dateAdded' => new BlockElement('dateAdded', 'input', $data['DateAdded'] ?? null),
+                'group' => new BlockElement('group', 'input', $data['Group'] ?? null),
+                'reviewId' => new BlockElement('reviewId', 'input', $data['ID'] ?? null),
+                //'logoPic' => $new BlockElement('logoPic', 'image', this->getImageField($data, 'LogoPic')),
+                'logoPic' => new BlockElement('logoPic', 'image', null),
+                'score' => new BlockElement('', 'input', $data['ID']),
+                'reviewValue' => new BlockElement('reviewValue', 'textarea', $data['Value'] ?? null),
+                'valueBad' => new BlockElement('valueBad', 'textarea', $data['ValueBad'] ?? null),
+                'valueGood' => new BlockElement('valueGood', 'textarea', $data['ValueGood'] ?? null),
+                'icecatID' => new BlockElement('icecatID', 'input', $data['IcecatID'] ?? null),
+                'url' => new BlockElement('url', 'input', $data['URL'] ?? null),
+                'updated' => new BlockElement('updated', 'input', $data['Updated'] ?? null),
+            ];
         }
 
         foreach ($blockData as $language => $data) {
@@ -597,18 +622,24 @@ class CreateObjectService
 
 
             $html = "";
-            if ($data['URL'] != "") {
-                $pathinfo = pathinfo($data['URL']);
-                $html = file_get_contents($data['URL']);
-                $html = preg_replace("/src=\"/", 'src="'.$pathinfo['dirname'].'/', $html);
-                $html = preg_replace("/href=\"/", 'href="'.$pathinfo['dirname'].'/', $html);
-            }
+            try {
+                if ($data['URL'] != "") {
+                    $pathinfo = pathinfo($data['URL']);
+                    $html = file_get_contents($data['URL'] . '?content_token=' . $this->activeUser['content_token']);
+                    $html = preg_replace("/src=\"/", 'src="' . $pathinfo['dirname'] . '/', $html);
+                    $html = preg_replace("/href=\"/", 'href="' . $pathinfo['dirname'] . '/', $html);
+                }
 
-            $blockData[$data['Language']] = [];
-            $blockData[$data['Language']][] = [
-                'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null),
-                'preview' => new BlockElement('preview', 'wysiwyg', $html ?? null)
-            ];
+                $blockData[$data['Language']] = [];
+                $blockData[$data['Language']][] = [
+                    'productStory' => new BlockElement('productStory', 'input', $data['URL'] ?? null),
+                    'preview' => new BlockElement('preview', 'wysiwyg', $html ?? null)
+                ];
+            } catch (\Exception $ex) {
+                if ($this->executionType === "command") {
+                    \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: ProductStory");
+                }
+            }
         }
 
         foreach ($blockData as $language => $data) {
@@ -632,7 +663,7 @@ class CreateObjectService
             $categoryObject = \Pimcore\Model\DataObject\IcecatCategory::getByIcecat_id($categoryId, true);
             if (!$categoryObject) {
                 $categoryObject = new \Pimcore\Model\DataObject\IcecatCategory();
-                $categoryObject->setParent(\Pimcore\Model\DataObject\Service::createFolderByPath('/'.self::CAT_DATAOBJECT_FOLDER));
+                $categoryObject->setParent(\Pimcore\Model\DataObject\Service::createFolderByPath('/' . self::CAT_DATAOBJECT_FOLDER));
                 $categoryObject->setKey($categoryId);
                 $categoryObject->setIcecat_id($categoryId);
                 $categoryObject->setPublished(true);
@@ -717,7 +748,7 @@ class CreateObjectService
                     "&Language=" . $this->currentLanguage .
                     "&Brand=" . $data['Brand'] .
                     "&ProductCode=" . $data['ProductCode'];
-                $completeData = json_decode($this->importService->fetchIceCatData($url), true);
+                $completeData = json_decode($this->importService->fetchIceCatData($url, $this->activeUser["icecat_user_id"]), true);
                 if (array_key_exists('statusCode', $completeData)) {
                 } elseif (array_key_exists('COULD_NOT_RESOLVE_HOST', $completeData)) {
                 } elseif (array_key_exists('msg', $completeData) && $completeData['msg'] == 'OK') {
@@ -769,24 +800,30 @@ class CreateObjectService
                 }
                 // Setting assets from link
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
-                if (!empty($asset)) {
-                    $asset->setData(file_get_contents($link));
-                    $asset->save();
-                    $assetArray[$counter]['object'] = $asset;
-                    $assetArray[$counter]['description'] = $media['Description'];
-                    $assetArray[$counter]['contentType'] = $media['ContentType'];
-                } else {
-                    $newAsset = new \Pimcore\Model\Asset();
-                    $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($link));
-                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                    $newAsset->save();
 
-                    $assetArray[$counter]['object'] = $newAsset;
-                    $assetArray[$counter]['description'] = $media['Description'];
-                    $assetArray[$counter]['contentType'] = $media['ContentType'];
+                try {
+                    if (!empty($asset)) {
+                        $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                        $asset->save();
+                        $assetArray[$counter]['object'] = $asset;
+                        $assetArray[$counter]['description'] = $media['Description'];
+                        $assetArray[$counter]['contentType'] = $media['ContentType'];
+                    } else {
+                        $newAsset = new \Pimcore\Model\Asset();
+                        $newAsset->setFilename("$fileName");
+                        $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                        $newAsset->save();
+
+                        $assetArray[$counter]['object'] = $newAsset;
+                        $assetArray[$counter]['description'] = $media['Description'];
+                        $assetArray[$counter]['contentType'] = $media['ContentType'];
+                    }
+                } catch (\Exception $ex) {
+                    if ($this->executionType === "command") {
+                        \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: MultiMedia");
+                    }
                 }
-
                 $counter++;
             }
             //Setting relation with meta data
@@ -891,13 +928,13 @@ class CreateObjectService
                 // Setting assets from link
                 $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
                 if (!empty($asset)) {
-                    $asset->setData(file_get_contents($brandLogoUrl));
+                    $asset->setData(file_get_contents($brandLogoUrl . '?content_token=' . $this->activeUser['content_token']));
                     $asset->save();
                     $asset = $asset;
                 } else {
                     $newAsset = new \Pimcore\Model\Asset\Image();
                     $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($brandLogoUrl));
+                    $newAsset->setData(file_get_contents($brandLogoUrl . '?content_token=' . $this->activeUser['content_token']));
                     $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                     $newAsset->save();
                     $asset = $newAsset;
@@ -908,6 +945,9 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING BRAND LOGO  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+            if ($this->executionType === "command") {
+                \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Brand Logo");
+            }
         }
     }
 
@@ -922,7 +962,7 @@ class CreateObjectService
             if (empty($data[$fieldName])) {
                 return null;
             }
-            $this->logMessage = 'SETTING ' . $fieldName .'  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
+            $this->logMessage = 'SETTING ' . $fieldName . '  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId;
             $this->logger->addLog('create-object', $this->logMessage, '', 'INFO');
 
             $fieldUrl = $data[$fieldName];
@@ -937,12 +977,12 @@ class CreateObjectService
             // Setting assets from link
             $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
             if (!empty($asset)) {
-                $asset->setData(file_get_contents($fieldUrl));
+                $asset->setData(file_get_contents($fieldUrl . '?content_token=' . $this->activeUser['content_token']));
                 $asset->save();
             } else {
                 $asset = new \Pimcore\Model\Asset\Image();
                 $asset->setFilename("$fileName");
-                $asset->setData(file_get_contents($fieldUrl));
+                $asset->setData(file_get_contents($fieldUrl . '?content_token=' . $this->activeUser['content_token']));
                 $asset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                 $asset->save();
             }
@@ -951,6 +991,9 @@ class CreateObjectService
             $this->processingError[] = $e->getMessage();
             $this->logMessage = 'ERROR IN SETTING  ' . $fieldName .  '  FOR JOB ID :' . $this->jobId . 'AND PRODUCT ID :' . $this->currentProductId . '-' . $e->getMessage();
             $this->logger->addLog('create-object', $this->logMessage, $e->getTraceAsString(), 'ERROR');
+            if ($this->executionType === "command") {
+                \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Reason To Buy");
+            }
             return null;
         }
     }
@@ -970,7 +1013,7 @@ class CreateObjectService
                             $reasonsHtml .= ' <div class="col-md-4 col-sm-4 col-xs-4 "><img class = "image-left"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /></div>';
                             $flag = 'RIGHT';
                         else :
-                                    $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
+                            $reasonsHtml .= '<div class = "col-md-4 col-sm-4 col-xs-4 ">  <img class = "image-right"  alt="IMAGE-NOT-AVAILABLE" src="' . $reasons['HighPic'] . '" /> </div>';
                             $reasonsHtml .= '<div class="col-md-8 col-sm-8 col-xs-8 "><h5><b>' . $reasons['Title'] . '</b></h5>';
                             $reasonsHtml .= '<span>' . $reasons['Value'] . '</span></div>';
 
@@ -1011,7 +1054,7 @@ class CreateObjectService
                 if (!empty($arrayHavingVideo)) {
                     $videosArr = [];
                     foreach ($arrayHavingVideo as $videos) {
-//                    $videos = $arrayHavingVideo[0];
+                        //                    $videos = $arrayHavingVideo[0];
 
                         $videoLink = $videos['URL'];
 
@@ -1031,11 +1074,14 @@ class CreateObjectService
                             try {
                                 $newAsset = new \Pimcore\Model\Asset();
                                 $newAsset->setFilename(uniqid() . '.' . $extension);
-                                $newAsset->setData(file_get_contents($videos['URL']));
+                                $newAsset->setData(file_get_contents($videos['URL'] . '?content_token=' . $this->activeUser['content_token']));
                                 $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
                                 $newAsset->save();
                                 $videosArr[] = $newAsset;
                             } catch (\Exception $ex) {
+                                if ($this->executionType === "command") {
+                                    \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$ex->getMessage()} FIELD: Videos");
+                                }
                                 $this->csvLogMessage[] = 'ERROR IN VIDEO creation :' . $ex->getMessage();
                             }
                         }
@@ -1086,21 +1132,29 @@ class CreateObjectService
                         } catch (\Exception $e) {
                             $fileName = uniqid();
                         }
+
                         // Setting assets from link
-                        $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
-                        if (!empty($asset)) {
-                            $asset->setData(file_get_contents($link));
-                            $asset->save();
-                            $assetArray[] = $asset;
-                        } else {
-                            $newAsset = new \Pimcore\Model\Asset\Image();
-                            $newAsset->setFilename("$fileName");
-                            $newAsset->setData(file_get_contents($link));
-                            $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                            $newAsset->save();
-                            $assetArray[] = $newAsset;
+                        try {
+                            $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+                            if (!empty($asset)) {
+                                $asset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                                $asset->save();
+                                $assetArray[] = $asset;
+                            } else {
+                                $newAsset = new \Pimcore\Model\Asset\Image();
+                                $newAsset->setFilename("$fileName");
+                                $newAsset->setData(file_get_contents($link . '?content_token=' . $this->activeUser['content_token']));
+                                $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                                $newAsset->save();
+                                $assetArray[] = $newAsset;
+                            }
+                        } catch (\Exception $e) {
+                            if ($this->executionType === "command") {
+                                \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: 3D Tour");
+                            }
                         }
                     }
+
                     // Setting images for Tour (Tour)
                     if (!empty($assetArray)) {
                         $items = [];
@@ -1135,19 +1189,25 @@ class CreateObjectService
                 $fileName = $galleryImages['ID'];
                 $imageUrl = $galleryImages['Pic'];
 
-                $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
+                try {
+                    $asset = \Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER . "/$fileName");
 
-                if (!empty($asset)) {
-                    $asset->setData(file_get_contents($imageUrl));
-                    $asset->save();
-                    $assetArray[] = $asset;
-                } else {
-                    $newAsset = new \Pimcore\Model\Asset\Image();
-                    $newAsset->setFilename("$fileName");
-                    $newAsset->setData(file_get_contents($imageUrl));
-                    $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
-                    $newAsset->save();
-                    $assetArray[] = $newAsset;
+                    if (!empty($asset)) {
+                        $asset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
+                        $asset->save();
+                        $assetArray[] = $asset;
+                    } else {
+                        $newAsset = new \Pimcore\Model\Asset\Image();
+                        $newAsset->setFilename("$fileName");
+                        $newAsset->setData(file_get_contents($imageUrl . '?content_token=' . $this->activeUser['content_token']));
+                        $newAsset->setParent(\Pimcore\Model\Asset::getByPath('/' . self::ASSET_FOLDER));
+                        $newAsset->save();
+                        $assetArray[] = $newAsset;
+                    }
+                } catch (\Exception $e) {
+                    if ($this->executionType === "command") {
+                        \Pimcore\Log\Simple::log(RecurringImportCommand::LOG_FILENAME, "ERROR: {$e->getMessage()} FIELD: Gallery");
+                    }
                 }
             }
             if (!empty($assetArray)) {
@@ -1205,7 +1265,7 @@ class CreateObjectService
                                 continue;
                             }
 
-                            $keyOb = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId);
+                            $keyOb = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId, true);
                             if (empty($keyOb)) {
                                 $this->createStoreKey($features);
                             } else {
@@ -1305,7 +1365,7 @@ class CreateObjectService
             //Adding group to  collection
             $this->setCollectionGroupLink($groupId, $collectionId);
 
-            \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
+            # \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
             $keyConfig = new \Pimcore\Model\DataObject\Classificationstore\KeyConfig();
             $keyConfig->setName($keyName . $dataType);
 
@@ -1358,8 +1418,8 @@ class CreateObjectService
             $definition = new $className();
             $definition->setName($keyName);
 
-            \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
-            $keyConfig = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId);
+            # \Pimcore\Model\DataObject\Classificationstore\KeyConfig::setCacheEnabled(false);
+            $keyConfig = \Pimcore\Model\DataObject\Classificationstore\KeyConfig::getByName($keyName . $dataType, $this->storeId, true);
 
             $previousDefiniton = json_decode($keyConfig->getDefinition(), true);
 
@@ -1437,7 +1497,7 @@ class CreateObjectService
             $this->keyId = $keyConfig->getId();
             $this->valueToBeInsert = $value;
 
-            $groupObject = \Pimcore\Model\DataObject\Classificationstore\GroupConfig::getByName($keyName . $dataType . 'Group', $this->storeId);
+            $groupObject = \Pimcore\Model\DataObject\Classificationstore\GroupConfig::getByName($keyName . $dataType . 'Group', $this->storeId, true);
             $this->groupId = $groupObject->getId();
         } catch (\Exception $e) {
             $this->processingError[] = $e->getMessage();

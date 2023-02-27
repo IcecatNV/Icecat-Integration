@@ -51,8 +51,8 @@ class InstallClass extends SettingsStoreAwareInstaller
         $this->removeTables();
         $this->removeClassificationStore();
 
-        if (is_readable(Configuration::CONFIG_PATH.'/config.yaml')) {
-            @unlink(Configuration::CONFIG_PATH.'/config.yaml');
+        if (is_readable(Configuration::CONFIG_PATH . '/config.yaml')) {
+            @unlink(Configuration::CONFIG_PATH . '/config.yaml');
         }
 
         parent::uninstall();
@@ -218,15 +218,21 @@ class InstallClass extends SettingsStoreAwareInstaller
 
         $db->query(
             'DROP TABLE IF EXISTS `icecat_user_login`;
-                CREATE TABLE `icecat_user_login` (
-                `id` int(5) NOT NULL AUTO_INCREMENT,
-                `icecat_user_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-                `pim_user_id` int(5) NOT NULL,
-                `login_status` int(2) DEFAULT 1,
-                `lastactivity_time` datetime DEFAULT NULL,
-                `creation_time` datetime DEFAULT NULL,
-                PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
+            CREATE TABLE `icecat_user_login` (
+              `id` int(5) NOT NULL AUTO_INCREMENT,
+              `icecat_user_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `icecat_password` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `pim_user_id` int(5) NOT NULL,
+              `session_id` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `access_token` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `content_token` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `app_key` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `subscription_level` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `login_status` int(2) DEFAULT 1,
+              `lastactivity_time` datetime DEFAULT NULL,
+              `creation_time` datetime DEFAULT NULL,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
         );
 
         $db->query(
@@ -235,16 +241,16 @@ class InstallClass extends SettingsStoreAwareInstaller
                 `id` int NOT NULL AUTO_INCREMENT,
                 `start_datetime` int NOT NULL,
                 `end_datetime` int NOT NULL,
-                `status` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+                `status` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
                 `total_records` int NOT NULL,
                 `processed_records` int NOT NULL,
                 `success_records` int NOT NULL,
                 `error_records` int NOT NULL,
                 `not_found_records` int NOT NULL,
                 `forbidden_records` int NOT NULL,
-                `execution_type` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+                `execution_type` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
                 PRIMARY KEY (`id`)
-              ) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin'
+              ) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
         );
     }
 
@@ -401,6 +407,6 @@ class InstallClass extends SettingsStoreAwareInstaller
      */
     public function getLastMigrationVersionClassName(): ?string
     {
-        return Version20220907152904::class;
+        return Version20220907163548::class;
     }
 }
