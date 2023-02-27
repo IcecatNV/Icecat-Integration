@@ -19,8 +19,8 @@ To install this plugin use following commands:
 - Provide Products preview.
 
 **New features in v4.0.0**
+- Upgrade to Pimcore version 10.5.*
 - An Open-Source MIT licensed under Icecat NV
-- Upgrade to Pimcore version 10.5.16
 - Unlock the Full Icecat users
 
 [Click here to see full details for v4.0.0](./doc/plugin_v4.md)

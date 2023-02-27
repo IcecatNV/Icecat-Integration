@@ -1,6 +1,6 @@
 ## Icecat plugin v4.0.0
 
-The v4.0.0 addon version is compatible with Pimcore version greater than or equal to 10.5
+The v4.0.0 plugin version is compatible with Pimcore version 10.5.* or greater versions.
 
 **Install latest version**
 
